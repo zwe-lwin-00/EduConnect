@@ -4,8 +4,8 @@ namespace EduConnect.Application.Features.Attendance.Interfaces;
 
 public interface IAttendanceService : IService
 {
-    Task<int> CheckInAsync(int contractId);
-    Task<bool> CheckOutAsync(int sessionId, string lessonNotes);
+    Task<int> CheckInAsync(int teacherId, int contractId);
+    Task<bool> CheckOutAsync(int teacherId, int attendanceLogId, string lessonNotes);
     Task<AttendanceSessionDto> GetSessionByIdAsync(int sessionId);
     Task<List<AttendanceSessionDto>> GetSessionsByContractAsync(int contractId);
 }

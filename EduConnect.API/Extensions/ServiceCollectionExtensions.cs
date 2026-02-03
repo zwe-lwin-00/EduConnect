@@ -12,16 +12,10 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Register application services
         services.AddScoped<EduConnect.Application.Features.Admin.Interfaces.IAdminService, EduConnect.Infrastructure.Services.AdminService>();
         services.AddScoped<EduConnect.Application.Features.Auth.Interfaces.IAuthService, EduConnect.Infrastructure.Services.AuthService>();
-        
-        // TODO: Register other services when implemented
-        // services.AddScoped<ITeacherService, TeacherService>();
-        // services.AddScoped<IStudentService, StudentService>();
-        // services.AddScoped<IContractService, ContractService>();
-        // services.AddScoped<IAttendanceService, AttendanceService>();
-        
+        services.AddScoped<ITeacherService, EduConnect.Infrastructure.Services.TeacherService>();
+        services.AddScoped<IAttendanceService, EduConnect.Infrastructure.Services.AttendanceService>();
         return services;
     }
 
