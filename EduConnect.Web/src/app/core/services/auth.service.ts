@@ -48,6 +48,24 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<{ success: boolean; message: string }> {
+    const url = `${this.apiUrl}${API_ENDPOINTS.AUTH.CHANGE_PASSWORD}`;
+    return this.http.post<{ success: boolean; message: string }>(url, {
+      currentPassword,
+      newPassword
+    });
+  }
+
+  /** Call after successful change-password so user is not sent back to change-password. */
+  setMustChangePasswordFalse(): void {
+    const user = this.currentUser();
+    if (user) {
+      const updated = { ...user, mustChangePassword: false };
+      this.currentUser.set(updated);
+      localStorage.setItem(this.USER_KEY, JSON.stringify(updated));
+    }
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken() && !this.isTokenExpired();
   }
