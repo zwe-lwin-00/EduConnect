@@ -37,8 +37,8 @@ public class AdminController : BaseController
         try
         {
             var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
-            var userId = await _adminService.OnboardTeacherAsync(request, adminUserId);
-            return Ok(new { userId, message = "Teacher onboarded successfully" });
+            var response = await _adminService.OnboardTeacherAsync(request, adminUserId);
+            return Ok(new { userId = response.UserId, temporaryPassword = response.TemporaryPassword, message = "Teacher onboarded successfully. Share the temporary password with the teacher; they must change it on first login." });
         }
         catch (Exception ex)
         {

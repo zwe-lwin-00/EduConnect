@@ -32,7 +32,7 @@ export class AdminService {
     return this.apiService.get<DashboardDto>(API_ENDPOINTS.ADMIN.DASHBOARD);
   }
 
-  onboardTeacher(request: OnboardTeacherRequest): Observable<{ userId: string; message: string }> {
+  onboardTeacher(request: OnboardTeacherRequest): Observable<{ userId: string; temporaryPassword: string; message: string }> {
     return this.apiService.post(API_ENDPOINTS.ADMIN.ONBOARD_TEACHER, request);
   }
 

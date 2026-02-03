@@ -10,7 +10,7 @@ public interface IAdminService : IService
     Task<DashboardDto> GetDashboardAsync();
 
     // Teachers — Master Doc B2
-    Task<string> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId);
+    Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId);
     Task<bool> VerifyTeacherAsync(int teacherId);
     Task<bool> RejectTeacherAsync(int teacherId, string reason);
     Task<bool> SetTeacherActiveAsync(int teacherId, bool isActive);

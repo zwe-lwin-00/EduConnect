@@ -31,7 +31,7 @@ public class AdminService : IAdminService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<string> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId)
+    public async Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId)
     {
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -54,9 +54,9 @@ public class AdminService : IAdminService
             CreatedAt = DateTime.UtcNow
         };
 
-        // Generate random password
-        var password = GenerateRandomPassword();
-        var result = await _userManager.CreateAsync(user, password);
+        // Generate random password - returned so admin can share with teacher (one-time only)
+        var temporaryPassword = GenerateRandomPassword();
+        var result = await _userManager.CreateAsync(user, temporaryPassword);
 
         if (!result.Succeeded)
         {
@@ -84,7 +84,11 @@ public class AdminService : IAdminService
         _context.TeacherProfiles.Add(teacherProfile);
         await _unitOfWork.SaveChangesAsync();
 
-        return user.Id;
+        return new OnboardTeacherResponse
+        {
+            UserId = user.Id,
+            TemporaryPassword = temporaryPassword
+        };
     }
 
     public async Task<bool> VerifyTeacherAsync(int teacherId)

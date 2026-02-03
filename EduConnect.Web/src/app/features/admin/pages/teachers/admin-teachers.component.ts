@@ -117,10 +117,11 @@ export class AdminTeachersComponent implements OnInit {
     if (this.onboardForm.valid) {
       const request: OnboardTeacherRequest = this.onboardForm.value;
       this.adminService.onboardTeacher(request).subscribe({
-        next: () => {
-          alert('Teacher onboarded successfully!');
+        next: (response) => {
           this.closeOnboardPopup();
           this.loadTeachers();
+          const msg = `Teacher onboarded successfully.\n\nShare these credentials with the teacher:\n\nEmail: ${request.email}\nTemporary password: ${response.temporaryPassword}\n\nThe teacher must change the password on first login.`;
+          alert(msg);
         },
         error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
