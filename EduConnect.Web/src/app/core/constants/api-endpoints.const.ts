@@ -42,6 +42,10 @@ export const API_ENDPOINTS = {
     CHECK_IN: '/teacher/check-in',
     CHECK_OUT: '/teacher/check-out'
   },
+  PARENT: {
+    MY_STUDENTS: '/parent/my-students',
+    STUDENT_LEARNING_OVERVIEW: (studentId: number) => `/parent/my-students/${studentId}/learning-overview`
+  },
   STUDENT: {
     LIST: '/student',
     BY_PARENT: '/student/by-parent',

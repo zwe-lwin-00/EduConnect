@@ -1,0 +1,12 @@
+.parent-dashboard { max-width: 900px; margin: 0 auto; }
+.page-title { margin: 0 0 4px 0; color: #1565c0; font-size: 1.5rem; }
+.page-desc { margin: 0 0 20px 0; color: #666; font-size: 0.9rem; }
+.loading, .error { padding: 20px; }
+.error { color: #c62828; background: #ffebee; border-radius: 4px; }
+.empty { padding: 24px; color: #666; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; }
+.student-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.student-card { background: #fff; border-radius: 8px; padding: 20px; border: 1px solid #e0e0e0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.student-name { font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 8px; }
+.student-meta { font-size: 0.9rem; color: #666; margin-bottom: 4px; }
+.link-overview { display: inline-block; margin-top: 12px; font-size: 0.9rem; color: #1565c0; text-decoration: none; }
+.link-overview:hover { text-decoration: underline; }

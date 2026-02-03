@@ -1,0 +1,16 @@
+<div class="parent-layout">
+  <header class="parent-header">
+    <div class="brand">
+      <a routerLink="/parent">EduConnect Parent</a>
+    </div>
+    <nav class="nav-links">
+      <a routerLink="/parent" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My Students</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="btn-logout" (click)="logout()">Logout</button>
+    </div>
+  </header>
+  <main class="parent-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

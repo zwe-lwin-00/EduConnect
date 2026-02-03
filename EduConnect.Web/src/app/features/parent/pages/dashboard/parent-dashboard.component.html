@@ -1,0 +1,21 @@
+<div class="parent-dashboard">
+  <h1 class="page-title">My Students</h1>
+  <p class="page-desc">Phase 1 (MVP): Students do not have login. All data is viewed via your Parent account. Master Doc 11C.</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error">
+    <div *ngIf="students.length === 0" class="empty">
+      No students linked to your account. Contact Admin to add students (grade P1–P4).
+    </div>
+    <div class="student-cards" *ngIf="students.length > 0">
+      <div *ngFor="let s of students" class="student-card">
+        <div class="student-name">{{ s.firstName }} {{ s.lastName }}</div>
+        <div class="student-meta">Grade {{ s.gradeLevel }} · {{ s.totalRemainingHours }} hrs remaining</div>
+        <div class="student-meta" *ngIf="s.assignedTeacherName">Teacher: {{ s.assignedTeacherName }}</div>
+        <a [routerLink]="['/parent/student', s.id]" class="link-overview">View learning overview →</a>
+      </div>
+    </div>
+  </ng-container>
+</div>

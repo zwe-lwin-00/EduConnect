@@ -1,0 +1,61 @@
+<div class="parent-student-learning">
+  <a routerLink="/parent" class="back-link">← Back to My Students</a>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ng-container *ngIf="overview && !loading && !error">
+    <h1 class="page-title">{{ overview.studentName }}</h1>
+    <p class="page-desc">Learning overview (read-only). Grade {{ overview.gradeLevel }}. Master Doc 11C C1.</p>
+
+    <section class="section">
+      <h2>Assigned teacher(s)</h2>
+      <div *ngIf="overview.assignedTeachers.length === 0" class="empty">No active contract.</div>
+      <ul class="list" *ngIf="overview.assignedTeachers.length > 0">
+        <li *ngFor="let t of overview.assignedTeachers">
+          {{ t.teacherName }} – {{ t.contractIdDisplay }} ({{ t.remainingHours }} hrs remaining)
+        </li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Subjects</h2>
+      <p class="value">{{ overview.subjects || '—' }}</p>
+    </section>
+
+    <section class="section">
+      <h2>Remaining hours</h2>
+      <p class="value">{{ overview.totalRemainingHours }} hours</p>
+    </section>
+
+    <section class="section">
+      <h2>Upcoming sessions</h2>
+      <p class="hint">Contracts with remaining hours (teacher delivers sessions; Admin confirms).</p>
+      <div *ngIf="overview.upcomingSessions.length === 0" class="empty">None.</div>
+      <ul class="list" *ngIf="overview.upcomingSessions.length > 0">
+        <li *ngFor="let u of overview.upcomingSessions">
+          {{ u.teacherName }} – {{ u.contractIdDisplay }} ({{ u.remainingHours }} hrs)
+        </li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Completed sessions</h2>
+      <p class="hint">Past sessions with lesson notes and progress (read-only).</p>
+      <div *ngIf="overview.completedSessions.length === 0" class="empty">No completed sessions yet.</div>
+      <div *ngFor="let c of overview.completedSessions" class="session-card">
+        <div class="session-header">
+          {{ c.teacherName }} · {{ c.checkInTime | date:'short' }}
+          <span *ngIf="c.checkOutTime"> – {{ c.checkOutTime | date:'short' }}</span>
+          · {{ c.hoursUsed | number:'1.1-1' }} hrs
+        </div>
+        <div class="session-notes" *ngIf="c.lessonNotes">
+          <strong>Lesson notes:</strong> {{ c.lessonNotes }}
+        </div>
+        <div class="session-progress" *ngIf="c.progressReport">
+          <strong>Progress:</strong> {{ c.progressReport }}
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

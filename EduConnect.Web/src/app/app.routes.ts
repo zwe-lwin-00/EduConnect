@@ -18,8 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'parent',
-    loadComponent: () => import('./features/parent/pages/dashboard/parent-dashboard.component').then(m => m.ParentDashboardComponent),
-    canActivate: [authGuard, roleGuard([UserRole.Parent])]
+    loadChildren: () => import('./features/parent/parent.routes').then(m => m.PARENT_ROUTES)
   },
   {
     path: 'dashboard',
