@@ -8,11 +8,14 @@ export const roleGuard = (allowedRoles: UserRole[]): CanActivateFn => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
-    if (authService.isAuthenticated() && authService.hasRole(allowedRoles)) {
+    if (!authService.isAuthenticated()) {
+      router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
+      return false;
+    }
+    if (authService.hasRole(allowedRoles)) {
       return true;
     }
-
-    router.navigate(['/unauthorized']);
+    router.navigate(['/auth/login'], { queryParams: { unauthorized: '1' } });
     return false;
   };
 };
