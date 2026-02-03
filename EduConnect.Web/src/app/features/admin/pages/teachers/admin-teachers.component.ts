@@ -28,6 +28,10 @@ export class AdminTeachersComponent implements OnInit {
   editingTeacherId: number | null = null;
   selectedTeacher: Teacher | null = null;
   showTeacherDetails = false;
+  showCredentialsPopup = false;
+  credentialsEmail = '';
+  credentialsPassword = '';
+  copyFeedback = '';
 
   constructor(
     private adminService: AdminService,
@@ -120,12 +124,52 @@ export class AdminTeachersComponent implements OnInit {
         next: (response) => {
           this.closeOnboardPopup();
           this.loadTeachers();
-          const msg = `Teacher onboarded successfully.\n\nShare these credentials with the teacher:\n\nEmail: ${request.email}\nTemporary password: ${response.temporaryPassword}\n\nThe teacher must change the password on first login.`;
-          alert(msg);
+          this.credentialsEmail = request.email;
+          this.credentialsPassword = response.temporaryPassword;
+          this.copyFeedback = '';
+          this.showCredentialsPopup = true;
         },
         error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
+  }
+
+  closeCredentialsPopup(): void {
+    this.showCredentialsPopup = false;
+    this.credentialsEmail = '';
+    this.credentialsPassword = '';
+    this.copyFeedback = '';
+  }
+
+  copyCredentialsToClipboard(): void {
+    const text = `Email: ${this.credentialsEmail}\nTemporary password: ${this.credentialsPassword}\n\nThe teacher must change the password on first login.`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.copyFeedback = 'Copied to clipboard!';
+        setTimeout(() => (this.copyFeedback = ''), 2000);
+      }).catch(() => {
+        this.fallbackCopyToClipboard(text);
+      });
+    } else {
+      this.fallbackCopyToClipboard(text);
+    }
+  }
+
+  private fallbackCopyToClipboard(text: string): void {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      this.copyFeedback = 'Copied to clipboard!';
+      setTimeout(() => (this.copyFeedback = ''), 2000);
+    } catch {
+      this.copyFeedback = 'Select and copy manually';
+    }
+    document.body.removeChild(ta);
   }
 
   onVerifyTeacher(teacher: Teacher): void {

@@ -9,6 +9,11 @@
 .detail-row { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
 .detail-row strong { display: inline-block; min-width: 120px; color: #555; }
 .detail-actions { margin-top: 20px; }
+.credentials-panel { padding: 20px; }
+.credentials-note { margin: 0 0 16px; color: #555; font-size: 0.9rem; }
+.credentials-field { background: #f8f9fa; cursor: text; }
+.credentials-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.copy-feedback { color: #4caf50; font-size: 0.9rem; }
 .status-pending { color: #ff9800; font-weight: bold; }
 .status-verified { color: #4caf50; font-weight: bold; }
 .status-rejected { color: #f44336; font-weight: bold; }

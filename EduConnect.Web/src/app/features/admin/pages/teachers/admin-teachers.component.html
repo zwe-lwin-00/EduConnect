@@ -58,6 +58,36 @@
   </dx-popup>
 
   <dx-popup
+    [(visible)]="showCredentialsPopup"
+    [showTitle]="true"
+    title="Share credentials with teacher"
+    [width]="500"
+    [height]="320"
+    [showCloseButton]="true"
+    (onHiding)="closeCredentialsPopup()">
+    <div *dxTemplate="let data of 'content'">
+      <div class="credentials-panel">
+        <p class="credentials-note">Share these with the teacher. They must change the password on first login.</p>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="text" [value]="credentialsEmail" readonly class="form-control credentials-field" #emailInput (click)="emailInput.select()" />
+        </div>
+        <div class="form-group">
+          <label>Temporary password</label>
+          <input type="text" [value]="credentialsPassword" readonly class="form-control credentials-field" #pwdInput (click)="pwdInput.select()" />
+        </div>
+        <div class="credentials-actions">
+          <dx-button text="Copy to clipboard" type="success" (onClick)="copyCredentialsToClipboard()" [icon]="'copy'"></dx-button>
+          <span class="copy-feedback" *ngIf="copyFeedback">{{ copyFeedback }}</span>
+        </div>
+        <div class="form-actions" style="margin-top: 1rem;">
+          <dx-button text="Done" type="default" (onClick)="closeCredentialsPopup()"></dx-button>
+        </div>
+      </div>
+    </div>
+  </dx-popup>
+
+  <dx-popup
     [(visible)]="showEditPopup"
     [showTitle]="true"
     title="Edit Teacher"
