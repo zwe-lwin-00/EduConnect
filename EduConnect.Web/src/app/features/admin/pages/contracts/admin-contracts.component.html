@@ -1,0 +1,61 @@
+<div class="admin-contracts">
+  <div class="page-header">
+    <h1>Contract & Rental Control</h1>
+    <dx-button text="New Contract" type="success" (onClick)="openCreatePopup()" [icon]="'plus'"></dx-button>
+  </div>
+
+  <dx-data-grid
+    [dataSource]="contracts"
+    [allowColumnReordering]="true"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="true"
+    [showBorders]="true">
+    <dxi-column dataField="contractId" caption="Contract ID"></dxi-column>
+    <dxi-column dataField="teacherName" caption="Teacher"></dxi-column>
+    <dxi-column dataField="studentName" caption="Student"></dxi-column>
+    <dxi-column dataField="packageHours" caption="Package" dataType="number"></dxi-column>
+    <dxi-column dataField="remainingHours" caption="Remaining" dataType="number"></dxi-column>
+    <dxi-column dataField="status" caption="Status" [cellTemplate]="'statusTemplate'"></dxi-column>
+    <dxi-column dataField="startDate" caption="Start" dataType="date" format="shortDate"></dxi-column>
+    <dxi-column dataField="endDate" caption="End" dataType="date" format="shortDate"></dxi-column>
+    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="100"></dxi-column>
+    <div *dxTemplate="let data of 'statusTemplate'">{{ statusName(data.data.status) }}</div>
+    <div *dxTemplate="let data of 'actionsTemplate'">
+      <dx-button *ngIf="data.data.status === 1" text="Cancel" type="danger" stylingMode="outlined" (onClick)="cancelContract(data.data)"></dx-button>
+    </div>
+  </dx-data-grid>
+
+  <dx-popup
+    [(visible)]="showCreatePopup"
+    [showTitle]="true"
+    title="New Contract"
+    [width]="500"
+    [showCloseButton]="true"
+    (onHiding)="closeCreatePopup()">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="form-panel">
+        <div class="form-group">
+          <label>Teacher *</label>
+          <select formControlName="teacherId" class="form-control">
+            <option [ngValue]="null">-- Select Teacher --</option>
+            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Student *</label>
+          <select formControlName="studentId" class="form-control">
+            <option [ngValue]="null">-- Select Student --</option>
+            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }} ({{ s.gradeLevelName }})</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Package Hours *</label><input type="number" formControlName="packageHours" class="form-control" min="1" /></div>
+        <div class="form-group"><label>Start Date *</label><input type="date" formControlName="startDate" class="form-control" /></div>
+        <div class="form-group"><label>End Date (optional)</label><input type="date" formControlName="endDate" class="form-control" /></div>
+        <div class="form-actions">
+          <dx-button text="Cancel" type="normal" (onClick)="closeCreatePopup()"></dx-button>
+          <dx-button text="Create Contract" type="success" (onClick)="onSubmitCreate()" [disabled]="!createForm.valid"></dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+</div>

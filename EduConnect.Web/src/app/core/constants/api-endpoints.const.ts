@@ -6,11 +6,31 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: '/auth/change-password'
   },
   ADMIN: {
+    DASHBOARD: '/admin/dashboard',
     ONBOARD_TEACHER: '/admin/onboard-teacher',
     TEACHERS: '/admin/teachers',
+    TEACHER_ACTIVATE: (id: number) => `/admin/teachers/${id}/activate`,
+    TEACHER_SUSPEND: (id: number) => `/admin/teachers/${id}/activate`,
     PARENTS: '/admin/parents',
-    VERIFY_TEACHER: '/admin/verify-teacher',
-    REJECT_TEACHER: '/admin/reject-teacher'
+    CREATE_PARENT: '/admin/parents',
+    STUDENTS: '/admin/students',
+    CREATE_STUDENT: '/admin/students',
+    STUDENT_SET_ACTIVE: (id: number) => `/admin/students/${id}/set-active`,
+    CONTRACTS: '/admin/contracts',
+    CONTRACT_BY_ID: (id: number) => `/admin/contracts/${id}`,
+    CREATE_CONTRACT: '/admin/contracts',
+    CONTRACT_ACTIVATE: (id: number) => `/admin/contracts/${id}/activate`,
+    CONTRACT_CANCEL: (id: number) => `/admin/contracts/${id}/cancel`,
+    ATTENDANCE_TODAY: '/admin/attendance/today',
+    ATTENDANCE_OVERRIDE_CHECKIN: (id: number) => `/admin/attendance/${id}/override-checkin`,
+    ATTENDANCE_OVERRIDE_CHECKOUT: (id: number) => `/admin/attendance/${id}/override-checkout`,
+    ATTENDANCE_ADJUST_HOURS: (id: number) => `/admin/attendance/${id}/adjust-hours`,
+    WALLET_CREDIT: '/admin/wallet/credit',
+    WALLET_DEDUCT: '/admin/wallet/deduct',
+    REPORTS_DAILY: '/admin/reports/daily',
+    REPORTS_MONTHLY: '/admin/reports/monthly',
+    VERIFY_TEACHER: (id: number) => `/admin/teachers/${id}/verify`,
+    REJECT_TEACHER: (id: number) => `/admin/teachers/${id}/reject`
   },
   TEACHER: {
     AVAILABILITY: '/teacher/availability',

@@ -1,0 +1,11 @@
+.admin-payments { padding: 0; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.page-header h1 { margin: 0; color: #1e3a5f; font-size: 1.5rem; }
+.header-actions { display: flex; gap: 8px; }
+.page-desc { color: #666; margin-bottom: 20px; font-size: 0.9rem; }
+.form-panel { padding: 20px; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+.form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+::ng-deep .dx-button { margin: 0 4px; }

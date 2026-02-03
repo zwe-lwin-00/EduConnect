@@ -1,36 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DxDataGridModule, DxButtonModule, DxTabPanelModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
+import { DxDataGridModule, DxButtonModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
-import { Teacher, Parent, Student, OnboardTeacherRequest, PagedRequest, PagedResult } from '../../../../core/models/admin.model';
+import { Teacher, OnboardTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-admin-dashboard',
+  selector: 'app-admin-teachers',
   standalone: true,
   imports: [
     CommonModule,
     DxDataGridModule,
     DxButtonModule,
-    DxTabPanelModule,
     DxPopupModule,
     DxFormModule,
     ReactiveFormsModule
   ],
-  templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.css'
+  templateUrl: './admin-teachers.component.html',
+  styleUrl: './admin-teachers.component.css'
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminTeachersComponent implements OnInit {
   teachers: Teacher[] = [];
-  parents: Parent[] = [];
-  students: Student[] = [];
-  
   showOnboardPopup = false;
   onboardForm: FormGroup;
-  
   selectedTeacher: Teacher | null = null;
   showTeacherDetails = false;
-  rejectReason = '';
 
   constructor(
     private adminService: AdminService,
@@ -51,8 +45,6 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTeachers();
-    this.loadParents();
-    this.loadStudents();
   }
 
   loadTeachers(): void {
@@ -60,25 +52,7 @@ export class AdminDashboardComponent implements OnInit {
       next: (data) => {
         this.teachers = Array.isArray(data) ? data : (data as PagedResult<Teacher>).items;
       },
-      error: (error) => console.error('Error loading teachers:', error)
-    });
-  }
-
-  loadParents(): void {
-    this.adminService.getParents().subscribe({
-      next: (data) => {
-        this.parents = Array.isArray(data) ? data : (data as PagedResult<Parent>).items;
-      },
-      error: (error) => console.error('Error loading parents:', error)
-    });
-  }
-
-  loadStudents(): void {
-    this.adminService.getStudents().subscribe({
-      next: (data) => {
-        this.students = data;
-      },
-      error: (error) => console.error('Error loading students:', error)
+      error: (err) => console.error('Error loading teachers:', err)
     });
   }
 
@@ -101,9 +75,7 @@ export class AdminDashboardComponent implements OnInit {
           this.closeOnboardPopup();
           this.loadTeachers();
         },
-        error: (error) => {
-          alert('Error onboarding teacher: ' + (error.error?.error || error.message));
-        }
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
   }
@@ -111,30 +83,28 @@ export class AdminDashboardComponent implements OnInit {
   onVerifyTeacher(teacher: Teacher): void {
     if (confirm(`Verify teacher ${teacher.firstName} ${teacher.lastName}?`)) {
       this.adminService.verifyTeacher(teacher.id).subscribe({
-        next: () => {
-          alert('Teacher verified successfully!');
-          this.loadTeachers();
-        },
-        error: (error) => {
-          alert('Error verifying teacher: ' + (error.error?.error || error.message));
-        }
+        next: () => { alert('Teacher verified.'); this.loadTeachers(); },
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
   }
 
   onRejectTeacher(teacher: Teacher): void {
-    this.selectedTeacher = teacher;
-    this.rejectReason = '';
     const reason = prompt('Enter rejection reason:');
     if (reason) {
       this.adminService.rejectTeacher(teacher.id, reason).subscribe({
-        next: () => {
-          alert('Teacher rejected successfully!');
-          this.loadTeachers();
-        },
-        error: (error) => {
-          alert('Error rejecting teacher: ' + (error.error?.error || error.message));
-        }
+        next: () => { alert('Teacher rejected.'); this.loadTeachers(); },
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+      });
+    }
+  }
+
+  onSetTeacherActive(teacher: Teacher, isActive: boolean): void {
+    const action = isActive ? 'activate' : 'suspend';
+    if (confirm(`${action} teacher ${teacher.firstName} ${teacher.lastName}?`)) {
+      this.adminService.setTeacherActive(teacher.id, isActive).subscribe({
+        next: () => { alert('Done.'); this.loadTeachers(); this.closeTeacherDetails(); },
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
   }

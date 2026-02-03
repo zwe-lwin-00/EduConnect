@@ -1,0 +1,46 @@
+<div class="admin-reports">
+  <h1>Reports & Audit</h1>
+  <p class="page-desc">Daily: sessions delivered, hours consumed. Monthly: revenue, teacher utilization.</p>
+
+  <section class="report-section">
+    <h2>Daily Report</h2>
+    <div class="report-controls">
+      <label>Date</label>
+      <input type="date" [(ngModel)]="dailyDate" (ngModelChange)="onDailyDateChange()" />
+    </div>
+    <div *ngIf="loadingDaily" class="loading">Loading...</div>
+    <div *ngIf="dailyReport && !loadingDaily" class="report-card">
+      <div class="report-row"><span class="label">Sessions delivered</span><span class="value">{{ dailyReport.sessionsDelivered }}</span></div>
+      <div class="report-row"><span class="label">Hours consumed</span><span class="value">{{ dailyReport.hoursConsumed | number:'1.1-1' }}</span></div>
+    </div>
+  </section>
+
+  <section class="report-section">
+    <h2>Monthly Report</h2>
+    <div class="report-controls">
+      <label>Year</label>
+      <input type="number" [(ngModel)]="reportYear" (ngModelChange)="loadMonthly()" min="2020" max="2030" style="width:80px" />
+      <label style="margin-left:12px">Month</label>
+      <select [(ngModel)]="reportMonth" (ngModelChange)="loadMonthly()">
+        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{ monthName(m) }}</option>
+      </select>
+    </div>
+    <div *ngIf="loadingMonthly" class="loading">Loading...</div>
+    <div *ngIf="monthlyReport && !loadingMonthly" class="report-card">
+      <div class="report-row"><span class="label">Revenue</span><span class="value">{{ monthlyReport.revenue | number:'1.0-0' }} MMK</span></div>
+      <div class="report-row"><span class="label">Sessions delivered</span><span class="value">{{ monthlyReport.sessionsDelivered }}</span></div>
+      <div class="report-row"><span class="label">Hours consumed</span><span class="value">{{ monthlyReport.hoursConsumed | number:'1.1-1' }}</span></div>
+      <h3>Teacher utilization</h3>
+      <table class="util-table">
+        <thead><tr><th>Teacher</th><th>Hours</th><th>Sessions</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let t of monthlyReport.teacherUtilization">
+            <td>{{ t.teacherName }}</td>
+            <td>{{ t.hoursDelivered | number:'1.1-1' }}</td>
+            <td>{{ t.sessionsCount }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

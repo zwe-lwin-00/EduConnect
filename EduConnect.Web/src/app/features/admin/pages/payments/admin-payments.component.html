@@ -1,0 +1,77 @@
+<div class="admin-payments">
+  <div class="page-header">
+    <h1>Payments & Wallet Control</h1>
+    <div class="header-actions">
+      <dx-button text="Credit Hours" type="success" (onClick)="openCreditPopup()" [icon]="'plus'"></dx-button>
+      <dx-button text="Deduct Hours" type="danger" stylingMode="outlined" (onClick)="openDeductPopup()" [icon]="'minus'"></dx-button>
+    </div>
+  </div>
+  <p class="page-desc">Manual confirmation — add/deduct hours on contract. Freeze = set student inactive (Students page).</p>
+
+  <dx-data-grid
+    [dataSource]="students"
+    [allowColumnReordering]="true"
+    [columnAutoWidth]="true"
+    [showBorders]="true">
+    <dxi-column dataField="firstName" caption="First Name"></dxi-column>
+    <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
+    <dxi-column dataField="parentName" caption="Parent"></dxi-column>
+    <dxi-column dataField="gradeLevelName" caption="Grade"></dxi-column>
+    <dxi-column dataField="walletBalance" caption="Wallet (hrs)" dataType="number"></dxi-column>
+    <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
+  </dx-data-grid>
+
+  <dx-popup [(visible)]="showCreditPopup" [showTitle]="true" title="Credit Hours" [width]="450" [showCloseButton]="true" (onHiding)="closeCreditPopup()">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="creditForm" (ngSubmit)="onSubmitCredit()" class="form-panel">
+        <div class="form-group">
+          <label>Student *</label>
+          <select formControlName="studentId" class="form-control">
+            <option [ngValue]="null">-- Select Student --</option>
+            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Contract *</label>
+          <select formControlName="contractId" class="form-control">
+            <option [ngValue]="null">-- Select Contract --</option>
+            <option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs left)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Hours *</label><input type="number" formControlName="hours" class="form-control" step="0.5" min="0.5" /></div>
+        <div class="form-group"><label>Reason *</label><input type="text" formControlName="reason" class="form-control" /></div>
+        <div class="form-actions">
+          <dx-button text="Cancel" type="normal" (onClick)="closeCreditPopup()"></dx-button>
+          <dx-button text="Credit" type="success" (onClick)="onSubmitCredit()" [disabled]="!creditForm.valid"></dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+
+  <dx-popup [(visible)]="showDeductPopup" [showTitle]="true" title="Deduct Hours" [width]="450" [showCloseButton]="true" (onHiding)="closeDeductPopup()">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="deductForm" (ngSubmit)="onSubmitDeduct()" class="form-panel">
+        <div class="form-group">
+          <label>Student *</label>
+          <select formControlName="studentId" class="form-control">
+            <option [ngValue]="null">-- Select Student --</option>
+            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Contract *</label>
+          <select formControlName="contractId" class="form-control">
+            <option [ngValue]="null">-- Select Contract --</option>
+            <option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs left)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Hours *</label><input type="number" formControlName="hours" class="form-control" step="0.5" min="0.5" /></div>
+        <div class="form-group"><label>Reason *</label><input type="text" formControlName="reason" class="form-control" /></div>
+        <div class="form-actions">
+          <dx-button text="Cancel" type="normal" (onClick)="closeDeductPopup()"></dx-button>
+          <dx-button text="Deduct" type="danger" (onClick)="onSubmitDeduct()" [disabled]="!deductForm.valid"></dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+</div>

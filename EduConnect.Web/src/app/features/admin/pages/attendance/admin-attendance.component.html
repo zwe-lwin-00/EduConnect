@@ -1,0 +1,39 @@
+<div class="admin-attendance">
+  <h1>Attendance Oversight</h1>
+  <p class="page-desc">Today's sessions — override check-in/out, adjust hours (with reason).</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="!loading && sessions.length === 0" class="empty">No sessions today.</div>
+
+  <div *ngIf="!loading && sessions.length > 0" class="session-list">
+    <div *ngFor="let s of sessions" class="session-card">
+      <div class="session-info">
+        <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
+        <span class="status">Status: {{ s.status }}</span>
+      </div>
+      <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short' }}</div>
+      <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short' }}</div>
+      <div class="session-actions">
+        <button type="button" class="btn btn-outline" (click)="overrideCheckIn(s)">Override Check-In</button>
+        <button type="button" class="btn btn-outline" (click)="overrideCheckOut(s)">Override Check-Out</button>
+        <button type="button" class="btn btn-outline" (click)="openAdjust(s)">Adjust Hours</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="adjustingId !== null" class="adjust-panel">
+    <h3>Adjust Hours</h3>
+    <div class="form-group">
+      <label>Hours</label>
+      <input type="number" [(ngModel)]="adjustHours" step="0.5" min="0" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>Reason *</label>
+      <input type="text" [(ngModel)]="adjustReason" class="form-control" placeholder="Reason for override" />
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn" (click)="closeAdjust()">Cancel</button>
+      <button type="button" class="btn btn-primary" (click)="submitAdjust()">Submit</button>
+    </div>
+  </div>
+</div>

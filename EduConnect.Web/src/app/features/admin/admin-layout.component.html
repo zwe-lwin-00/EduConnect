@@ -1,0 +1,23 @@
+<div class="admin-layout">
+  <header class="admin-header">
+    <div class="brand">
+      <a routerLink="/admin">EduConnect Admin</a>
+    </div>
+    <nav class="nav-links">
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+      <a routerLink="/admin/teachers" routerLinkActive="active">Teachers</a>
+      <a routerLink="/admin/parents" routerLinkActive="active">Parents</a>
+      <a routerLink="/admin/students" routerLinkActive="active">Students</a>
+      <a routerLink="/admin/contracts" routerLinkActive="active">Contracts</a>
+      <a routerLink="/admin/attendance" routerLinkActive="active">Attendance</a>
+      <a routerLink="/admin/payments" routerLinkActive="active">Payments</a>
+      <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="btn-logout" (click)="logout()">Logout</button>
+    </div>
+  </header>
+  <main class="admin-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

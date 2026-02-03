@@ -1,0 +1,86 @@
+<div class="admin-teachers">
+  <div class="page-header">
+    <h1>Teacher Management</h1>
+    <dx-button text="Onboard New Teacher" type="success" (onClick)="openOnboardPopup()" [icon]="'plus'"></dx-button>
+  </div>
+
+  <dx-data-grid
+    [dataSource]="teachers"
+    [allowColumnReordering]="true"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="true"
+    [showBorders]="true">
+    <dxi-column dataField="firstName" caption="First Name"></dxi-column>
+    <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
+    <dxi-column dataField="email" caption="Email"></dxi-column>
+    <dxi-column dataField="phoneNumber" caption="Phone"></dxi-column>
+    <dxi-column dataField="educationLevel" caption="Education"></dxi-column>
+    <dxi-column dataField="hourlyRate" caption="Hourly Rate" dataType="number" format="currency"></dxi-column>
+    <dxi-column dataField="verificationStatus" caption="Status" [cellTemplate]="'statusCellTemplate'"></dxi-column>
+    <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
+    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="220"></dxi-column>
+    <div *dxTemplate="let data of 'statusCellTemplate'">
+      <span [class]="getVerificationStatusClass(data.data.verificationStatus)">{{ getVerificationStatusText(data.data.verificationStatus) }}</span>
+    </div>
+    <div *dxTemplate="let data of 'actionsTemplate'">
+      <dx-button text="View" type="normal" stylingMode="outlined" (onClick)="onViewTeacherDetails(data.data)" [icon]="'eyeopen'"></dx-button>
+      <dx-button *ngIf="data.data.verificationStatus === 1" text="Verify" type="success" stylingMode="outlined" (onClick)="onVerifyTeacher(data.data)" [icon]="'check'"></dx-button>
+      <dx-button *ngIf="data.data.verificationStatus === 1" text="Reject" type="danger" stylingMode="outlined" (onClick)="onRejectTeacher(data.data)" [icon]="'close'"></dx-button>
+    </div>
+  </dx-data-grid>
+
+  <dx-popup
+    [(visible)]="showOnboardPopup"
+    [showTitle]="true"
+    title="Onboard New Teacher"
+    [width]="600"
+    [height]="600"
+    [showCloseButton]="true"
+    (onHiding)="closeOnboardPopup()">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="onboardForm" (ngSubmit)="onSubmitOnboard()" class="form-panel">
+        <div class="form-group"><label>Email *</label><input type="email" formControlName="email" class="form-control" /></div>
+        <div class="form-group"><label>First Name *</label><input type="text" formControlName="firstName" class="form-control" /></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" formControlName="lastName" class="form-control" /></div>
+        <div class="form-group"><label>Phone *</label><input type="text" formControlName="phoneNumber" class="form-control" /></div>
+        <div class="form-group"><label>NRC Number *</label><input type="text" formControlName="nrcNumber" class="form-control" /></div>
+        <div class="form-group"><label>Education Level *</label><input type="text" formControlName="educationLevel" class="form-control" /></div>
+        <div class="form-group"><label>Hourly Rate *</label><input type="number" formControlName="hourlyRate" class="form-control" min="0" /></div>
+        <div class="form-group"><label>Bio</label><textarea formControlName="bio" class="form-control" rows="3"></textarea></div>
+        <div class="form-group"><label>Specializations</label><input type="text" formControlName="specializations" class="form-control" /></div>
+        <div class="form-actions">
+          <dx-button text="Cancel" type="normal" (onClick)="closeOnboardPopup()"></dx-button>
+          <dx-button text="Onboard" type="success" (onClick)="onSubmitOnboard()" [disabled]="!onboardForm.valid"></dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+
+  <dx-popup
+    [(visible)]="showTeacherDetails"
+    [showTitle]="true"
+    [title]="selectedTeacher ? selectedTeacher.firstName + ' ' + selectedTeacher.lastName : 'Teacher Details'"
+    [width]="700"
+    [height]="500"
+    [showCloseButton]="true"
+    (onHiding)="closeTeacherDetails()">
+    <div *dxTemplate="let data of 'content'">
+      <ng-container *ngIf="selectedTeacher">
+        <div class="detail-panel">
+          <div class="detail-row"><strong>Email:</strong> {{ selectedTeacher.email }}</div>
+          <div class="detail-row"><strong>Phone:</strong> {{ selectedTeacher.phoneNumber }}</div>
+          <div class="detail-row"><strong>Education:</strong> {{ selectedTeacher.educationLevel }}</div>
+          <div class="detail-row"><strong>Hourly Rate:</strong> {{ selectedTeacher.hourlyRate | currency }}</div>
+          <div class="detail-row"><strong>Status:</strong> <span [class]="getVerificationStatusClass(selectedTeacher.verificationStatus)">{{ getVerificationStatusText(selectedTeacher.verificationStatus) }}</span></div>
+          <div class="detail-row"><strong>Active:</strong> {{ selectedTeacher.isActive ? 'Yes' : 'No' }}</div>
+          <div class="detail-row" *ngIf="selectedTeacher.bio"><strong>Bio:</strong><p>{{ selectedTeacher.bio }}</p></div>
+          <div class="detail-row" *ngIf="selectedTeacher.specializations"><strong>Specializations:</strong> {{ selectedTeacher.specializations }}</div>
+          <div class="detail-actions">
+            <dx-button *ngIf="selectedTeacher.isActive" text="Suspend" type="danger" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, false)"></dx-button>
+            <dx-button *ngIf="!selectedTeacher.isActive" text="Activate" type="success" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, true)"></dx-button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </dx-popup>
+</div>
