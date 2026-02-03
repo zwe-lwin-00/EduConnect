@@ -2,8 +2,7 @@ using EduConnect.API.Middleware;
 using EduConnect.Application.Features.Admin.Interfaces;
 using EduConnect.Application.Features.Attendance.Interfaces;
 using EduConnect.Application.Features.Auth.Interfaces;
-using EduConnect.Application.Features.Contracts.Interfaces;
-using EduConnect.Application.Features.Students.Interfaces;
+using EduConnect.Application.Features.Parents.Interfaces;
 using EduConnect.Application.Features.Teachers.Interfaces;
 
 namespace EduConnect.API.Extensions;
@@ -16,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<EduConnect.Application.Features.Auth.Interfaces.IAuthService, EduConnect.Infrastructure.Services.AuthService>();
         services.AddScoped<ITeacherService, EduConnect.Infrastructure.Services.TeacherService>();
         services.AddScoped<IAttendanceService, EduConnect.Infrastructure.Services.AttendanceService>();
+        services.AddScoped<IParentService, EduConnect.Infrastructure.Services.ParentService>();
         return services;
     }
 
