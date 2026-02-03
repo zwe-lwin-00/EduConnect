@@ -1,9 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { ApiService } from '../../services/api.service';
 import { LoginRequest, LoginResponse, User, UserRole } from '../models/user.model';
 import { API_ENDPOINTS } from '../constants/api-endpoints.const';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,16 +15,29 @@ export class AuthService {
 
   currentUser = signal<User | null>(null);
 
+  private readonly apiUrl = environment.apiUrl;
+
   constructor(
-    private apiService: ApiService,
     private http: HttpClient
   ) {
     this.loadUserFromStorage();
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.apiService.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials).pipe(
-      tap(response => this.setAuthData(response))
+    const url = `${this.apiUrl}${API_ENDPOINTS.AUTH.LOGIN}`;
+    console.log('Login request to:', url);
+    console.log('Login credentials:', { email: credentials.email, password: '***' });
+    
+    return this.http.post<LoginResponse>(url, credentials).pipe(
+      tap({
+        next: (response) => {
+          console.log('Login successful:', response);
+          this.setAuthData(response);
+        },
+        error: (error) => {
+          console.error('Login error in service:', error);
+        }
+      })
     );
   }
 
@@ -45,7 +58,13 @@ export class AuthService {
 
   hasRole(roles: UserRole[]): boolean {
     const user = this.currentUser();
-    return user ? roles.includes(user.role) : false;
+    if (!user) return false;
+    
+    const userRole = typeof user.role === 'string' 
+      ? UserRole[user.role as keyof typeof UserRole] 
+      : user.role;
+    
+    return roles.includes(userRole);
   }
 
   private setAuthData(response: LoginResponse): void {

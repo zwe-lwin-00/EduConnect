@@ -33,8 +33,10 @@
         </div>
       </div>
 
-      <div class="error-message" *ngIf="errorMessage">
-        {{ errorMessage }}
+      <div class="error-message" *ngIf="errorMessage" style="background-color: #ffebee; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        <strong>Error:</strong> {{ errorMessage }}
+        <br>
+        <small style="color: #666;">Check browser console (F12) for more details</small>
       </div>
 
       <button 

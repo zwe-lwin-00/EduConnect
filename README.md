@@ -45,76 +45,65 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 - SQL Server (LocalDB or full instance)
 - Visual Studio 2022 / VS Code / Rider (optional)
 
-## 🛠️ Getting Started
+## 🛠️ Quick Start
 
-### Backend Setup
+### Step 1: Start the Backend API
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd EduConnect
-   ```
+```bash
+cd EduConnect.API
+dotnet run
+```
 
-2. **Update Configuration**
-   
-   Edit `EduConnect.API/appsettings.json`:
-   - Update `ConnectionStrings:DefaultConnection` with your SQL Server connection string
-   - Update `JwtSettings:SecretKey` with a secure key (minimum 32 characters)
-   - Update `Encryption:Key` with a 32-character encryption key
-   - Update `Gemini:ApiKey` (when implementing AI features)
+**Look for this output:**
+```
+Now listening on: http://localhost:5049
+Default admin account created:
+Email: admin@educonnect.com
+Password: Admin@123
+```
 
-3. **Restore and Build**
-   ```bash
-   dotnet restore
-   dotnet build
-   ```
+**Note the port number** - you'll need it for frontend configuration.
 
-4. **Run Database Migrations**
-   ```bash
-   cd EduConnect.Infrastructure
-   dotnet ef migrations add InitialCreate --startup-project ../EduConnect.API
-   dotnet ef database update --startup-project ../EduConnect.API
-   ```
+### Step 2: Configure Frontend API URL
 
-5. **Run the API**
-   ```bash
-   cd EduConnect.API
-   dotnet run
-   ```
-   
-   The API will be available at:
-   - HTTPS: `https://localhost:5001`
-   - HTTP: `http://localhost:5000`
-   - Swagger UI: `https://localhost:5001/swagger`
+Edit `EduConnect.Web/src/environments/environment.ts`:
 
-### Frontend Setup
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:5049/api'  // Match the port from Step 1
+};
+```
 
-1. **Navigate to Web Project**
-   ```bash
-   cd EduConnect.Web
-   ```
+### Step 3: Start the Frontend
 
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+cd EduConnect.Web
+npm install
+npm start
+```
 
-3. **Update Environment Configuration**
-   
-   Edit `src/environments/environment.ts`:
-   ```typescript
-   export const environment = {
-     production: false,
-     apiUrl: 'https://localhost:5001/api'  // Update with your API URL
-   };
-   ```
+The app will open at `http://localhost:4200`
 
-4. **Run Development Server**
-   ```bash
-   npm start
-   ```
-   
-   The app will be available at `http://localhost:4200`
+### Step 4: Login
+
+1. Navigate to `http://localhost:4200` (redirects to `/auth/login`)
+2. Enter credentials:
+   - **Email:** `admin@educonnect.com`
+   - **Password:** `Admin@123`
+3. Click "Login"
+4. You'll be redirected to `/admin` dashboard
+
+⚠️ **IMPORTANT:** Change the default admin password immediately after first login!
+
+## 🔐 Default Admin Account
+
+When you first run the application, a default admin account is automatically created:
+
+- **Email:** `admin@educonnect.com`
+- **Password:** `Admin@123`
+
+The account is created automatically when the API starts for the first time. Check the API console output for confirmation.
 
 ## 📁 Project Structure
 
@@ -124,21 +113,12 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 EduConnect/
 ├── EduConnect.API/                    # Web API Layer
 │   ├── Controllers/                   # Feature-based controllers
-│   │   ├── BaseController.cs          # Base controller with common functionality
-│   │   ├── AuthController.cs
-│   │   ├── AdminController.cs
-│   │   └── HealthController.cs
 │   ├── Middleware/                    # Custom middleware
-│   │   └── ExceptionHandlingMiddleware.cs
 │   ├── Extensions/                    # Extension methods
-│   │   └── ServiceCollectionExtensions.cs
-│   └── Program.cs                     # Application startup & configuration
+│   └── Program.cs                     # Application startup
 │
 ├── EduConnect.Application/            # Business Logic Layer
-│   ├── Common/                        # Shared application concerns
-│   │   ├── Interfaces/IService.cs
-│   │   ├── Exceptions/                # Custom exceptions
-│   │   └── Models/                    # Common models (PagedResult, etc.)
+│   ├── Common/                        # Shared concerns
 │   ├── Features/                      # Feature-based organization
 │   │   ├── Auth/
 │   │   ├── Admin/
@@ -154,7 +134,7 @@ EduConnect/
 ├── EduConnect.Infrastructure/         # Infrastructure Layer
 │   ├── Data/                          # DbContext, Dapper
 │   ├── Repositories/                  # UnitOfWork pattern
-│   └── Services/                      # External services (Encryption, etc.)
+│   └── Services/                      # External services
 │
 └── EduConnect.Shared/                 # Shared Layer
     └── Enums/                         # Shared enums
@@ -164,35 +144,21 @@ EduConnect/
 
 ```
 EduConnect.Web/
-├── src/
-│   ├── app/
-│   │   ├── core/                      # Core functionality (singletons)
-│   │   │   ├── constants/             # API endpoints, app constants
-│   │   │   ├── guards/               # Route guards (auth, role)
-│   │   │   ├── interceptors/         # HTTP interceptors
-│   │   │   ├── models/               # TypeScript models/interfaces
-│   │   │   └── services/             # Core services (AuthService)
-│   │   │
-│   │   ├── shared/                   # Shared components, directives, pipes
-│   │   │   └── components/
-│   │   │       └── layout/           # Layout components
-│   │   │
-│   │   ├── features/                 # Feature modules (lazy-loaded)
-│   │   │   ├── auth/                 # Authentication
-│   │   │   ├── admin/                # Admin dashboard
-│   │   │   ├── teacher/             # Teacher dashboard
-│   │   │   ├── parent/              # Parent dashboard
-│   │   │   └── dashboard/           # Main dashboard
-│   │   │
-│   │   ├── services/                 # Shared services
-│   │   ├── app.config.ts            # App configuration
-│   │   └── app.routes.ts            # Main routing
-│   │
-│   ├── assets/                       # Static assets
-│   └── environments/                 # Environment configurations
+├── src/app/
+│   ├── core/                          # Core functionality
+│   │   ├── constants/                 # API endpoints
+│   │   ├── guards/                   # Route guards
+│   │   ├── interceptors/              # HTTP interceptors
+│   │   ├── models/                   # TypeScript models
+│   │   └── services/                 # Core services
+│   ├── shared/                       # Shared components
+│   ├── features/                     # Feature modules
+│   │   ├── auth/                     # Authentication
+│   │   ├── admin/                    # Admin dashboard
+│   │   ├── teacher/                  # Teacher dashboard
+│   │   └── parent/                   # Parent dashboard
+│   └── services/                     # Shared services
 ```
-
-For detailed structure documentation, see [PROJECT_STRUCTURE_V2.md](./PROJECT_STRUCTURE_V2.md)
 
 ## 🎯 Domain Entities
 
@@ -210,20 +176,22 @@ For detailed structure documentation, see [PROJECT_STRUCTURE_V2.md](./PROJECT_ST
 ### ✅ Completed
 - [x] Clean Architecture project structure
 - [x] Feature-based organization (backend & frontend)
-- [x] JWT Authentication infrastructure
+- [x] JWT Authentication with login/logout
+- [x] Admin account auto-creation on startup
+- [x] Admin Dashboard with DevExtreme components
+- [x] Teacher management (onboard, verify, reject, view)
+- [x] Parent and Student management
 - [x] Exception handling middleware
-- [x] Base controllers and services
 - [x] Angular guards and interceptors
-- [x] Core services and models
 - [x] Database schema and relationships
 
-### 🚧 In Progress / To Be Implemented
+### 🚧 To Be Implemented
 
 #### Sprint 1: Identity & Admin Core
-- [ ] JWT Authentication service implementation
-- [ ] Login/Logout endpoints
+- [x] JWT Authentication service
+- [x] Login/Logout endpoints
+- [x] Admin Dashboard (CRUD for Teachers and Parents)
 - [ ] Refresh token mechanism
-- [ ] Admin Dashboard (CRUD for Teachers and Parents)
 - [ ] Teacher Management (NRC upload, certificate verification)
 
 #### Sprint 2: Scheduling & Matching
@@ -246,30 +214,106 @@ For detailed structure documentation, see [PROJECT_STRUCTURE_V2.md](./PROJECT_ST
 
 ## ⚙️ Configuration
 
-### Environment Variables
+### Backend Configuration
 
-For production, use environment variables or Azure Key Vault for:
-- Database connection strings
-- JWT secret keys
-- Encryption keys
-- Gemini API key
-- External service credentials
+Edit `EduConnect.API/appsettings.json`:
 
-### CORS
-
-The API is configured to allow requests from `http://localhost:4200` (Angular dev server). Update CORS policy in `Program.cs` for production:
-
-```csharp
-policy.WithOrigins("https://yourdomain.com")
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=EduConnectDb;..."
+  },
+  "JwtSettings": {
+    "SecretKey": "YourSuperSecretKeyForJWTTokenGenerationMustBeAtLeast32CharactersLong!",
+    "Issuer": "EduConnect",
+    "Audience": "EduConnectUsers",
+    "ExpirationInMinutes": 60
+  },
+  "Encryption": {
+    "Key": "YourEncryptionKeyMustBe32CharactersLong!!"
+  }
+}
 ```
+
+### Frontend Configuration
+
+Edit `EduConnect.Web/src/environments/environment.ts`:
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:5049/api'  // Match your API port
+};
+```
+
+### Database Setup
+
+The database is automatically created on first run. For manual setup:
+
+```bash
+cd EduConnect.Infrastructure
+dotnet ef migrations add InitialCreate --startup-project ../EduConnect.API
+dotnet ef database update --startup-project ../EduConnect.API
+```
+
+## 🔧 Troubleshooting
+
+### Login Issues
+
+**Problem: "Login failed. Please try again."**
+
+1. **Check Browser Console (F12)**
+   - Open DevTools → Console tab
+   - Look for detailed error messages
+   - Check Network tab for failed requests
+
+2. **Common Issues:**
+
+   - **"Cannot connect to server"**
+     - API is not running
+     - Wrong port in `environment.ts`
+     - Solution: Check API console for actual port, update `environment.ts`
+
+   - **"Invalid email or password"**
+     - Wrong credentials (case-sensitive)
+     - Admin account not created
+     - Solution: Check API console for "Default admin account created" message
+
+   - **CORS Error**
+     - Frontend URL not allowed
+     - Solution: Check `Program.cs` CORS settings allow `http://localhost:4200`
+
+   - **SSL Certificate Error or 404 after redirect**
+     - API is redirecting HTTP to HTTPS but HTTPS isn't configured
+     - Solution: HTTPS redirection is disabled in development mode. If you see 404 errors, ensure you're using HTTP (`http://localhost:5049`) and restart the API
+
+3. **Test API Directly:**
+   - Go to `http://localhost:5049/swagger`
+   - Try `/api/auth/login` endpoint
+   - See actual error response
+
+### API Connection Issues
+
+- Verify API is running (check console output)
+- Match API URL in `environment.ts` with actual API port
+- Check CORS configuration in `Program.cs`
+- **Important**: The API has HTTPS redirection disabled in development mode. Always use HTTP (`http://localhost:5049`) for local development
+- If you see 404 errors after login attempts, restart the API to ensure the latest configuration is loaded
+- For production HTTPS, trust dev certificate:
+  ```bash
+  dotnet dev-certs https --trust
+  ```
 
 ## 🔒 Security
 
 - **Encryption**: NRC numbers and sensitive data encrypted using AES-256
-- **Authentication**: JWT tokens with refresh token mechanism
+- **Authentication**: JWT tokens with 60-minute expiration
 - **Authorization**: Role-based access control (Admin, Teacher, Parent)
 - **CORS**: Configured to restrict API access to authorized domains
-- **Password Policy**: Enforced password requirements
+- **Password Policy**: 
+  - Minimum 8 characters
+  - Must contain uppercase, lowercase, digit, and special character
+- **Account Lockout**: After 5 failed attempts, account locked for 5 minutes
 - **Audit Logging**: All admin actions logged using Serilog
 
 ## 📊 Development Guidelines
@@ -278,7 +322,7 @@ policy.WithOrigins("https://yourdomain.com")
 - Use **Dapper** for all read/search queries for optimal performance
 - Use **EF Core** for write operations and Identity management
 - Follow feature-based organization when adding new features
-- Implement services in `Application/Features/{Feature}/Services/`
+- Implement services in `Infrastructure/Services/` (implements Application interfaces)
 - Use `BaseController` for common controller functionality
 - Throw custom exceptions (`BusinessException`, `NotFoundException`)
 
@@ -290,11 +334,17 @@ policy.WithOrigins("https://yourdomain.com")
 - Use interceptors for HTTP request/response handling
 - Follow TypeScript strict mode
 
+## 📝 API Documentation
+
+API documentation is available via Swagger UI when running the API:
+- **Swagger UI**: `http://localhost:5049/swagger` (or your API URL)
+- Includes JWT authentication support
+- Test endpoints directly from Swagger
+
 ## 🧪 Testing
 
 ### Backend Testing
 ```bash
-# Run unit tests (when implemented)
 dotnet test
 ```
 
@@ -316,12 +366,6 @@ dotnet publish -c Release -o ./publish
 cd EduConnect.Web
 npm run build --configuration production
 ```
-
-## 📝 API Documentation
-
-API documentation is available via Swagger UI when running the API:
-- Development: `https://localhost:5001/swagger`
-- Includes JWT authentication support
 
 ## 🤝 Contributing
 

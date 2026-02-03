@@ -23,7 +23,10 @@ import { AuthService } from '../../core/services/auth.service';
 export class DashboardComponent {
   constructor(public authService: AuthService) {}
 
-  getRoleName(role?: number): string {
+  getRoleName(role?: number | string): string {
+    if (typeof role === 'string') {
+      return role;
+    }
     switch (role) {
       case 1: return 'Admin';
       case 2: return 'Teacher';
