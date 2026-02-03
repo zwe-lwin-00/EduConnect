@@ -33,9 +33,14 @@ export const API_ENDPOINTS = {
     REJECT_TEACHER: (id: number) => `/admin/teachers/${id}/reject`
   },
   TEACHER: {
-    AVAILABILITY: '/teacher/availability',
+    DASHBOARD: '/teacher/dashboard',
     PROFILE: '/teacher/profile',
-    SESSIONS: '/teacher/sessions'
+    STUDENTS: '/teacher/students',
+    SESSIONS_TODAY: '/teacher/sessions/today',
+    SESSIONS_UPCOMING: '/teacher/sessions/upcoming',
+    AVAILABILITY: '/teacher/availability',
+    CHECK_IN: '/teacher/check-in',
+    CHECK_OUT: '/teacher/check-out'
   },
   STUDENT: {
     LIST: '/student',

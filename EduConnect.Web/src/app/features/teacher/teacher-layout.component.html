@@ -1,0 +1,20 @@
+<div class="teacher-layout">
+  <header class="teacher-header">
+    <div class="brand">
+      <a routerLink="/teacher">EduConnect Teacher</a>
+    </div>
+    <nav class="nav-links">
+      <a routerLink="/teacher" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+      <a routerLink="/teacher/availability" routerLinkActive="active">Availability</a>
+      <a routerLink="/teacher/students" routerLinkActive="active">Students</a>
+      <a routerLink="/teacher/sessions" routerLinkActive="active">Sessions</a>
+      <a routerLink="/teacher/profile" routerLinkActive="active">Profile</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" class="btn-logout" (click)="logout()">Logout</button>
+    </div>
+  </header>
+  <main class="teacher-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

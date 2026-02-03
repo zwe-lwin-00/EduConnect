@@ -1,0 +1,55 @@
+<div class="teacher-dashboard">
+  <h1 class="page-title">Teacher Dashboard</h1>
+  <p class="page-desc">Daily task list — Master Doc 11B B1. No revenue, no analytics.</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ng-container *ngIf="dashboard && !loading">
+    <div class="widgets">
+      <section class="widget widget-alerts">
+        <h2>Alerts</h2>
+        <div *ngIf="dashboard.alerts.length === 0" class="empty">No alerts</div>
+        <ul class="alert-list">
+          <li *ngFor="let a of dashboard.alerts" [class]="'alert-item ' + alertClass(a.type)">
+            <span class="alert-type">{{ a.type }}</span>
+            <span class="alert-message">{{ a.message }}</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="widget widget-sessions">
+        <h2>Today's Sessions</h2>
+        <div *ngIf="dashboard.todaySessions.length === 0" class="empty">No sessions today</div>
+        <div class="session-list">
+          <div *ngFor="let s of dashboard.todaySessions" class="session-item">
+            <div class="session-row"><strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}</div>
+            <div class="session-meta">Status: {{ s.status }}
+              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short' }}</span>
+              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short' }}</span>
+            </div>
+          </div>
+        </div>
+        <a routerLink="/teacher/sessions" class="link-more">Go to Sessions →</a>
+      </section>
+
+      <section class="widget widget-upcoming">
+        <h2>Upcoming / Available to deliver</h2>
+        <div *ngIf="dashboard.upcomingSessions.length === 0" class="empty">No upcoming sessions</div>
+        <div class="session-list">
+          <div *ngFor="let s of dashboard.upcomingSessions" class="session-item">
+            <div class="session-row">{{ s.studentName }} – {{ s.contractIdDisplay }}</div>
+            <div class="session-meta">You can start a session (Check-in from Sessions page)</div>
+          </div>
+        </div>
+        <a routerLink="/teacher/sessions" class="link-more">Go to Sessions →</a>
+      </section>
+
+      <section class="widget widget-hours">
+        <h2>Remaining Hours (Read-only)</h2>
+        <div class="hours-count">{{ dashboard.totalRemainingHours }}</div>
+        <p class="hours-desc">Total hours across your active contracts</p>
+      </section>
+    </div>
+  </ng-container>
+</div>

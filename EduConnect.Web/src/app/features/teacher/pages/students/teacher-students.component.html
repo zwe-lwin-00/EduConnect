@@ -1,0 +1,21 @@
+<div class="teacher-students">
+  <h1>Assigned Students</h1>
+  <p class="page-desc">Student name, grade (P1–P4), subjects, contract status. No parent contact details.</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <dx-data-grid
+    *ngIf="!loading && !error"
+    [dataSource]="students"
+    [allowColumnReordering]="true"
+    [columnAutoWidth]="true"
+    [showBorders]="true">
+    <dxi-column dataField="studentName" caption="Student"></dxi-column>
+    <dxi-column dataField="gradeLevel" caption="Grade"></dxi-column>
+    <dxi-column dataField="subjects" caption="Subjects"></dxi-column>
+    <dxi-column dataField="contractStatus" caption="Contract Status"></dxi-column>
+    <dxi-column dataField="contractIdDisplay" caption="Contract ID"></dxi-column>
+    <dxi-column dataField="remainingHours" caption="Remaining Hours" dataType="number"></dxi-column>
+  </dx-data-grid>
+</div>

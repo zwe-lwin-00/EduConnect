@@ -1,0 +1,43 @@
+<div class="teacher-availability">
+  <h1>Availability Management</h1>
+  <p class="page-desc">Declare weekly availability only. Availability ≠ booking. Changes may require admin approval if contract exists.</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading">
+    <div class="slots-panel">
+      <div class="slots-header">
+        <h2>Week view</h2>
+        <button type="button" class="btn-add" (click)="addSlot()">Add slot</button>
+      </div>
+      <table class="slots-table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Available</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of availabilities; let i = index">
+            <td>
+              <select [(ngModel)]="a.dayOfWeek" class="form-control">
+                <option *ngFor="let d of days" [value]="d.value">{{ d.label }}</option>
+              </select>
+            </td>
+            <td><input type="time" [(ngModel)]="a.startTime" class="form-control" /></td>
+            <td><input type="time" [(ngModel)]="a.endTime" class="form-control" /></td>
+            <td><input type="checkbox" [(ngModel)]="a.isAvailable" /></td>
+            <td><button type="button" class="btn-remove" (click)="removeSlot(i)">Remove</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save availability' }}</button>
+      </div>
+    </div>
+  </ng-container>
+</div>

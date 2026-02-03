@@ -1,0 +1,17 @@
+<div class="teacher-profile">
+  <h1>Profile (Read-only)</h1>
+  <p class="page-desc">Teachers cannot edit profile core data, change rate, or see parent payments.</p>
+
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div *ngIf="profile && !loading" class="profile-card">
+    <div class="detail-row"><strong>Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</div>
+    <div class="detail-row"><strong>Email:</strong> {{ profile.email }}</div>
+    <div class="detail-row"><strong>Phone:</strong> {{ profile.phoneNumber }}</div>
+    <div class="detail-row"><strong>Education:</strong> {{ profile.educationLevel }}</div>
+    <div class="detail-row"><strong>Verification:</strong> {{ profile.verificationStatus }}</div>
+    <div class="detail-row" *ngIf="profile.bio"><strong>Bio:</strong><p>{{ profile.bio }}</p></div>
+    <div class="detail-row" *ngIf="profile.specializations"><strong>Specializations:</strong> {{ profile.specializations }}</div>
+  </div>
+</div>
