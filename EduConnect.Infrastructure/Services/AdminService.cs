@@ -143,6 +143,29 @@ public class AdminService : IAdminService
         return teacher == null ? null : MapToTeacherDto(teacher);
     }
 
+    public async Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest request)
+    {
+        var teacher = await _context.TeacherProfiles
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Id == teacherId);
+
+        if (teacher == null)
+        {
+            throw new NotFoundException("Teacher", teacherId);
+        }
+
+        teacher.User.FirstName = request.FirstName;
+        teacher.User.LastName = request.LastName;
+        teacher.User.PhoneNumber = request.PhoneNumber ?? string.Empty;
+        teacher.EducationLevel = request.EducationLevel;
+        teacher.HourlyRate = request.HourlyRate;
+        teacher.Bio = request.Bio;
+        teacher.Specializations = request.Specializations;
+
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<List<ParentDto>> GetParentsAsync()
     {
         var parents = await _context.Users

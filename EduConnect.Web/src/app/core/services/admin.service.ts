@@ -7,6 +7,7 @@ import {
   Parent,
   Student,
   OnboardTeacherRequest,
+  UpdateTeacherRequest,
   CreateParentRequest,
   CreateStudentRequest,
   CreateContractRequest,
@@ -46,6 +47,10 @@ export class AdminService {
 
   getTeacherById(id: number): Observable<Teacher> {
     return this.apiService.get<Teacher>(`${API_ENDPOINTS.ADMIN.TEACHERS}/${id}`);
+  }
+
+  updateTeacher(id: number, request: UpdateTeacherRequest): Observable<{ success: boolean; message: string }> {
+    return this.apiService.put(API_ENDPOINTS.ADMIN.TEACHER_UPDATE(id), request);
   }
 
   verifyTeacher(id: number): Observable<{ success: boolean; message: string }> {

@@ -126,6 +126,16 @@ export interface OnboardTeacherRequest {
   specializations?: string;
 }
 
+export interface UpdateTeacherRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  educationLevel: string;
+  hourlyRate: number;
+  bio?: string;
+  specializations?: string;
+}
+
 export interface CreateParentRequest {
   email: string;
   firstName: string;

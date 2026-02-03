@@ -18,12 +18,13 @@
     <dxi-column dataField="hourlyRate" caption="Hourly Rate" dataType="number" format="currency"></dxi-column>
     <dxi-column dataField="verificationStatus" caption="Status" [cellTemplate]="'statusCellTemplate'"></dxi-column>
     <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
-    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="220"></dxi-column>
+    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="280"></dxi-column>
     <div *dxTemplate="let data of 'statusCellTemplate'">
       <span [class]="getVerificationStatusClass(data.data.verificationStatus)">{{ getVerificationStatusText(data.data.verificationStatus) }}</span>
     </div>
     <div *dxTemplate="let data of 'actionsTemplate'">
       <dx-button text="View" type="normal" stylingMode="outlined" (onClick)="onViewTeacherDetails(data.data)" [icon]="'eyeopen'"></dx-button>
+      <dx-button text="Edit" type="default" stylingMode="outlined" (onClick)="openEditPopup(data.data)" [icon]="'edit'"></dx-button>
       <dx-button *ngIf="data.data.verificationStatus === 1" text="Verify" type="success" stylingMode="outlined" (onClick)="onVerifyTeacher(data.data)" [icon]="'check'"></dx-button>
       <dx-button *ngIf="data.data.verificationStatus === 1" text="Reject" type="danger" stylingMode="outlined" (onClick)="onRejectTeacher(data.data)" [icon]="'close'"></dx-button>
     </div>
@@ -57,6 +58,31 @@
   </dx-popup>
 
   <dx-popup
+    [(visible)]="showEditPopup"
+    [showTitle]="true"
+    title="Edit Teacher"
+    [width]="600"
+    [height]="520"
+    [showCloseButton]="true"
+    (onHiding)="closeEditPopup()">
+    <div *dxTemplate="let data of 'content'">
+      <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()" class="form-panel">
+        <div class="form-group"><label>First Name *</label><input type="text" formControlName="firstName" class="form-control" /></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" formControlName="lastName" class="form-control" /></div>
+        <div class="form-group"><label>Phone *</label><input type="text" formControlName="phoneNumber" class="form-control" /></div>
+        <div class="form-group"><label>Education Level *</label><input type="text" formControlName="educationLevel" class="form-control" /></div>
+        <div class="form-group"><label>Hourly Rate *</label><input type="number" formControlName="hourlyRate" class="form-control" min="0" /></div>
+        <div class="form-group"><label>Bio</label><textarea formControlName="bio" class="form-control" rows="3"></textarea></div>
+        <div class="form-group"><label>Specializations</label><input type="text" formControlName="specializations" class="form-control" /></div>
+        <div class="form-actions">
+          <dx-button text="Cancel" type="normal" (onClick)="closeEditPopup()"></dx-button>
+          <dx-button text="Save" type="success" (onClick)="onSubmitEdit()" [disabled]="!editForm.valid"></dx-button>
+        </div>
+      </form>
+    </div>
+  </dx-popup>
+
+  <dx-popup
     [(visible)]="showTeacherDetails"
     [showTitle]="true"
     [title]="selectedTeacher ? selectedTeacher.firstName + ' ' + selectedTeacher.lastName : 'Teacher Details'"
@@ -76,6 +102,7 @@
           <div class="detail-row" *ngIf="selectedTeacher.bio"><strong>Bio:</strong><p>{{ selectedTeacher.bio }}</p></div>
           <div class="detail-row" *ngIf="selectedTeacher.specializations"><strong>Specializations:</strong> {{ selectedTeacher.specializations }}</div>
           <div class="detail-actions">
+            <dx-button text="Edit" type="default" stylingMode="outlined" (onClick)="openEditPopup(selectedTeacher)" [icon]="'edit'"></dx-button>
             <dx-button *ngIf="selectedTeacher.isActive" text="Suspend" type="danger" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, false)"></dx-button>
             <dx-button *ngIf="!selectedTeacher.isActive" text="Activate" type="success" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, true)"></dx-button>
           </div>

@@ -135,8 +135,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger disabled - remove the comments below to re-enable
+    // app.UseSwagger();
+    // app.UseSwaggerUI();
     // Disable HTTPS redirection in development to avoid issues with local HTTP connections
     // app.UseHttpsRedirection();
 }

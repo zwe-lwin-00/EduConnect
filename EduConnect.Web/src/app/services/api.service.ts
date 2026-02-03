@@ -11,19 +11,26 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
+  /** Build full URL without double slashes (apiUrl may end with /, endpoint may start with /). */
+  private url(endpoint: string): string {
+    const base = this.apiUrl.replace(/\/$/, '');
+    const path = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    return `${base}/${path}`;
+  }
+
   get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}/${endpoint}`);
+    return this.http.get<T>(this.url(endpoint));
   }
 
   post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.apiUrl}/${endpoint}`, data);
+    return this.http.post<T>(this.url(endpoint), data);
   }
 
   put<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.put<T>(`${this.apiUrl}/${endpoint}`, data);
+    return this.http.put<T>(this.url(endpoint), data);
   }
 
   delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.apiUrl}/${endpoint}`);
+    return this.http.delete<T>(this.url(endpoint));
   }
 }

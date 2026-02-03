@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     DASHBOARD: '/admin/dashboard',
     ONBOARD_TEACHER: '/admin/onboard-teacher',
     TEACHERS: '/admin/teachers',
+    TEACHER_UPDATE: (id: number) => `/admin/teachers/${id}`,
     TEACHER_ACTIVATE: (id: number) => `/admin/teachers/${id}/activate`,
     TEACHER_SUSPEND: (id: number) => `/admin/teachers/${id}/activate`,
     PARENTS: '/admin/parents',

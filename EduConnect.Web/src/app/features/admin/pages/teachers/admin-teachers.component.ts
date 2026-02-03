@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DxDataGridModule, DxButtonModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
-import { Teacher, OnboardTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
+import { Teacher, OnboardTeacherRequest, UpdateTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -23,6 +23,9 @@ export class AdminTeachersComponent implements OnInit {
   teachers: Teacher[] = [];
   showOnboardPopup = false;
   onboardForm: FormGroup;
+  showEditPopup = false;
+  editForm: FormGroup;
+  editingTeacherId: number | null = null;
   selectedTeacher: Teacher | null = null;
   showTeacherDetails = false;
 
@@ -36,6 +39,15 @@ export class AdminTeachersComponent implements OnInit {
       lastName: ['', Validators.required],
       phoneNumber: ['', Validators.required],
       nrcNumber: ['', Validators.required],
+      educationLevel: ['', Validators.required],
+      hourlyRate: [0, [Validators.required, Validators.min(0)]],
+      bio: [''],
+      specializations: ['']
+    });
+    this.editForm = this.fb.group({
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      phoneNumber: ['', Validators.required],
       educationLevel: ['', Validators.required],
       hourlyRate: [0, [Validators.required, Validators.min(0)]],
       bio: [''],
@@ -64,6 +76,41 @@ export class AdminTeachersComponent implements OnInit {
   closeOnboardPopup(): void {
     this.showOnboardPopup = false;
     this.onboardForm.reset();
+  }
+
+  openEditPopup(teacher: Teacher): void {
+    this.editingTeacherId = teacher.id;
+    this.editForm.patchValue({
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      phoneNumber: teacher.phoneNumber,
+      educationLevel: teacher.educationLevel,
+      hourlyRate: teacher.hourlyRate,
+      bio: teacher.bio ?? '',
+      specializations: teacher.specializations ?? ''
+    });
+    this.showEditPopup = true;
+  }
+
+  closeEditPopup(): void {
+    this.showEditPopup = false;
+    this.editingTeacherId = null;
+    this.editForm.reset();
+  }
+
+  onSubmitEdit(): void {
+    if (this.editForm.valid && this.editingTeacherId != null) {
+      const request: UpdateTeacherRequest = this.editForm.value;
+      this.adminService.updateTeacher(this.editingTeacherId, request).subscribe({
+        next: () => {
+          alert('Teacher updated successfully!');
+          this.closeEditPopup();
+          this.loadTeachers();
+          this.closeTeacherDetails();
+        },
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+      });
+    }
   }
 
   onSubmitOnboard(): void {

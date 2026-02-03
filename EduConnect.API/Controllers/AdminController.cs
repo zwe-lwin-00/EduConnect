@@ -86,6 +86,20 @@ public class AdminController : BaseController
         }
     }
 
+    [HttpPut("teachers/{id}")]
+    public async Task<IActionResult> UpdateTeacher(int id, [FromBody] UpdateTeacherRequest request)
+    {
+        try
+        {
+            var result = await _adminService.UpdateTeacherAsync(id, request);
+            return Ok(new { success = result, message = "Teacher updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpPost("teachers/{id}/verify")]
     public async Task<IActionResult> VerifyTeacher(int id)
     {

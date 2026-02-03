@@ -16,6 +16,7 @@ public interface IAdminService : IService
     Task<bool> SetTeacherActiveAsync(int teacherId, bool isActive);
     Task<List<TeacherDto>> GetTeachersAsync();
     Task<TeacherDto?> GetTeacherByIdAsync(int teacherId);
+    Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest request);
     Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request);
 
     // Parents & Students — Master Doc B3
