@@ -30,7 +30,7 @@ public static class DbSeeder
 
         var seedAdmin = configuration.GetSection("SeedData:DefaultAdmin");
         var adminEmail = seedAdmin["Email"] ?? "admin@educonnect.com";
-        var adminPassword = seedAdmin["Password"] ?? "Admin@123";
+        var adminPassword = seedAdmin["Password"] ?? "1qaz!QAZ";
         var adminFirstName = seedAdmin["FirstName"] ?? "Admin";
         var adminLastName = seedAdmin["LastName"] ?? "User";
         var adminPhone = seedAdmin["PhoneNumber"] ?? "+959123456789";
