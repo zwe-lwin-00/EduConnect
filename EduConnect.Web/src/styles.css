@@ -1,0 +1,8 @@
+/* You can add global styles to this file, and also import other style files */
+/* Using DevExtreme Material theme - fonts will be loaded at runtime */
+@import 'devextreme/dist/css/dx.material.blue.light.css';
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

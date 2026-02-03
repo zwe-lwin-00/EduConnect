@@ -1,0 +1,24 @@
+using EduConnect.Application.Common.Interfaces;
+
+namespace EduConnect.Application.Features.Attendance.Interfaces;
+
+public interface IAttendanceService : IService
+{
+    Task<int> CheckInAsync(int contractId);
+    Task<bool> CheckOutAsync(int sessionId, string lessonNotes);
+    Task<AttendanceSessionDto> GetSessionByIdAsync(int sessionId);
+    Task<List<AttendanceSessionDto>> GetSessionsByContractAsync(int contractId);
+}
+
+public class AttendanceSessionDto
+{
+    public int Id { get; set; }
+    public int SessionId { get; set; }
+    public int ContractId { get; set; }
+    public DateTime CheckInTime { get; set; }
+    public DateTime? CheckOutTime { get; set; }
+    public decimal HoursUsed { get; set; }
+    public string? LessonNotes { get; set; }
+    public string? ProgressReport { get; set; }
+    public int Status { get; set; }
+}
