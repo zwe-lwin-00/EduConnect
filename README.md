@@ -245,6 +245,15 @@ Example override in `appsettings.Development.json`:
 - **`src/environments/environment.prod.ts`** – Production: set `apiUrl` per deployment (replaced at build time).
 - **`src/app/core/constants/app-config.ts`** – Central config re-export; use `appConfig` in services. Add more keys here as needed.
 
+### Production / Security
+
+- **Do not commit production secrets.** For production, set sensitive values via environment variables or a secret store (e.g. Azure Key Vault), not in `appsettings.json`:
+  - `ConnectionStrings:DefaultConnection`
+  - `JwtSettings:SecretKey`
+  - `Encryption:Key`
+  - `SeedData:DefaultAdmin:Password` (or omit to use the fallback in code; change after first login)
+- In development you can use [User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) so secrets stay out of the repo.
+
 ### Database Setup
 
 The database is automatically created on first run. For manual setup:
