@@ -62,7 +62,7 @@ Email: admin@educonnect.com
 Password: Admin@123
 ```
 
-**Note the port number** - you'll need it for frontend configuration.
+**Note the port number** – you'll need it for frontend configuration. The API does not open a browser by default.
 
 ### Step 2: Configure Frontend API URL
 
@@ -160,6 +160,16 @@ EduConnect.Web/
 │   └── services/                     # Shared services
 ```
 
+## 👤 Roles & Access
+
+| Role   | Access |
+|--------|--------|
+| **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, contracts, attendance, payments, reports. All users created by Admin. |
+| **Teacher**| Dashboard, weekly availability, assigned students, sessions (check-in/check-out, lesson notes), read-only profile. No pricing or parent contact. |
+| **Parent** | My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
+
+Students (P1–P4) have no login in Phase 1; data is viewed via the Parent account.
+
 ## 🎯 Domain Entities
 
 - **ApplicationUser** - Extended Identity user with role management
@@ -176,41 +186,25 @@ EduConnect.Web/
 ### ✅ Completed
 - [x] Clean Architecture project structure
 - [x] Feature-based organization (backend & frontend)
-- [x] JWT Authentication with login/logout
+- [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
-- [x] Admin Dashboard with DevExtreme components
-- [x] Teacher management (onboard, verify, reject, view)
-- [x] Parent and Student management
-- [x] Exception handling middleware
-- [x] Angular guards and interceptors
+- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), Attendance (today, override check-in/out, adjust hours), Payments (wallet credit/deduct), Reports (daily/monthly)
+- [x] **Teacher**: Dashboard, availability (weekly), assigned students, sessions (check-in/check-out with lesson notes), read-only profile
+- [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress)
+- [x] Teacher management: onboard, **edit** (name, phone, education, hourly rate, bio, specializations), verify, reject, activate/suspend
+- [x] Check-in/check-out system (teacher + admin override)
+- [x] Wallet logic (credit/deduct hours, student active/freeze)
+- [x] Daily and monthly reports (Dapper-powered)
+- [x] Exception handling middleware, Angular guards and interceptors
 - [x] Database schema and relationships
+- [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 
 ### 🚧 To Be Implemented
-
-#### Sprint 1: Identity & Admin Core
-- [x] JWT Authentication service
-- [x] Login/Logout endpoints
-- [x] Admin Dashboard (CRUD for Teachers and Parents)
 - [ ] Refresh token mechanism
-- [ ] Teacher Management (NRC upload, certificate verification)
-
-#### Sprint 2: Scheduling & Matching
-- [ ] Availability Engine (DevExtreme Scheduler)
-- [ ] Matching Algorithm (Grade/Subject based)
-- [ ] Conflict Detection (Prevent double-booking)
-- [ ] Booking approval workflow
-
-#### Sprint 3: Attendance & Billing
-- [ ] Check-in/Check-out System
-- [ ] Wallet Logic (Automatic hour deduction)
-- [ ] Transaction history
-- [ ] Payment Integration (KBZPay/Wave)
-
-#### Sprint 4: AI & Reporting
-- [ ] Gemini API Integration (Progress reports)
-- [ ] Admin Analytics Dashboard (Dapper-powered)
-- [ ] Teacher utilization reports
-- [ ] Revenue reports
+- [ ] Teacher NRC/certificate document upload and verification workflow
+- [ ] Scheduling approval workflow (admin confirms slots)
+- [ ] Payment integration (KBZPay/Wave) – Phase 1 is manual confirmation
+- [ ] Gemini API integration for progress reports
 
 ## ⚙️ Configuration
 
@@ -288,9 +282,8 @@ dotnet ef database update --startup-project ../EduConnect.API
      - Solution: HTTPS redirection is disabled in development mode. If you see 404 errors, ensure you're using HTTP (`http://localhost:5049`) and restart the API
 
 3. **Test API Directly:**
-   - Go to `http://localhost:5049/swagger`
-   - Try `/api/auth/login` endpoint
-   - See actual error response
+   - Use a REST client (e.g. Postman or the `.http` file in the API project) to call `POST http://localhost:5049/api/auth/login` with JSON body `{ "email": "admin@educonnect.com", "password": "Admin@123" }`
+   - Or re-enable Swagger in `Program.cs` and open `http://localhost:5049/swagger`
 
 ### API Connection Issues
 
@@ -336,10 +329,7 @@ dotnet ef database update --startup-project ../EduConnect.API
 
 ## 📝 API Documentation
 
-API documentation is available via Swagger UI when running the API:
-- **Swagger UI**: `http://localhost:5049/swagger` (or your API URL)
-- Includes JWT authentication support
-- Test endpoints directly from Swagger
+Swagger UI is **disabled by default**. To enable it, uncomment `app.UseSwagger()` and `app.UseSwaggerUI()` in `EduConnect.API/Program.cs` (inside the `if (app.Environment.IsDevelopment())` block). Then open `http://localhost:5049/swagger` in your browser. The API does not auto-open a browser on run; this is controlled in `EduConnect.API/Properties/launchSettings.json` (`launchBrowser: false`).
 
 ## 🧪 Testing
 
