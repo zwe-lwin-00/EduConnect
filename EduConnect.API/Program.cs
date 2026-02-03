@@ -108,12 +108,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// CORS Configuration
+// CORS Configuration (origins from appsettings Cors:AllowedOrigins, semicolon-separated)
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string>()?
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:4200", "https://localhost:4200" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -153,15 +156,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Ensure database is created and seed data
+// Ensure database is created and seed data (SeedData from appsettings)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     
     await context.Database.EnsureCreatedAsync();
-    await EduConnect.Infrastructure.Data.DbSeeder.SeedAsync(context, userManager, roleManager);
+    await EduConnect.Infrastructure.Data.DbSeeder.SeedAsync(context, userManager, roleManager, configuration);
 }
 
 app.Run();

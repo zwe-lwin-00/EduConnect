@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, User, UserRole } from '../models/user.model';
 import { API_ENDPOINTS } from '../constants/api-endpoints.const';
-import { environment } from '../../../environments/environment';
+import { appConfig } from '../constants/app-config';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +15,7 @@ export class AuthService {
 
   currentUser = signal<User | null>(null);
 
-  private readonly apiUrl = environment.apiUrl;
+  private readonly apiUrl = appConfig.apiUrl;
 
   constructor(
     private http: HttpClient

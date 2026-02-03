@@ -59,7 +59,7 @@ dotnet run
 Now listening on: http://localhost:5049
 Default admin account created:
 Email: admin@educonnect.com
-Password: Admin@123
+Password: 1qaz!QAZ
 ```
 
 **Note the port number** – you'll need it for frontend configuration. The API does not open a browser by default.
@@ -90,7 +90,7 @@ The app will open at `http://localhost:4200`
 1. Navigate to `http://localhost:4200` (redirects to `/auth/login`)
 2. Enter credentials:
    - **Email:** `admin@educonnect.com`
-   - **Password:** `Admin@123`
+   - **Password:** `1qaz!QAZ`
 3. Click "Login"
 4. You'll be redirected to `/admin` dashboard
 
@@ -101,7 +101,7 @@ The app will open at `http://localhost:4200`
 When you first run the application, a default admin account is automatically created:
 
 - **Email:** `admin@educonnect.com`
-- **Password:** `Admin@123`
+- **Password:** `1qaz!QAZ`
 
 The account is created automatically when the API starts for the first time. Check the API console output for confirmation.
 
@@ -206,39 +206,44 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
 - [ ] Payment integration (KBZPay/Wave) – Phase 1 is manual confirmation
 - [ ] Gemini API integration for progress reports
 
-## ⚙️ Configuration
+## ⚙️ Configuration (all dynamic – no hardcoding)
 
-### Backend Configuration
+### Backend (appsettings.json / appsettings.Development.json)
 
-Edit `EduConnect.API/appsettings.json`:
+All backend config is driven by `appsettings.json`. Override per environment with `appsettings.Development.json` or `appsettings.Production.json`.
+
+| Section | Key | Description |
+|--------|-----|-------------|
+| **ConnectionStrings** | DefaultConnection | SQL Server connection string |
+| **Cors** | AllowedOrigins | Semicolon-separated origins (e.g. `http://localhost:4200;https://localhost:4200`) |
+| **JwtSettings** | SecretKey, Issuer, Audience, ExpirationInMinutes | JWT auth |
+| **Encryption** | Key | AES key for sensitive data |
+| **SeedData** | **Roles** | Array of role names to seed (default: Admin, Teacher, Parent) |
+| **SeedData:DefaultAdmin** | Email, Password, FirstName, LastName, PhoneNumber | Default admin account (created on first run) |
+| **Gemini** | ApiKey | Optional Gemini API key |
+
+Example override in `appsettings.Development.json`:
 
 ```json
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=EduConnectDb;..."
-  },
-  "JwtSettings": {
-    "SecretKey": "YourSuperSecretKeyForJWTTokenGenerationMustBeAtLeast32CharactersLong!",
-    "Issuer": "EduConnect",
-    "Audience": "EduConnectUsers",
-    "ExpirationInMinutes": 60
-  },
-  "Encryption": {
-    "Key": "YourEncryptionKeyMustBe32CharactersLong!!"
+  "Cors": { "AllowedOrigins": "http://localhost:4200;https://localhost:4200" },
+  "SeedData": {
+    "DefaultAdmin": {
+      "Email": "admin@educonnect.com",
+      "Password": "1qaz!QAZ",
+      "FirstName": "Admin",
+      "LastName": "User",
+      "PhoneNumber": "+959123456789"
+    }
   }
 }
 ```
 
-### Frontend Configuration
+### Frontend (environment + app-config)
 
-Edit `EduConnect.Web/src/environments/environment.ts`:
-
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5049/api'  // Match your API port
-};
-```
+- **`src/environments/environment.ts`** – Development: set `apiUrl` to your API base (e.g. `http://localhost:5049/api`).
+- **`src/environments/environment.prod.ts`** – Production: set `apiUrl` per deployment (replaced at build time).
+- **`src/app/core/constants/app-config.ts`** – Central config re-export; use `appConfig` in services. Add more keys here as needed.
 
 ### Database Setup
 
@@ -282,7 +287,7 @@ dotnet ef database update --startup-project ../EduConnect.API
      - Solution: HTTPS redirection is disabled in development mode. If you see 404 errors, ensure you're using HTTP (`http://localhost:5049`) and restart the API
 
 3. **Test API Directly:**
-   - Use a REST client (e.g. Postman or the `.http` file in the API project) to call `POST http://localhost:5049/api/auth/login` with JSON body `{ "email": "admin@educonnect.com", "password": "Admin@123" }`
+   - Use a REST client (e.g. Postman or the `.http` file in the API project) to call `POST http://localhost:5049/api/auth/login` with JSON body `{ "email": "admin@educonnect.com", "password": "1qaz!QAZ" }`
    - Or re-enable Swagger in `Program.cs` and open `http://localhost:5049/swagger`
 
 ### API Connection Issues
