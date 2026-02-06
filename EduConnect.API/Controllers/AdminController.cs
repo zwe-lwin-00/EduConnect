@@ -100,6 +100,20 @@ public class AdminController : BaseController
         }
     }
 
+    [HttpPost("teachers/{id}/reset-password")]
+    public async Task<IActionResult> ResetTeacherPassword(int id)
+    {
+        try
+        {
+            var response = await _adminService.ResetTeacherPasswordAsync(id);
+            return Ok(new { email = response.Email, temporaryPassword = response.TemporaryPassword, message = "Password reset. Share the new temporary password with the teacher; they must change it on next login." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpPost("teachers/{id}/verify")]
     public async Task<IActionResult> VerifyTeacher(int id)
     {

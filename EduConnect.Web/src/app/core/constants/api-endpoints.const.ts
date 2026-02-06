@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
     WALLET_DEDUCT: '/admin/wallet/deduct',
     REPORTS_DAILY: '/admin/reports/daily',
     REPORTS_MONTHLY: '/admin/reports/monthly',
+    RESET_TEACHER_PASSWORD: (id: number) => `/admin/teachers/${id}/reset-password`,
     VERIFY_TEACHER: (id: number) => `/admin/teachers/${id}/verify`,
     REJECT_TEACHER: (id: number) => `/admin/teachers/${id}/reject`
   },

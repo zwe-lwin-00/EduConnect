@@ -18,13 +18,14 @@
     <dxi-column dataField="hourlyRate" caption="Hourly Rate" dataType="number" format="currency"></dxi-column>
     <dxi-column dataField="verificationStatus" caption="Status" [cellTemplate]="'statusCellTemplate'"></dxi-column>
     <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
-    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="280"></dxi-column>
+    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="360"></dxi-column>
     <div *dxTemplate="let data of 'statusCellTemplate'">
       <span [class]="getVerificationStatusClass(data.data.verificationStatus)">{{ getVerificationStatusText(data.data.verificationStatus) }}</span>
     </div>
     <div *dxTemplate="let data of 'actionsTemplate'">
       <dx-button text="View" type="normal" stylingMode="outlined" (onClick)="onViewTeacherDetails(data.data)" [icon]="'eyeopen'"></dx-button>
       <dx-button text="Edit" type="default" stylingMode="outlined" (onClick)="openEditPopup(data.data)" [icon]="'edit'"></dx-button>
+      <dx-button text="Reset password" type="normal" stylingMode="outlined" (onClick)="onResetTeacherPassword(data.data)" [icon]="'key'"></dx-button>
       <dx-button *ngIf="data.data.verificationStatus === 1" text="Verify" type="success" stylingMode="outlined" (onClick)="onVerifyTeacher(data.data)" [icon]="'check'"></dx-button>
       <dx-button *ngIf="data.data.verificationStatus === 1" text="Reject" type="danger" stylingMode="outlined" (onClick)="onRejectTeacher(data.data)" [icon]="'close'"></dx-button>
     </div>
@@ -67,7 +68,7 @@
     (onHiding)="closeCredentialsPopup()">
     <div *dxTemplate="let data of 'content'">
       <div class="credentials-panel">
-        <p class="credentials-note">Share these with the teacher. They must change the password on first login.</p>
+        <p class="credentials-note">{{ credentialsNote }}</p>
         <div class="form-group">
           <label>Email</label>
           <input type="text" [value]="credentialsEmail" readonly class="form-control credentials-field" #emailInput (click)="emailInput.select()" />
@@ -133,6 +134,7 @@
           <div class="detail-row" *ngIf="selectedTeacher.specializations"><strong>Specializations:</strong> {{ selectedTeacher.specializations }}</div>
           <div class="detail-actions">
             <dx-button text="Edit" type="default" stylingMode="outlined" (onClick)="openEditPopup(selectedTeacher)" [icon]="'edit'"></dx-button>
+            <dx-button text="Reset password" type="normal" stylingMode="outlined" (onClick)="onResetTeacherPassword(selectedTeacher)" [icon]="'key'"></dx-button>
             <dx-button *ngIf="selectedTeacher.isActive" text="Suspend" type="danger" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, false)"></dx-button>
             <dx-button *ngIf="!selectedTeacher.isActive" text="Activate" type="success" stylingMode="outlined" (onClick)="onSetTeacherActive(selectedTeacher, true)"></dx-button>
           </div>

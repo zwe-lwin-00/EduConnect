@@ -65,6 +65,10 @@ export class AdminService {
     return this.apiService.post(API_ENDPOINTS.ADMIN.TEACHER_ACTIVATE(id), { isActive });
   }
 
+  resetTeacherPassword(teacherId: number): Observable<{ email: string; temporaryPassword: string; message: string }> {
+    return this.apiService.post(API_ENDPOINTS.ADMIN.RESET_TEACHER_PASSWORD(teacherId), {});
+  }
+
   createParent(request: CreateParentRequest): Observable<{ userId: string; message: string }> {
     return this.apiService.post(API_ENDPOINTS.ADMIN.CREATE_PARENT, request);
   }

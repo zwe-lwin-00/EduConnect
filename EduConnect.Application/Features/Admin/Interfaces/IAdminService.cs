@@ -11,6 +11,7 @@ public interface IAdminService : IService
 
     // Teachers — Master Doc B2
     Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId);
+    Task<ResetTeacherPasswordResponse> ResetTeacherPasswordAsync(int teacherId);
     Task<bool> VerifyTeacherAsync(int teacherId);
     Task<bool> RejectTeacherAsync(int teacherId, string reason);
     Task<bool> SetTeacherActiveAsync(int teacherId, bool isActive);

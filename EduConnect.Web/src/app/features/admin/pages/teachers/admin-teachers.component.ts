@@ -31,6 +31,7 @@ export class AdminTeachersComponent implements OnInit {
   showCredentialsPopup = false;
   credentialsEmail = '';
   credentialsPassword = '';
+  credentialsNote = 'The teacher must change the password on first login.';
   copyFeedback = '';
 
   constructor(
@@ -126,6 +127,7 @@ export class AdminTeachersComponent implements OnInit {
           this.loadTeachers();
           this.credentialsEmail = request.email;
           this.credentialsPassword = response.temporaryPassword;
+          this.credentialsNote = 'The teacher must change the password on first login.';
           this.copyFeedback = '';
           this.showCredentialsPopup = true;
         },
@@ -138,11 +140,12 @@ export class AdminTeachersComponent implements OnInit {
     this.showCredentialsPopup = false;
     this.credentialsEmail = '';
     this.credentialsPassword = '';
+    this.credentialsNote = 'The teacher must change the password on first login.';
     this.copyFeedback = '';
   }
 
   copyCredentialsToClipboard(): void {
-    const text = `Email: ${this.credentialsEmail}\nTemporary password: ${this.credentialsPassword}\n\nThe teacher must change the password on first login.`;
+    const text = `Email: ${this.credentialsEmail}\nTemporary password: ${this.credentialsPassword}\n\n${this.credentialsNote}`;
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         this.copyFeedback = 'Copied to clipboard!';
@@ -176,6 +179,22 @@ export class AdminTeachersComponent implements OnInit {
     if (confirm(`Verify teacher ${teacher.firstName} ${teacher.lastName}?`)) {
       this.adminService.verifyTeacher(teacher.id).subscribe({
         next: () => { alert('Teacher verified.'); this.loadTeachers(); },
+        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+      });
+    }
+  }
+
+  onResetTeacherPassword(teacher: Teacher): void {
+    if (confirm(`Reset password for ${teacher.firstName} ${teacher.lastName}? A new temporary password will be generated. Share it with the teacher.`)) {
+      this.adminService.resetTeacherPassword(teacher.id).subscribe({
+        next: (response) => {
+          this.credentialsEmail = response.email;
+          this.credentialsPassword = response.temporaryPassword;
+          this.credentialsNote = 'The teacher must change the password on next login.';
+          this.copyFeedback = '';
+          this.showCredentialsPopup = true;
+          this.closeTeacherDetails();
+        },
         error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }

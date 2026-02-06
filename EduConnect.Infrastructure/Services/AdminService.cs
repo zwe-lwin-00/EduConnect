@@ -91,6 +91,46 @@ public class AdminService : IAdminService
         };
     }
 
+    public async Task<ResetTeacherPasswordResponse> ResetTeacherPasswordAsync(int teacherId)
+    {
+        var teacher = await _context.TeacherProfiles
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.Id == teacherId);
+
+        if (teacher == null)
+        {
+            throw new NotFoundException("Teacher", teacherId);
+        }
+
+        var user = teacher.User;
+        var newPassword = GenerateRandomPassword();
+
+        var removeResult = await _userManager.RemovePasswordAsync(user);
+        if (!removeResult.Succeeded)
+        {
+            throw new BusinessException(
+                $"Failed to reset password: {string.Join(", ", removeResult.Errors.Select(e => e.Description))}",
+                "PASSWORD_RESET_FAILED");
+        }
+
+        var addResult = await _userManager.AddPasswordAsync(user, newPassword);
+        if (!addResult.Succeeded)
+        {
+            throw new BusinessException(
+                $"Failed to set new password: {string.Join(", ", addResult.Errors.Select(e => e.Description))}",
+                "PASSWORD_RESET_FAILED");
+        }
+
+        user.MustChangePassword = true;
+        await _userManager.UpdateAsync(user);
+
+        return new ResetTeacherPasswordResponse
+        {
+            Email = user.Email ?? string.Empty,
+            TemporaryPassword = newPassword
+        };
+    }
+
     public async Task<bool> VerifyTeacherAsync(int teacherId)
     {
         var teacher = await _context.TeacherProfiles
@@ -750,9 +790,26 @@ public class AdminService : IAdminService
 
     private string GenerateRandomPassword(int length = 12)
     {
-        const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+        const string lower = "abcdefghijklmnopqrstuvwxyz";
+        const string upper = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string special = "!@#$%^&*";
+        const string all = lower + upper + digits + special;
         var random = new Random();
-        return new string(Enumerable.Repeat(validChars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+        // Ensure at least one of each required type (Identity: lowercase, uppercase, digit, non-alphanumeric)
+        var password = new char[length];
+        password[0] = lower[random.Next(lower.Length)];
+        password[1] = upper[random.Next(upper.Length)];
+        password[2] = digits[random.Next(digits.Length)];
+        password[3] = special[random.Next(special.Length)];
+        for (int i = 4; i < length; i++)
+            password[i] = all[random.Next(all.Length)];
+        // Shuffle so required chars aren't always at the start
+        for (int i = length - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+        return new string(password);
     }
 }
