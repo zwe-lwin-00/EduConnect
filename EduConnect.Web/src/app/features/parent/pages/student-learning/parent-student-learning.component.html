@@ -45,8 +45,8 @@
       <div *ngIf="overview.completedSessions.length === 0" class="empty">No completed sessions yet.</div>
       <div *ngFor="let c of overview.completedSessions" class="session-card">
         <div class="session-header">
-          {{ c.teacherName }} · {{ c.checkInTime | date:'short' }}
-          <span *ngIf="c.checkOutTime"> – {{ c.checkOutTime | date:'short' }}</span>
+          {{ c.teacherName }} · {{ c.checkInTime | date:'short':'+0630' }}
+          <span *ngIf="c.checkOutTime"> – {{ c.checkOutTime | date:'short':'+0630' }}</span>
           · {{ c.hoursUsed | number:'1.1-1' }} hrs
         </div>
         <div class="session-notes" *ngIf="c.lessonNotes">

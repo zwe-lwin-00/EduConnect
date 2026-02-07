@@ -14,8 +14,8 @@
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
           <span class="status">Status: {{ s.status }}</span>
         </div>
-        <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short' }}</div>
-        <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short' }}</div>
+        <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short':'+0630' }}</div>
+        <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</div>
         <div class="session-actions">
           <button *ngIf="s.canCheckOut" type="button" class="btn btn-primary" (click)="openCheckOut(s)">Check-out (add notes)</button>
         </div>

@@ -27,6 +27,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new EduConnect.API.Json.UtcDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new EduConnect.API.Json.NullableUtcDateTimeConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
 

@@ -344,9 +344,12 @@ public class AdminService : IAdminService
     // ——— Dashboard ———
     public async Task<DashboardDto> GetDashboardAsync()
     {
-        var today = DateTime.UtcNow.Date;
-        var startOfMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endOfMonth = startOfMonth.AddMonths(1);
+        var myanmarNow = MyanmarTimeHelper.GetMyanmarNow();
+        var today = myanmarNow.Date;
+        var startOfMonthMyanmar = new DateTime(myanmarNow.Year, myanmarNow.Month, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        var endOfMonthMyanmar = startOfMonthMyanmar.AddMonths(1);
+        var startOfMonth = TimeZoneInfo.ConvertTimeToUtc(startOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
+        var endOfMonth = TimeZoneInfo.ConvertTimeToUtc(endOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
 
         // Alerts: low remaining hours (<2)
         var lowHoursContracts = await _context.ContractSessions
@@ -377,14 +380,15 @@ public class AdminService : IAdminService
                 EntityName = c.Student.FirstName + " " + c.Student.LastName
             });
 
-        // Today's sessions: from AttendanceLogs for today (or scheduled for today)
+        // Today's sessions (today = Myanmar date)
+        var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var todayLogs = await _context.AttendanceLogs
             .Include(a => a.ContractSession)
                 .ThenInclude(c => c!.Teacher)
                 .ThenInclude(t => t!.User)
             .Include(a => a.ContractSession!)
                 .ThenInclude(c => c.Student)
-            .Where(a => a.CheckInTime.Date == today || (a.CheckOutTime == null && a.CreatedAt.Date == today))
+            .Where(a => (a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc) || (a.CheckOutTime == null && a.CreatedAt >= todayStartUtc && a.CreatedAt < todayEndUtc))
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
         var todaySessions = todayLogs.Select(a => new TodaySessionDto
@@ -680,15 +684,15 @@ public class AdminService : IAdminService
     // ——— Reports ———
     public async Task<DailyReportDto> GetDailyReportAsync(DateTime date)
     {
-        var start = date.Date;
-        var end = start.AddDays(1);
+        // date is interpreted as calendar date in Myanmar
+        var (startUtc, endUtc) = MyanmarTimeHelper.GetUtcRangeForMyanmarDate(date);
         var logs = await _context.AttendanceLogs
-            .Where(a => a.CheckInTime >= start && a.CheckInTime < end && a.CheckOutTime != null)
+            .Where(a => a.CheckInTime >= startUtc && a.CheckInTime < endUtc && a.CheckOutTime != null)
             .ToListAsync();
         var hours = logs.Sum(a => a.HoursUsed);
         return new DailyReportDto
         {
-            Date = date,
+            Date = date.Date,
             SessionsDelivered = logs.Count,
             HoursConsumed = hours
         };

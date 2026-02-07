@@ -196,10 +196,10 @@
           <strong>Specializations:</strong> {{ selectedTeacher.specializations }}
         </div>
         <div class="detail-row">
-          <strong>Created:</strong> {{ selectedTeacher.createdAt | date:'short' }}
+          <strong>Created:</strong> {{ selectedTeacher.createdAt | date:'short':'+0630' }}
         </div>
         <div class="detail-row" *ngIf="selectedTeacher.verifiedAt">
-          <strong>Verified:</strong> {{ selectedTeacher.verifiedAt | date:'short' }}
+          <strong>Verified:</strong> {{ selectedTeacher.verifiedAt | date:'short':'+0630' }}
         </div>
       </div>
       </ng-container>

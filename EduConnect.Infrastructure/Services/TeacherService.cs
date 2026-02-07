@@ -29,7 +29,7 @@ public class TeacherService : ITeacherService
 
     public async Task<TeacherDashboardDto> GetDashboardAsync(int teacherId)
     {
-        var today = DateTime.UtcNow.Date;
+        var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher).ThenInclude(t => t!.User)
@@ -38,7 +38,7 @@ public class TeacherService : ITeacherService
 
         var todayLogs = await _context.AttendanceLogs
             .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
-            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime.Date == today)
+            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc)
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
 
@@ -117,10 +117,10 @@ public class TeacherService : ITeacherService
 
     public async Task<List<TeacherSessionItemDto>> GetTodaySessionsAsync(int teacherId)
     {
-        var today = DateTime.UtcNow.Date;
+        var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var logs = await _context.AttendanceLogs
             .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
-            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime.Date == today)
+            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc)
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
         return logs.Select(MapToSessionItem).ToList();
@@ -132,9 +132,9 @@ public class TeacherService : ITeacherService
             .Include(c => c.Student)
             .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active && c.RemainingHours > 0)
             .ToListAsync();
-        var today = DateTime.UtcNow.Date;
+        var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var todayLogs = await _context.AttendanceLogs
-            .Where(a => a.CheckInTime.Date == today && a.CheckOutTime == null)
+            .Where(a => a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc && a.CheckOutTime == null)
             .Join(_context.ContractSessions.Where(c => c.TeacherId == teacherId),
                 a => a.ContractId, c => c.Id, (a, c) => a.ContractId)
             .ToListAsync();

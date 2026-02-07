@@ -29,8 +29,8 @@
               <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
             </div>
             <div class="session-meta">Status: {{ s.status }}
-              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short' }}</span>
-              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short' }}</span>
+              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short':'+0630' }}</span>
+              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</span>
             </div>
           </div>
         </div>

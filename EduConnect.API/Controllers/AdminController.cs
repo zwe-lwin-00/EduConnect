@@ -435,7 +435,7 @@ public class AdminController : BaseController
     {
         try
         {
-            var d = date ?? DateTime.UtcNow.Date;
+            var d = date ?? EduConnect.Infrastructure.MyanmarTimeHelper.GetTodayInMyanmar();
             var result = await _adminService.GetDailyReportAsync(d);
             return Ok(result);
         }

@@ -14,7 +14,8 @@ import { DailyReportDto, MonthlyReportDto } from '../../../../core/models/admin.
 export class AdminReportsComponent implements OnInit {
   dailyReport: DailyReportDto | null = null;
   monthlyReport: MonthlyReportDto | null = null;
-  dailyDate = new Date().toISOString().slice(0, 10);
+  /** Today in Myanmar (Asia/Yangon) as YYYY-MM-DD */
+  dailyDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Yangon' });
   reportYear = new Date().getFullYear();
   reportMonth = new Date().getMonth() + 1;
   loadingDaily = false;

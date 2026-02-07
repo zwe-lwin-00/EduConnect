@@ -25,8 +25,8 @@
           <div *ngFor="let s of dashboard.todaySessions" class="session-item">
             <div class="session-row"><strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}</div>
             <div class="session-meta">Status: {{ s.status }}
-              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short' }}</span>
-              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short' }}</span>
+              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short':'+0630' }}</span>
+              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</span>
             </div>
           </div>
         </div>
