@@ -438,7 +438,7 @@ public class AdminService : IAdminService
     }
 
     // ——— Create Parent / Student ———
-    public async Task<string> CreateParentAsync(CreateParentRequest request, string adminUserId)
+    public async Task<CreateParentResponse> CreateParentAsync(CreateParentRequest request, string adminUserId)
     {
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing != null)
@@ -460,7 +460,12 @@ public class AdminService : IAdminService
         var result = await _userManager.CreateAsync(user, password);
         if (!result.Succeeded)
             throw new BusinessException(string.Join(", ", result.Errors.Select(e => e.Description)), "USER_CREATION_FAILED");
-        return user.Id;
+        return new CreateParentResponse
+        {
+            UserId = user.Id,
+            Email = user.Email ?? request.Email,
+            TemporaryPassword = password
+        };
     }
 
     public async Task<int> CreateStudentAsync(CreateStudentRequest request, string adminUserId)

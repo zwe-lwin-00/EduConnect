@@ -9,6 +9,7 @@ import {
   OnboardTeacherRequest,
   UpdateTeacherRequest,
   CreateParentRequest,
+  CreateParentResponse,
   CreateStudentRequest,
   CreateContractRequest,
   WalletAdjustRequest,
@@ -69,8 +70,8 @@ export class AdminService {
     return this.apiService.post(API_ENDPOINTS.ADMIN.RESET_TEACHER_PASSWORD(teacherId), {});
   }
 
-  createParent(request: CreateParentRequest): Observable<{ userId: string; message: string }> {
-    return this.apiService.post(API_ENDPOINTS.ADMIN.CREATE_PARENT, request);
+  createParent(request: CreateParentRequest): Observable<CreateParentResponse> {
+    return this.apiService.post<CreateParentResponse>(API_ENDPOINTS.ADMIN.CREATE_PARENT, request);
   }
 
   getParents(request?: PagedRequest): Observable<Parent[] | PagedResult<Parent>> {

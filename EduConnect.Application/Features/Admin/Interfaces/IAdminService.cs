@@ -21,7 +21,7 @@ public interface IAdminService : IService
     Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request);
 
     // Parents & Students — Master Doc B3
-    Task<string> CreateParentAsync(CreateParentRequest request, string adminUserId);
+    Task<CreateParentResponse> CreateParentAsync(CreateParentRequest request, string adminUserId);
     Task<int> CreateStudentAsync(CreateStudentRequest request, string adminUserId);
     Task<List<ParentDto>> GetParentsAsync();
     Task<ParentDto?> GetParentByIdAsync(string parentId);

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DxDataGridModule, DxButtonModule, DxPopupModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
-import { Parent, CreateParentRequest, PagedResult } from '../../../../core/models/admin.model';
+import { Parent, CreateParentRequest, CreateParentResponse, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -15,6 +15,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class AdminParentsComponent implements OnInit {
   parents: Parent[] = [];
   showCreatePopup = false;
+  showCredentialsPopup = false;
+  credentialsEmail = '';
+  credentialsPassword = '';
+  copyFeedback = '';
   createForm: FormGroup;
 
   constructor(
@@ -56,13 +60,33 @@ export class AdminParentsComponent implements OnInit {
     if (this.createForm.valid) {
       const request: CreateParentRequest = this.createForm.value;
       this.adminService.createParent(request).subscribe({
-        next: () => {
-          alert('Parent created successfully!');
+        next: (res: CreateParentResponse) => {
           this.closeCreatePopup();
           this.loadParents();
+          this.credentialsEmail = res.email;
+          this.credentialsPassword = res.temporaryPassword;
+          this.showCredentialsPopup = true;
+          this.copyFeedback = '';
         },
         error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
+  }
+
+  closeCredentialsPopup(): void {
+    this.showCredentialsPopup = false;
+    this.credentialsEmail = '';
+    this.credentialsPassword = '';
+    this.copyFeedback = '';
+  }
+
+  copyCredentialsToClipboard(): void {
+    const text = `Email: ${this.credentialsEmail}\nTemporary password: ${this.credentialsPassword}\n\nThey must change password on first login.`;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copyFeedback = 'Copied!';
+      setTimeout(() => (this.copyFeedback = ''), 2000);
+    }).catch(() => {
+      this.copyFeedback = 'Copy failed';
+    });
   }
 }

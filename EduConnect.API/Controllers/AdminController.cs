@@ -162,8 +162,8 @@ public class AdminController : BaseController
         try
         {
             var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
-            var id = await _adminService.CreateParentAsync(request, adminUserId);
-            return Ok(new { userId = id, message = "Parent created successfully" });
+            var response = await _adminService.CreateParentAsync(request, adminUserId);
+            return Ok(response);
         }
         catch (Exception ex)
         {

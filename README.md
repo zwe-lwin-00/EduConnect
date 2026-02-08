@@ -170,6 +170,17 @@ EduConnect.Web/
 
 **Students (P1–P4)** do not have login accounts in Phase 1. They are linked to a parent; the parent views all student data (contracts, sessions, progress) under their own account. Optionally, student accounts could be added later (e.g. so students can log in to view their own schedule).
 
+### Parent + student accounts (how it works)
+
+Because students are young children (P1–P4), **only the parent has a login**. Think of it as a **parent account that includes access to their child(ren)**:
+
+1. **One parent account** = one login (email + password). That account can have **multiple students** (children) linked to it.
+2. **Admin creates the parent account**: Go to **Admin → Parents** (sidebar), then click the green **"Create Parent"** button. Enter the parent’s email, first name, last name, and phone. After saving, a **credentials popup** appears with the new **email** and **temporary password**. Share these with the parent (e.g. copy to clipboard and send securely). The parent must change the password on first login.
+3. **Admin then links students to that parent**: Go to **Admin → Students** → **"Add Student"**. For each child, select the **parent** (from the dropdown), enter the student’s name, grade (P1–P4), DOB, etc. Each student is linked to exactly one parent.
+4. **Parent logs in** at `/auth/login` with the credentials you shared. They see **My Students** (all their linked children) and can open each one to see the **student learning overview** (teachers, sessions, homework, grades). No separate “student account”—everything is under the parent’s account.
+
+So: **parent account = parent + their students**. Admin creates the parent first, shares the login details, then adds students and assigns them to that parent.
+
 ## 🔄 Project Flow
 
 ### Entry & Authentication
@@ -194,8 +205,8 @@ EduConnect.Web/
    - **Edit** profile, **Reset password**, **Activate / Suspend**.
 
 3. **Parents & Students** (`/admin/parents`, `/admin/students`)  
-   - Create **parents** (email, name, phone). Each parent gets a **login account** (Admin sets credentials; parent can log in at `/auth/login` and use the Parent area).  
-   - Create **students** (parent, name, grade P1–P4, DOB, special needs). Students are linked to a parent and have no login in Phase 1; wallet balance is shown.
+   - **Create parent**: In **Admin → Parents**, click **"Create Parent"**. Enter email, first name, last name, phone. After create, a popup shows **email** and **temporary password**—share these with the parent so they can log in (they must change password on first login).  
+   - **Create students**: In **Admin → Students**, click **"Add Student"**. Select the **parent** from the dropdown and enter the child’s details (name, grade P1–P4, DOB, etc.). Each student is linked to one parent; the parent sees all their linked students under "My Students" when they log in.
 
 4. **Contracts** (`/admin/contracts`)  
    - Create **contract** (teacher + student + package hours + start/end date).  

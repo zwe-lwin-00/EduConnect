@@ -143,6 +143,13 @@ export interface CreateParentRequest {
   phoneNumber: string;
 }
 
+/** Returned when admin creates a parent. Share the credentials with the parent so they can log in. */
+export interface CreateParentResponse {
+  userId: string;
+  email: string;
+  temporaryPassword: string;
+}
+
 export interface CreateStudentRequest {
   parentId: string;
   firstName: string;
