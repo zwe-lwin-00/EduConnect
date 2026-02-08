@@ -7,6 +7,10 @@
   <ng-container *ngIf="overview && !loading && !error">
     <h1 class="page-title">{{ overview.studentName }}</h1>
     <p class="page-desc">Learning overview (read-only). Grade {{ overview.gradeLevel }}. Master Doc 11C C1.</p>
+    <div class="hours-left-block" [class.low-hours]="overview.totalRemainingHours < 5 && overview.totalRemainingHours >= 0">
+      <strong>{{ overview.totalRemainingHours }} hours left</strong> for {{ overview.studentName }}.
+      <span class="top-up-hint" *ngIf="overview.totalRemainingHours < 5 && overview.totalRemainingHours >= 0">Consider topping up with Admin.</span>
+    </div>
 
     <section class="section">
       <h2>Assigned teacher(s)</h2>

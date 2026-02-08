@@ -376,17 +376,19 @@ public class AdminService : IAdminService
             EntityName = $"{c.Student.FirstName} {c.Student.LastName}"
         }).ToList();
 
-        // Alerts: contract expiring soon (within 7 days)
-        var expiringEnd = today.AddDays(7);
+        // Alerts: contracts ending in next 14 days
+        var expiringEnd = today.AddDays(14);
         var expiring = await _context.ContractSessions
             .Include(c => c.Student)
+            .Include(c => c.Teacher).ThenInclude(t => t!.User)
             .Where(c => c.Status == ContractStatus.Active && c.EndDate.HasValue && c.EndDate.Value.Date <= expiringEnd && c.EndDate.Value.Date >= today)
+            .OrderBy(c => c.EndDate)
             .ToListAsync();
         foreach (var c in expiring)
             alerts.Add(new DashboardAlertDto
             {
                 Type = "ContractExpiring",
-                Message = $"Contract {c.ContractId} expires on {c.EndDate!.Value:yyyy-MM-dd}",
+                Message = $"Contract {c.ContractId} ends on {c.EndDate!.Value:yyyy-MM-dd} – {c.Student.FirstName} {c.Student.LastName}",
                 EntityId = c.ContractId,
                 EntityName = c.Student.FirstName + " " + c.Student.LastName
             });

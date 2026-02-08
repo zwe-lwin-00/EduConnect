@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DxDataGridModule, DxButtonModule, DxTabPanelModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
-import { Teacher, Parent, Student, OnboardTeacherRequest, PagedRequest, PagedResult } from '../../../../core/models/admin.model';
+import { Teacher, Parent, Student, OnboardTeacherRequest, PagedRequest, PagedResult, DashboardDto, DashboardAlertDto } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -21,6 +21,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrl: './admin-dashboard.component.css'
 })
 export class AdminDashboardComponent implements OnInit {
+  dashboard: DashboardDto | null = null;
   teachers: Teacher[] = [];
   parents: Parent[] = [];
   students: Student[] = [];
@@ -50,9 +51,25 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadDashboard();
     this.loadTeachers();
     this.loadParents();
     this.loadStudents();
+  }
+
+  loadDashboard(): void {
+    this.adminService.getDashboard().subscribe({
+      next: (data) => { this.dashboard = data; },
+      error: (err) => console.error('Error loading dashboard:', err)
+    });
+  }
+
+  get contractExpiringAlerts(): DashboardAlertDto[] {
+    return (this.dashboard?.alerts ?? []).filter(a => a.type === 'ContractExpiring');
+  }
+
+  get lowHoursAlerts(): DashboardAlertDto[] {
+    return (this.dashboard?.alerts ?? []).filter(a => a.type === 'LowHours');
   }
 
   loadTeachers(): void {

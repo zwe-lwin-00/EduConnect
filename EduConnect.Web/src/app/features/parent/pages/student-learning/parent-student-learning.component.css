@@ -5,6 +5,9 @@
 .error { color: #c62828; background: #ffebee; border-radius: 4px; }
 .page-title { margin: 0 0 4px 0; color: #1565c0; font-size: 1.5rem; }
 .page-desc { margin: 0 0 24px 0; color: #666; font-size: 0.9rem; }
+.hours-left-block { padding: 12px 16px; margin-bottom: 20px; background: #e3f2fd; border-radius: 8px; border: 1px solid #90caf9; font-size: 1rem; }
+.hours-left-block.low-hours { background: #fff8e1; border-color: #ffb74d; }
+.hours-left-block .top-up-hint { font-style: italic; color: #e65100; margin-left: 4px; }
 .section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e0e0e0; }
 .section h2 { margin: 0 0 12px 0; font-size: 1.1rem; color: #333; }
 .hint { font-size: 0.85rem; color: #666; margin: 0 0 12px 0; }

@@ -10,9 +10,11 @@
       No students linked to your account. Contact Admin to add students (grade P1–P4).
     </div>
     <div class="student-cards" *ngIf="students.length > 0">
-      <div *ngFor="let s of students" class="student-card">
+      <div *ngFor="let s of students" class="student-card" [class.low-hours]="s.totalRemainingHours < 5 && s.totalRemainingHours >= 0">
         <div class="student-name">{{ s.firstName }} {{ s.lastName }}</div>
-        <div class="student-meta">Grade {{ s.gradeLevel }} · {{ s.totalRemainingHours }} hrs remaining</div>
+        <div class="hours-left">{{ s.totalRemainingHours }} hours left for {{ s.firstName }} {{ s.lastName }}</div>
+        <p class="top-up-hint" *ngIf="s.totalRemainingHours < 5 && s.totalRemainingHours >= 0">Consider topping up with Admin to avoid interruption.</p>
+        <div class="student-meta">Grade {{ s.gradeLevel }}</div>
         <div class="student-meta" *ngIf="s.assignedTeacherName">Teacher: {{ s.assignedTeacherName }}</div>
         <a [routerLink]="['/parent/student', s.id]" class="link-overview">View learning overview →</a>
       </div>

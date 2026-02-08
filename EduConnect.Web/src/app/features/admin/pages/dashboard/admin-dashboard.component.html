@@ -9,6 +9,22 @@
     </dx-button>
   </div>
 
+  <section class="dashboard-alerts" *ngIf="dashboard">
+    <div class="alerts-block" *ngIf="contractExpiringAlerts.length > 0">
+      <h3>Contracts ending in next 14 days</h3>
+      <ul>
+        <li *ngFor="let a of contractExpiringAlerts">{{ a.message }}</li>
+      </ul>
+    </div>
+    <div class="alerts-block" *ngIf="lowHoursAlerts.length > 0">
+      <h3>Low remaining hours</h3>
+      <ul>
+        <li *ngFor="let a of lowHoursAlerts">{{ a.message }}</li>
+      </ul>
+    </div>
+    <p class="alerts-none" *ngIf="dashboard.alerts.length === 0">No contract or package expiry warnings.</p>
+  </section>
+
   <dx-tab-panel [height]="600">
     <dxi-item title="Teachers" icon="user">
       <dx-data-grid
