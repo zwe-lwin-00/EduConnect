@@ -3,7 +3,6 @@ using EduConnect.Application.DTOs.Auth;
 using EduConnect.Application.Features.Auth.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
-using EduConnect.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,15 +45,23 @@ public class AuthService : IAuthService
         }
 
         var token = GenerateJwtToken(user);
-        var refreshToken = GenerateRefreshToken();
+        var refreshTokenValue = GenerateRefreshToken();
+        var refreshTokenHash = HashRefreshToken(refreshTokenValue);
+        var refreshExpires = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
 
-        // Store refresh token (simplified - in production, store in database)
-        // For now, we'll include it in the response
+        _context.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshTokenHash,
+            ExpiresAt = refreshExpires,
+            CreatedAt = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
 
         return new LoginResponse
         {
             Token = token,
-            RefreshToken = refreshToken,
+            RefreshToken = refreshTokenValue,
             ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpirationMinutes()),
             User = new UserInfo
             {
@@ -70,14 +77,66 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> RefreshTokenAsync(string refreshToken)
     {
-        // Simplified - in production, validate refresh token from database
-        throw new NotImplementedException("Refresh token functionality to be implemented");
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new BusinessException("Refresh token is required.", "INVALID_REFRESH_TOKEN");
+
+        var tokenHash = HashRefreshToken(refreshToken);
+        var stored = await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+        if (stored == null || stored.RevokedAt != null || stored.ExpiresAt < DateTime.UtcNow)
+            throw new BusinessException("Invalid or expired refresh token.", "INVALID_REFRESH_TOKEN");
+
+        var user = stored.User;
+        if (user == null || !user.IsActive)
+            throw new BusinessException("User is not active.", "USER_INACTIVE");
+
+        // Revoke current refresh token (rotation)
+        stored.RevokedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        // Issue new access token and new refresh token
+        var newAccessToken = GenerateJwtToken(user);
+        var newRefreshValue = GenerateRefreshToken();
+        var newRefreshHash = HashRefreshToken(newRefreshValue);
+        var newRefreshExpires = DateTime.UtcNow.AddDays(GetRefreshTokenExpirationDays());
+
+        _context.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = newRefreshHash,
+            ExpiresAt = newRefreshExpires,
+            CreatedAt = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        return new LoginResponse
+        {
+            Token = newAccessToken,
+            RefreshToken = newRefreshValue,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpirationMinutes()),
+            User = new UserInfo
+            {
+                Id = user.Id,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role.ToString(),
+                MustChangePassword = user.MustChangePassword
+            }
+        };
     }
 
     public async Task<bool> LogoutAsync(string userId)
     {
-        // In production, invalidate refresh tokens
-        return await Task.FromResult(true);
+        var tokens = await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+            .ToListAsync();
+        foreach (var rt in tokens)
+            rt.RevokedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
@@ -133,7 +192,7 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private string GenerateRefreshToken()
+    private static string GenerateRefreshToken()
     {
         var randomNumber = new byte[64];
         using var rng = RandomNumberGenerator.Create();
@@ -141,9 +200,21 @@ public class AuthService : IAuthService
         return Convert.ToBase64String(randomNumber);
     }
 
+    private static string HashRefreshToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToBase64String(bytes);
+    }
+
     private int GetJwtExpirationMinutes()
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         return int.TryParse(jwtSettings["ExpirationInMinutes"], out var minutes) ? minutes : 60;
+    }
+
+    private int GetRefreshTokenExpirationDays()
+    {
+        var jwtSettings = _configuration.GetSection("JwtSettings");
+        return int.TryParse(jwtSettings["RefreshTokenExpirationInDays"], out var days) ? days : 7;
     }
 }

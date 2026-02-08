@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TransactionHistory> TransactionHistories { get; set; }
     public DbSet<Homework> Homeworks { get; set; }
     public DbSet<StudentGrade> StudentGrades { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -166,6 +167,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(c => c.StudentGrades)
                 .HasForeignKey(e => e.ContractSessionId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure RefreshToken
+        builder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TokenHash);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

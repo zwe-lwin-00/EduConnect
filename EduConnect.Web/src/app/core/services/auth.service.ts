@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap, catchError, shareReplay, map, finalize } from 'rxjs';
 import { LoginRequest, LoginResponse, User, UserRole } from '../models/user.model';
 import { API_ENDPOINTS } from '../constants/api-endpoints.const';
 import { appConfig } from '../constants/app-config';
@@ -16,6 +16,7 @@ export class AuthService {
   currentUser = signal<User | null>(null);
 
   private readonly apiUrl = appConfig.apiUrl;
+  private refreshInProgress: Observable<LoginResponse | null> | null = null;
 
   constructor(
     private http: HttpClient
@@ -41,7 +42,36 @@ export class AuthService {
     );
   }
 
+  /** Try to refresh the access token. Returns new LoginResponse or null if failed. Shared so concurrent 401s trigger one refresh. */
+  refreshToken(): Observable<LoginResponse | null> {
+    const refresh = this.getRefreshToken();
+    if (!refresh) {
+      return of(null);
+    }
+    if (this.refreshInProgress) {
+      return this.refreshInProgress;
+    }
+    const url = `${this.apiUrl}${API_ENDPOINTS.AUTH.REFRESH}`;
+    this.refreshInProgress = this.http.post<LoginResponse>(url, { refreshToken: refresh }).pipe(
+      tap((res) => this.setAuthData(res)),
+      map((res) => res),
+      catchError(() => of(null)),
+      shareReplay(1),
+      finalize(() => { this.refreshInProgress = null; })
+    );
+    return this.refreshInProgress;
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
   logout(): void {
+    const token = this.getToken();
+    if (token) {
+      const url = `${this.apiUrl}${API_ENDPOINTS.AUTH.LOGOUT}`;
+      this.http.post(url, {}).subscribe({ error: () => {} });
+    }
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);

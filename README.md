@@ -279,6 +279,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **TransactionHistory** - Transaction records
 - **Homework** - Teacher–student assignments (title, description, due date, status: Assigned / Submitted / Graded / Overdue, teacher feedback)
 - **StudentGrade** - Grades and assessments (title, grade value, optional max value, date, notes) linked to teacher and student
+- **RefreshToken** - Stored hashed refresh tokens per user; used to issue new access tokens without re-login; revoked on logout or after rotation
 
 ## ✨ Key Features
 
@@ -298,9 +299,9 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 - [x] **UI**: Sidebar layout (admin, parent, teacher) with on/off toggle; favicon PNG; row number column (#) in all DataGrids
+- [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
 
 ### 🚧 To Be Implemented
-- [ ] Refresh token mechanism
 - [ ] Teacher NRC/certificate document upload and verification workflow
 - [ ] Scheduling approval workflow (admin confirms slots)
 - [ ] Payment integration (KBZPay/Wave) – Phase 1 is manual confirmation
@@ -364,7 +365,7 @@ dotnet ef migrations add YourMigrationName --project ../EduConnect.Infrastructur
 dotnet ef database update --project ../EduConnect.Infrastructure
 ```
 
-If you added **Homework** and **StudentGrade** entities, run a migration named `AddHomeworkAndStudentGrade` (or use the name you prefer) so the new tables are created.
+If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a migration (e.g. `AddHomeworkAndStudentGrade`, `AddRefreshToken`) so the new tables are created.
 
 ## 🔧 Troubleshooting
 
@@ -416,7 +417,7 @@ If you added **Homework** and **StudentGrade** entities, run a migration named `
 ## 🔒 Security
 
 - **Encryption**: NRC numbers and sensitive data encrypted using AES-256
-- **Authentication**: JWT tokens with 60-minute expiration
+- **Authentication**: JWT access tokens (e.g. 60-minute expiration) and refresh tokens (e.g. 7-day expiration, stored hashed in DB). On 401 the client refreshes the access token and retries; logout revokes refresh tokens.
 - **Authorization**: Role-based access control (Admin, Teacher, Parent)
 - **CORS**: Configured to restrict API access to authorized domains
 - **Password Policy**: 
