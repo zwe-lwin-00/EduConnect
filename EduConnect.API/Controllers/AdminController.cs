@@ -47,20 +47,21 @@ public class AdminController : BaseController
     }
 
     [HttpGet("teachers")]
-    public async Task<IActionResult> GetTeachers([FromQuery] PagedRequest? request = null)
+    public async Task<IActionResult> GetTeachers(
+        [FromQuery] PagedRequest? request = null,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] int? verificationStatus = null,
+        [FromQuery] string? specializations = null)
     {
         try
         {
             if (request == null)
             {
-                var teachers = await _adminService.GetTeachersAsync();
+                var teachers = await _adminService.GetTeachersAsync(searchTerm, verificationStatus, specializations);
                 return Ok(teachers);
             }
-            else
-            {
-                var result = await _adminService.GetTeachersPagedAsync(request);
-                return Ok(result);
-            }
+            var result = await _adminService.GetTeachersPagedAsync(request, verificationStatus, specializations);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -227,19 +228,11 @@ public class AdminController : BaseController
     }
 
     [HttpGet("students")]
-    public async Task<IActionResult> GetStudents([FromQuery] string? parentId = null)
+    public async Task<IActionResult> GetStudents([FromQuery] string? parentId = null, [FromQuery] int? gradeLevel = null)
     {
         try
         {
-            List<StudentDto> students;
-            if (!string.IsNullOrEmpty(parentId))
-            {
-                students = await _adminService.GetStudentsByParentAsync(parentId);
-            }
-            else
-            {
-                students = await _adminService.GetStudentsAsync();
-            }
+            var students = await _adminService.GetStudentsAsync(parentId, gradeLevel);
             return Ok(students);
         }
         catch (Exception ex)

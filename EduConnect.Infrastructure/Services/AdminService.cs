@@ -179,13 +179,25 @@ public class AdminService : IAdminService
         return true;
     }
 
-    public async Task<List<TeacherDto>> GetTeachersAsync()
+    public async Task<List<TeacherDto>> GetTeachersAsync(string? searchTerm = null, int? verificationStatus = null, string? specializations = null)
     {
-        var teachers = await _context.TeacherProfiles
-            .Include(t => t.User)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
-
+        var query = _context.TeacherProfiles.Include(t => t.User).AsQueryable();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(t =>
+                t.User.FirstName.Contains(term) ||
+                t.User.LastName.Contains(term) ||
+                (t.User.Email != null && t.User.Email.Contains(term)));
+        }
+        if (verificationStatus.HasValue)
+            query = query.Where(t => (int)t.VerificationStatus == verificationStatus.Value);
+        if (!string.IsNullOrWhiteSpace(specializations))
+        {
+            var spec = specializations.Trim();
+            query = query.Where(t => t.Specializations != null && t.Specializations.Contains(spec));
+        }
+        var teachers = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
         return teachers.Select(t => MapToTeacherDto(t)).ToList();
     }
 
@@ -241,30 +253,26 @@ public class AdminService : IAdminService
         return parent == null ? null : MapToParentDto(parent);
     }
 
-    public async Task<List<StudentDto>> GetStudentsAsync()
+    public async Task<List<StudentDto>> GetStudentsAsync(string? parentId = null, int? gradeLevel = null)
     {
-        var students = await _context.Students
+        var query = _context.Students
             .Include(s => s.Parent)
             .Include(s => s.ContractSessions)
-            .OrderByDescending(s => s.CreatedAt)
-            .ToListAsync();
-
+            .AsQueryable();
+        if (!string.IsNullOrEmpty(parentId))
+            query = query.Where(s => s.ParentId == parentId);
+        if (gradeLevel.HasValue && gradeLevel.Value >= 1 && gradeLevel.Value <= 4)
+            query = query.Where(s => (int)s.GradeLevel == gradeLevel.Value);
+        var students = await query.OrderByDescending(s => s.CreatedAt).ToListAsync();
         return students.Select(s => MapToStudentDto(s)).ToList();
     }
 
     public async Task<List<StudentDto>> GetStudentsByParentAsync(string parentId)
     {
-        var students = await _context.Students
-            .Include(s => s.Parent)
-            .Include(s => s.ContractSessions)
-            .Where(s => s.ParentId == parentId)
-            .OrderByDescending(s => s.CreatedAt)
-            .ToListAsync();
-
-        return students.Select(s => MapToStudentDto(s)).ToList();
+        return await GetStudentsAsync(parentId, null);
     }
 
-    public async Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request)
+    public async Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request, int? verificationStatus = null, string? specializations = null)
     {
         var query = _context.TeacherProfiles
             .Include(t => t.User)
@@ -276,8 +284,12 @@ public class AdminService : IAdminService
             query = query.Where(t =>
                 t.User.FirstName.Contains(request.SearchTerm) ||
                 t.User.LastName.Contains(request.SearchTerm) ||
-                t.User.Email.Contains(request.SearchTerm));
+                (t.User.Email != null && t.User.Email.Contains(request.SearchTerm)));
         }
+        if (verificationStatus.HasValue)
+            query = query.Where(t => (int)t.VerificationStatus == verificationStatus.Value);
+        if (!string.IsNullOrWhiteSpace(specializations))
+            query = query.Where(t => t.Specializations != null && t.Specializations.Contains(specializations.Trim()));
 
         // Sorting
         query = request.SortBy?.ToLower() switch

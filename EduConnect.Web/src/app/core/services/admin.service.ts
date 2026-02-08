@@ -37,13 +37,23 @@ export class AdminService {
     return this.apiService.post(API_ENDPOINTS.ADMIN.ONBOARD_TEACHER, request);
   }
 
-  getTeachers(request?: PagedRequest): Observable<Teacher[] | PagedResult<Teacher>> {
+  getTeachers(request?: PagedRequest, filters?: { searchTerm?: string; verificationStatus?: number; specializations?: string }): Observable<Teacher[] | PagedResult<Teacher>> {
+    const params = new URLSearchParams();
     if (request) {
-      return this.apiService.get<PagedResult<Teacher>>(
-        `${API_ENDPOINTS.ADMIN.TEACHERS}?pageNumber=${request.pageNumber}&pageSize=${request.pageSize}${request.searchTerm ? `&searchTerm=${request.searchTerm}` : ''}${request.sortBy ? `&sortBy=${request.sortBy}&sortDescending=${request.sortDescending}` : ''}`
-      );
+      params.set('pageNumber', String(request.pageNumber));
+      params.set('pageSize', String(request.pageSize));
+      if (request.searchTerm) params.set('searchTerm', request.searchTerm);
+      if (request.sortBy) {
+        params.set('sortBy', request.sortBy);
+        params.set('sortDescending', String(request.sortDescending));
+      }
     }
-    return this.apiService.get<Teacher[]>(API_ENDPOINTS.ADMIN.TEACHERS);
+    if (filters?.searchTerm) params.set('searchTerm', filters.searchTerm);
+    if (filters?.verificationStatus != null) params.set('verificationStatus', String(filters.verificationStatus));
+    if (filters?.specializations) params.set('specializations', filters.specializations);
+    const q = params.toString();
+    const url = q ? `${API_ENDPOINTS.ADMIN.TEACHERS}?${q}` : API_ENDPOINTS.ADMIN.TEACHERS;
+    return this.apiService.get<Teacher[] | PagedResult<Teacher>>(url);
   }
 
   getTeacherById(id: number): Observable<Teacher> {
@@ -91,10 +101,12 @@ export class AdminService {
     return this.apiService.post(API_ENDPOINTS.ADMIN.CREATE_STUDENT, request);
   }
 
-  getStudents(parentId?: string): Observable<Student[]> {
-    const url = parentId
-      ? `${API_ENDPOINTS.ADMIN.STUDENTS}?parentId=${parentId}`
-      : API_ENDPOINTS.ADMIN.STUDENTS;
+  getStudents(parentId?: string, gradeLevel?: number): Observable<Student[]> {
+    const params = new URLSearchParams();
+    if (parentId) params.set('parentId', parentId);
+    if (gradeLevel != null && gradeLevel >= 1 && gradeLevel <= 4) params.set('gradeLevel', String(gradeLevel));
+    const q = params.toString();
+    const url = q ? `${API_ENDPOINTS.ADMIN.STUDENTS}?${q}` : API_ENDPOINTS.ADMIN.STUDENTS;
     return this.apiService.get<Student[]>(url);
   }
 

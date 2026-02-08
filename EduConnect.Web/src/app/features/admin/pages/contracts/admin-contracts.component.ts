@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DxDataGridModule, DxButtonModule, DxPopupModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
 import { ContractDto, CreateContractRequest, Teacher, Student } from '../../../../core/models/admin.model';
@@ -8,7 +9,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 @Component({
   selector: 'app-admin-contracts',
   standalone: true,
-  imports: [CommonModule, DxDataGridModule, DxButtonModule, DxPopupModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, DxDataGridModule, DxButtonModule, DxPopupModule, ReactiveFormsModule],
   templateUrl: './admin-contracts.component.html',
   styleUrl: './admin-contracts.component.css'
 })
@@ -18,6 +19,10 @@ export class AdminContractsComponent implements OnInit {
   students: Student[] = [];
   showCreatePopup = false;
   createForm: FormGroup;
+
+  filterTeacherId: number | null = null;
+  filterStudentId: number | null = null;
+  filterStatus: number | null = null;
 
   constructor(
     private adminService: AdminService,
@@ -39,10 +44,24 @@ export class AdminContractsComponent implements OnInit {
   }
 
   loadContracts(): void {
-    this.adminService.getContracts().subscribe({
+    const teacherId = this.filterTeacherId ?? undefined;
+    const studentId = this.filterStudentId ?? undefined;
+    const status = this.filterStatus ?? undefined;
+    this.adminService.getContracts(teacherId, studentId, status).subscribe({
       next: (data) => this.contracts = data,
       error: (err) => console.error('Error loading contracts:', err)
     });
+  }
+
+  applyContractFilters(): void {
+    this.loadContracts();
+  }
+
+  clearContractFilters(): void {
+    this.filterTeacherId = null;
+    this.filterStudentId = null;
+    this.filterStatus = null;
+    this.loadContracts();
   }
 
   loadTeachers(): void {

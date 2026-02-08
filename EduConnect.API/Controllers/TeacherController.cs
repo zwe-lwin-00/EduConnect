@@ -195,12 +195,12 @@ public class TeacherController : BaseController
     }
 
     [HttpGet("homework")]
-    public async Task<IActionResult> GetHomeworks([FromQuery] int? studentId = null)
+    public async Task<IActionResult> GetHomeworks([FromQuery] int? studentId = null, [FromQuery] DateTime? dueDateFrom = null, [FromQuery] DateTime? dueDateTo = null)
     {
         try
         {
             var teacherId = await GetTeacherIdAsync();
-            var result = await _homeworkService.GetHomeworksByTeacherAsync(teacherId, studentId);
+            var result = await _homeworkService.GetHomeworksByTeacherAsync(teacherId, studentId, dueDateFrom, dueDateTo);
             return Ok(result);
         }
         catch (UnauthorizedAccessException)
@@ -254,12 +254,12 @@ public class TeacherController : BaseController
     }
 
     [HttpGet("grades")]
-    public async Task<IActionResult> GetGrades([FromQuery] int? studentId = null)
+    public async Task<IActionResult> GetGrades([FromQuery] int? studentId = null, [FromQuery] DateTime? gradeDateFrom = null, [FromQuery] DateTime? gradeDateTo = null)
     {
         try
         {
             var teacherId = await GetTeacherIdAsync();
-            var result = await _homeworkService.GetGradesByTeacherAsync(teacherId, studentId);
+            var result = await _homeworkService.GetGradesByTeacherAsync(teacherId, studentId, gradeDateFrom, gradeDateTo);
             return Ok(result);
         }
         catch (UnauthorizedAccessException)

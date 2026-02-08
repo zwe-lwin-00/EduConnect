@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DxDataGridModule, DxButtonModule, DxTabPanelModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Teacher, Parent, Student, OnboardTeacherRequest, PagedRequest, PagedResult, DashboardDto, DashboardAlertDto } from '../../../../core/models/admin.model';
@@ -10,6 +11,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     DxDataGridModule,
     DxButtonModule,
     DxTabPanelModule,
@@ -32,6 +34,12 @@ export class AdminDashboardComponent implements OnInit {
   selectedTeacher: Teacher | null = null;
   showTeacherDetails = false;
   rejectReason = '';
+
+  teacherSearch = '';
+  teacherStatus: number | '' = '';
+  teacherSubject = '';
+  studentParentId = '';
+  studentGrade: number | '' = '';
 
   constructor(
     private adminService: AdminService,
@@ -73,7 +81,14 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadTeachers(): void {
-    this.adminService.getTeachers().subscribe({
+    const filters = (this.teacherSearch || this.teacherStatus !== '' || this.teacherSubject)
+      ? {
+          searchTerm: this.teacherSearch || undefined,
+          verificationStatus: this.teacherStatus === '' ? undefined : Number(this.teacherStatus),
+          specializations: this.teacherSubject || undefined
+        }
+      : undefined;
+    this.adminService.getTeachers(undefined, filters).subscribe({
       next: (data) => {
         this.teachers = Array.isArray(data) ? data : (data as PagedResult<Teacher>).items;
       },
@@ -91,12 +106,35 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadStudents(): void {
-    this.adminService.getStudents().subscribe({
+    const parentId = this.studentParentId || undefined;
+    const gradeLevel = this.studentGrade === '' ? undefined : Number(this.studentGrade);
+    this.adminService.getStudents(parentId, gradeLevel).subscribe({
       next: (data) => {
         this.students = data;
       },
       error: (error) => console.error('Error loading students:', error)
     });
+  }
+
+  applyTeacherFilters(): void {
+    this.loadTeachers();
+  }
+
+  clearTeacherFilters(): void {
+    this.teacherSearch = '';
+    this.teacherStatus = '';
+    this.teacherSubject = '';
+    this.loadTeachers();
+  }
+
+  applyStudentFilters(): void {
+    this.loadStudents();
+  }
+
+  clearStudentFilters(): void {
+    this.studentParentId = '';
+    this.studentGrade = '';
+    this.loadStudents();
   }
 
   openOnboardPopup(): void {

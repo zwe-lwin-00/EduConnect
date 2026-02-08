@@ -15,17 +15,17 @@ public interface IAdminService : IService
     Task<bool> VerifyTeacherAsync(int teacherId);
     Task<bool> RejectTeacherAsync(int teacherId, string reason);
     Task<bool> SetTeacherActiveAsync(int teacherId, bool isActive);
-    Task<List<TeacherDto>> GetTeachersAsync();
+    Task<List<TeacherDto>> GetTeachersAsync(string? searchTerm = null, int? verificationStatus = null, string? specializations = null);
     Task<TeacherDto?> GetTeacherByIdAsync(int teacherId);
     Task<bool> UpdateTeacherAsync(int teacherId, UpdateTeacherRequest request);
-    Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request);
+    Task<PagedResult<TeacherDto>> GetTeachersPagedAsync(PagedRequest request, int? verificationStatus = null, string? specializations = null);
 
     // Parents & Students — Master Doc B3
     Task<CreateParentResponse> CreateParentAsync(CreateParentRequest request, string adminUserId);
     Task<int> CreateStudentAsync(CreateStudentRequest request, string adminUserId);
     Task<List<ParentDto>> GetParentsAsync();
     Task<ParentDto?> GetParentByIdAsync(string parentId);
-    Task<List<StudentDto>> GetStudentsAsync();
+    Task<List<StudentDto>> GetStudentsAsync(string? parentId = null, int? gradeLevel = null);
     Task<List<StudentDto>> GetStudentsByParentAsync(string parentId);
     Task<PagedResult<ParentDto>> GetParentsPagedAsync(PagedRequest request);
 

@@ -63,7 +63,7 @@ public class HomeworkService : IHomeworkService
         return MapToHomeworkDto(homework, student, teacher, contract);
     }
 
-    public async Task<List<HomeworkDto>> GetHomeworksByTeacherAsync(int teacherId, int? studentId = null)
+    public async Task<List<HomeworkDto>> GetHomeworksByTeacherAsync(int teacherId, int? studentId = null, DateTime? dueDateFrom = null, DateTime? dueDateTo = null)
     {
         var query = _context.Homeworks
             .Include(h => h.Student)
@@ -72,6 +72,10 @@ public class HomeworkService : IHomeworkService
             .Where(h => h.TeacherId == teacherId);
         if (studentId.HasValue)
             query = query.Where(h => h.StudentId == studentId.Value);
+        if (dueDateFrom.HasValue)
+            query = query.Where(h => h.DueDate.Date >= dueDateFrom.Value.Date);
+        if (dueDateTo.HasValue)
+            query = query.Where(h => h.DueDate.Date <= dueDateTo.Value.Date);
         var list = await query.OrderByDescending(h => h.CreatedAt).ToListAsync();
         return list.Select(h => MapToHomeworkDto(h, h.Student, h.Teacher!, h.ContractSession)).ToList();
     }
@@ -156,7 +160,7 @@ public class HomeworkService : IHomeworkService
         return MapToGradeDto(grade, student, teacher, contract);
     }
 
-    public async Task<List<StudentGradeDto>> GetGradesByTeacherAsync(int teacherId, int? studentId = null)
+    public async Task<List<StudentGradeDto>> GetGradesByTeacherAsync(int teacherId, int? studentId = null, DateTime? gradeDateFrom = null, DateTime? gradeDateTo = null)
     {
         var query = _context.StudentGrades
             .Include(g => g.Student)
@@ -165,6 +169,10 @@ public class HomeworkService : IHomeworkService
             .Where(g => g.TeacherId == teacherId);
         if (studentId.HasValue)
             query = query.Where(g => g.StudentId == studentId.Value);
+        if (gradeDateFrom.HasValue)
+            query = query.Where(g => g.GradeDate.Date >= gradeDateFrom.Value.Date);
+        if (gradeDateTo.HasValue)
+            query = query.Where(g => g.GradeDate.Date <= gradeDateTo.Value.Date);
         var list = await query.OrderByDescending(g => g.GradeDate).ToListAsync();
         return list.Select(g => MapToGradeDto(g, g.Student, g.Teacher!, g.ContractSession)).ToList();
     }

@@ -26,6 +26,10 @@ export class TeacherHomeworkGradesComponent implements OnInit {
   loading = true;
   error = '';
   filterStudentId: number | null = null;
+  dueDateFrom = '';
+  dueDateTo = '';
+  gradeDateFrom = '';
+  gradeDateTo = '';
 
   showHomeworkForm = false;
   homeworkForm: CreateHomeworkRequest = {
@@ -69,10 +73,24 @@ export class TeacherHomeworkGradesComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.error = '';
-    this.teacherService.getHomeworks(this.filterStudentId ?? undefined).subscribe({
+    const studentId = this.filterStudentId ?? undefined;
+    const dueFrom = this.dueDateFrom || undefined;
+    const dueTo = this.dueDateTo || undefined;
+    const gradeFrom = this.gradeDateFrom || undefined;
+    const gradeTo = this.gradeDateTo || undefined;
+    this.teacherService.getHomeworks(studentId, dueFrom, dueTo).subscribe({
       next: (data) => {
         this.homeworks = data;
-        this.loadGrades();
+        this.teacherService.getGrades(studentId, gradeFrom, gradeTo).subscribe({
+          next: (g) => {
+            this.grades = g;
+            this.loading = false;
+          },
+          error: (err) => {
+            this.error = err.error?.error || err.message || 'Failed to load';
+            this.loading = false;
+          }
+        });
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
@@ -82,7 +100,10 @@ export class TeacherHomeworkGradesComponent implements OnInit {
   }
 
   loadGrades(): void {
-    this.teacherService.getGrades(this.filterStudentId ?? undefined).subscribe({
+    const studentId = this.filterStudentId ?? undefined;
+    const gradeFrom = this.gradeDateFrom || undefined;
+    const gradeTo = this.gradeDateTo || undefined;
+    this.teacherService.getGrades(studentId, gradeFrom, gradeTo).subscribe({
       next: (data) => {
         this.grades = data;
         this.loading = false;
@@ -95,6 +116,14 @@ export class TeacherHomeworkGradesComponent implements OnInit {
   }
 
   onFilterChange(): void {
+    this.load();
+  }
+
+  clearDateFilters(): void {
+    this.dueDateFrom = '';
+    this.dueDateTo = '';
+    this.gradeDateFrom = '';
+    this.gradeDateTo = '';
     this.load();
   }
 

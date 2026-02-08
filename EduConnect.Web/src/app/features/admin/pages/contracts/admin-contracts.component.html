@@ -4,6 +4,26 @@
     <dx-button text="New Contract" type="success" (onClick)="openCreatePopup()" [icon]="'plus'"></dx-button>
   </div>
 
+  <div class="filter-bar">
+    <select [(ngModel)]="filterTeacherId" class="filter-select">
+      <option [ngValue]="null">All teachers</option>
+      <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+    </select>
+    <select [(ngModel)]="filterStudentId" class="filter-select">
+      <option [ngValue]="null">All students</option>
+      <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
+    </select>
+    <select [(ngModel)]="filterStatus" class="filter-select">
+      <option [ngValue]="null">All statuses</option>
+      <option [ngValue]="1">Active</option>
+      <option [ngValue]="2">Completed</option>
+      <option [ngValue]="3">Cancelled</option>
+      <option [ngValue]="4">Expired</option>
+    </select>
+    <button type="button" class="btn-filter" (click)="applyContractFilters()">Apply</button>
+    <button type="button" class="btn-filter-outline" (click)="clearContractFilters()">Clear</button>
+  </div>
+
   <dx-data-grid
     [dataSource]="contracts"
     [allowColumnReordering]="true"

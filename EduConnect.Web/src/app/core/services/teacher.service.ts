@@ -65,10 +65,13 @@ export class TeacherService {
     return this.apiService.post(API_ENDPOINTS.TEACHER.CHECK_OUT, request);
   }
 
-  getHomeworks(studentId?: number): Observable<HomeworkDto[]> {
-    const endpoint = studentId != null
-      ? `${API_ENDPOINTS.TEACHER.HOMEWORK}?studentId=${studentId}`
-      : API_ENDPOINTS.TEACHER.HOMEWORK;
+  getHomeworks(studentId?: number, dueDateFrom?: string, dueDateTo?: string): Observable<HomeworkDto[]> {
+    const params = new URLSearchParams();
+    if (studentId != null) params.set('studentId', String(studentId));
+    if (dueDateFrom) params.set('dueDateFrom', dueDateFrom);
+    if (dueDateTo) params.set('dueDateTo', dueDateTo);
+    const q = params.toString();
+    const endpoint = q ? `${API_ENDPOINTS.TEACHER.HOMEWORK}?${q}` : API_ENDPOINTS.TEACHER.HOMEWORK;
     return this.apiService.get<HomeworkDto[]>(endpoint);
   }
 
@@ -80,10 +83,13 @@ export class TeacherService {
     return this.apiService.put<HomeworkDto>(API_ENDPOINTS.TEACHER.HOMEWORK_STATUS(homeworkId), request);
   }
 
-  getGrades(studentId?: number): Observable<StudentGradeDto[]> {
-    const endpoint = studentId != null
-      ? `${API_ENDPOINTS.TEACHER.GRADES}?studentId=${studentId}`
-      : API_ENDPOINTS.TEACHER.GRADES;
+  getGrades(studentId?: number, gradeDateFrom?: string, gradeDateTo?: string): Observable<StudentGradeDto[]> {
+    const params = new URLSearchParams();
+    if (studentId != null) params.set('studentId', String(studentId));
+    if (gradeDateFrom) params.set('gradeDateFrom', gradeDateFrom);
+    if (gradeDateTo) params.set('gradeDateTo', gradeDateTo);
+    const q = params.toString();
+    const endpoint = q ? `${API_ENDPOINTS.TEACHER.GRADES}?${q}` : API_ENDPOINTS.TEACHER.GRADES;
     return this.apiService.get<StudentGradeDto[]>(endpoint);
   }
 
