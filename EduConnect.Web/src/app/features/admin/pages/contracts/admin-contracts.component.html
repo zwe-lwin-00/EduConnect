@@ -10,6 +10,7 @@
     [allowColumnResizing]="true"
     [columnAutoWidth]="true"
     [showBorders]="true">
+    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
     <dxi-column dataField="contractId" caption="Contract ID"></dxi-column>
     <dxi-column dataField="teacherName" caption="Teacher"></dxi-column>
     <dxi-column dataField="studentName" caption="Student"></dxi-column>
@@ -19,6 +20,7 @@
     <dxi-column dataField="startDate" caption="Start" dataType="date" format="shortDate"></dxi-column>
     <dxi-column dataField="endDate" caption="End" dataType="date" format="shortDate"></dxi-column>
     <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="100"></dxi-column>
+    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
     <div *dxTemplate="let data of 'statusTemplate'">{{ statusName(data.data.status) }}</div>
     <div *dxTemplate="let data of 'actionsTemplate'">
       <dx-button *ngIf="data.data.status === 1" text="Cancel" type="danger" stylingMode="outlined" (onClick)="cancelContract(data.data)"></dx-button>

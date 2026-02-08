@@ -10,6 +10,7 @@
     [allowColumnResizing]="true"
     [columnAutoWidth]="true"
     [showBorders]="true">
+    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
     <dxi-column dataField="firstName" caption="First Name"></dxi-column>
     <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
     <dxi-column dataField="email" caption="Email"></dxi-column>
@@ -17,6 +18,7 @@
     <dxi-column dataField="studentCount" caption="Students" dataType="number"></dxi-column>
     <dxi-column dataField="createdAt" caption="Created" dataType="date" format="shortDate"></dxi-column>
     <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
+    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
   </dx-data-grid>
 
   <dx-popup

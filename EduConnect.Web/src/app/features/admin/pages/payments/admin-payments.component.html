@@ -13,12 +13,14 @@
     [allowColumnReordering]="true"
     [columnAutoWidth]="true"
     [showBorders]="true">
+    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
     <dxi-column dataField="firstName" caption="First Name"></dxi-column>
     <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
     <dxi-column dataField="parentName" caption="Parent"></dxi-column>
     <dxi-column dataField="gradeLevelName" caption="Grade"></dxi-column>
     <dxi-column dataField="walletBalance" caption="Wallet (hrs)" dataType="number"></dxi-column>
     <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
+    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
   </dx-data-grid>
 
   <dx-popup [(visible)]="showCreditPopup" [showTitle]="true" title="Credit Hours" [width]="450" [showCloseButton]="true" (onHiding)="closeCreditPopup()">

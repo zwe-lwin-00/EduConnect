@@ -1,23 +1,56 @@
-<div class="admin-layout">
-  <header class="admin-header">
-    <div class="brand">
+<div class="admin-layout" [class.sidebar-collapsed]="!sidebarOpen">
+  <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
+    <div class="sidebar-brand">
       <a routerLink="/admin">EduConnect Admin</a>
     </div>
-    <nav class="nav-links">
-      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
-      <a routerLink="/admin/teachers" routerLinkActive="active">Teachers</a>
-      <a routerLink="/admin/parents" routerLinkActive="active">Parents</a>
-      <a routerLink="/admin/students" routerLinkActive="active">Students</a>
-      <a routerLink="/admin/contracts" routerLinkActive="active">Contracts</a>
-      <a routerLink="/admin/attendance" routerLinkActive="active">Attendance</a>
-      <a routerLink="/admin/payments" routerLinkActive="active">Payments</a>
-      <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
+    <nav class="sidebar-nav">
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a routerLink="/admin/teachers" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Teachers</span>
+      </a>
+      <a routerLink="/admin/parents" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Parents</span>
+      </a>
+      <a routerLink="/admin/students" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Students</span>
+      </a>
+      <a routerLink="/admin/contracts" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Contracts</span>
+      </a>
+      <a routerLink="/admin/attendance" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Attendance</span>
+      </a>
+      <a routerLink="/admin/payments" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Payments</span>
+      </a>
+      <a routerLink="/admin/reports" routerLinkActive="active">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Reports</span>
+      </a>
     </nav>
-    <div class="header-actions">
-      <button type="button" class="btn-logout" (click)="logout()">Logout</button>
-    </div>
-  </header>
-  <main class="admin-main">
-    <router-outlet></router-outlet>
-  </main>
+  </aside>
+  <div class="layout-body">
+    <header class="topbar">
+      <button type="button" class="btn-menu" (click)="toggleSidebar()" [attr.aria-label]="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'" [title]="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'">
+        <span class="menu-icon">{{ sidebarOpen ? '◀' : '☰' }}</span>
+      </button>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <button type="button" class="btn-logout" (click)="logout()">Logout</button>
+      </div>
+    </header>
+    <main class="admin-main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="closeSidebar()"></div>
 </div>

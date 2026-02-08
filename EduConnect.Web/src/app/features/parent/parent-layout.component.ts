@@ -11,10 +11,20 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './parent-layout.component.css'
 })
 export class ParentLayoutComponent {
+  sidebarOpen = true;
+
   constructor(
     private router: Router,
     private authService: AuthService
   ) {}
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
 
   logout(): void {
     this.authService.logout();

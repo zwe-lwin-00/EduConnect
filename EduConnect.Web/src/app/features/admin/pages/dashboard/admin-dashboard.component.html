@@ -17,6 +17,7 @@
         [allowColumnResizing]="true"
         [columnAutoWidth]="true"
         [showBorders]="true">
+        <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
         <dxi-column dataField="firstName" caption="First Name"></dxi-column>
         <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
         <dxi-column dataField="email" caption="Email"></dxi-column>
@@ -34,6 +35,7 @@
           [allowSorting]="false"
           [width]="200">
         </dxi-column>
+        <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
         <div *dxTemplate="let data of 'statusCellTemplate'">
           <span [class]="getVerificationStatusClass(data.data.verificationStatus)">
             {{ getVerificationStatusText(data.data.verificationStatus) }}
@@ -74,12 +76,14 @@
         [allowColumnResizing]="true"
         [columnAutoWidth]="true"
         [showBorders]="true">
+        <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
         <dxi-column dataField="firstName" caption="First Name"></dxi-column>
         <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
         <dxi-column dataField="email" caption="Email"></dxi-column>
         <dxi-column dataField="phoneNumber" caption="Phone"></dxi-column>
         <dxi-column dataField="studentCount" caption="Students" dataType="number"></dxi-column>
         <dxi-column dataField="createdAt" caption="Created" dataType="date" format="shortDate"></dxi-column>
+        <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
       </dx-data-grid>
     </dxi-item>
 
@@ -90,12 +94,14 @@
         [allowColumnResizing]="true"
         [columnAutoWidth]="true"
         [showBorders]="true">
+        <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
         <dxi-column dataField="firstName" caption="First Name"></dxi-column>
         <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
         <dxi-column dataField="parentName" caption="Parent"></dxi-column>
         <dxi-column dataField="gradeLevelName" caption="Grade"></dxi-column>
         <dxi-column dataField="walletBalance" caption="Wallet Balance" dataType="number"></dxi-column>
         <dxi-column dataField="dateOfBirth" caption="Date of Birth" dataType="date" format="shortDate"></dxi-column>
+        <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
       </dx-data-grid>
     </dxi-item>
   </dx-tab-panel>

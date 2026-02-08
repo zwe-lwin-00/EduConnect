@@ -11,11 +11,13 @@
     [allowColumnReordering]="true"
     [columnAutoWidth]="true"
     [showBorders]="true">
+    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
     <dxi-column dataField="studentName" caption="Student"></dxi-column>
     <dxi-column dataField="gradeLevel" caption="Grade"></dxi-column>
     <dxi-column dataField="subjects" caption="Subjects"></dxi-column>
     <dxi-column dataField="contractStatus" caption="Contract Status"></dxi-column>
     <dxi-column dataField="contractIdDisplay" caption="Contract ID"></dxi-column>
     <dxi-column dataField="remainingHours" caption="Remaining Hours" dataType="number"></dxi-column>
+    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
   </dx-data-grid>
 </div>

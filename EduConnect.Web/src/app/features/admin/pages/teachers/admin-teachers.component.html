@@ -10,6 +10,7 @@
     [allowColumnResizing]="true"
     [columnAutoWidth]="true"
     [showBorders]="true">
+    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
     <dxi-column dataField="firstName" caption="First Name"></dxi-column>
     <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
     <dxi-column dataField="email" caption="Email"></dxi-column>
@@ -19,6 +20,7 @@
     <dxi-column dataField="verificationStatus" caption="Status" [cellTemplate]="'statusCellTemplate'"></dxi-column>
     <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
     <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="360"></dxi-column>
+    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
     <div *dxTemplate="let data of 'statusCellTemplate'">
       <span [class]="getVerificationStatusClass(data.data.verificationStatus)">{{ getVerificationStatusText(data.data.verificationStatus) }}</span>
     </div>
