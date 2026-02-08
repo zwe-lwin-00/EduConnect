@@ -146,18 +146,18 @@ EduConnect/
 EduConnect.Web/
 ├── src/app/
 │   ├── core/                          # Core functionality
-│   │   ├── constants/                 # API endpoints
-│   │   ├── guards/                   # Route guards
-│   │   ├── interceptors/              # HTTP interceptors
-│   │   ├── models/                   # TypeScript models
-│   │   └── services/                 # Core services
-│   ├── shared/                       # Shared components
-│   ├── features/                     # Feature modules
-│   │   ├── auth/                     # Authentication
-│   │   ├── admin/                    # Admin dashboard
-│   │   ├── teacher/                  # Teacher dashboard
-│   │   └── parent/                   # Parent dashboard
-│   └── services/                     # Shared services
+│   │   ├── constants/                 # API endpoints, app config
+│   │   ├── guards/                    # Auth & role guards
+│   │   ├── interceptors/               # HTTP interceptors
+│   │   ├── models/                    # TypeScript models
+│   │   └── services/                  # Auth, admin, teacher, parent services
+│   ├── shared/                        # Shared components & layout
+│   ├── features/                      # Feature modules (lazy-loaded)
+│   │   ├── auth/                      # Login, change password
+│   │   ├── admin/                     # Sidebar layout; dashboard, teachers, parents, students, contracts, attendance, payments, reports
+│   │   ├── teacher/                   # Sidebar layout; dashboard, availability, students, sessions, profile
+│   │   └── parent/                    # Sidebar layout; my students, student learning
+│   └── services/                     # Shared API service
 ```
 
 ## 👤 Roles & Access
@@ -169,6 +169,84 @@ EduConnect.Web/
 | **Parent** | My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
 
 Students (P1–P4) have no login in Phase 1; data is viewed via the Parent account.
+
+## 🔄 Project Flow
+
+### Entry & Authentication
+
+1. **Login** (`/auth/login`)  
+   User enters email and password. API returns JWT and user role. If `mustChangePassword` is true, user is sent to Change Password; otherwise redirected by role:
+   - **Admin** → `/admin` (dashboard home)
+   - **Teacher** → `/teacher` (dashboard)
+   - **Parent** → `/parent` (my students list)
+
+2. **Guards**  
+   All `/admin`, `/teacher`, and `/parent` routes are protected by `authGuard` (valid JWT) and `roleGuard` (correct role). Unauthorized or wrong-role access redirects to login.
+
+### Admin Flow
+
+1. **Dashboard** (`/admin`)  
+   Overview: alerts, today’s sessions, pending teacher verifications, revenue. Quick links to Teachers, Parents, Students, Contracts, Attendance, Payments, Reports.
+
+2. **Teachers** (`/admin/teachers`)  
+   - **Onboard** new teacher (email, name, phone, NRC, education, hourly rate, bio, specializations). System creates account and can show temporary credentials.  
+   - **Verify / Reject** pending teachers.  
+   - **Edit** profile, **Reset password**, **Activate / Suspend**.
+
+3. **Parents & Students** (`/admin/parents`, `/admin/students`)  
+   - Create **parents** (email, name, phone).  
+   - Create **students** (parent, name, grade P1–P4, DOB, special needs). Students are linked to a parent; wallet balance is shown.
+
+4. **Contracts** (`/admin/contracts`)  
+   - Create **contract** (teacher + student + package hours + start/end date).  
+   - Contract moves to Active; remaining hours drive session usage.  
+   - **Cancel** contract when needed.
+
+5. **Attendance** (`/admin/attendance`)  
+   - View **today’s sessions**; override check-in/check-out if needed.  
+   - **Adjust hours** (deduct from contract remaining hours).
+
+6. **Payments** (`/admin/payments`)  
+   - **Credit** or **Deduct** hours on a contract (with reason).  
+   - Student wallet balance reflects available hours.
+
+7. **Reports** (`/admin/reports`)  
+   - **Daily** and **monthly** reports (e.g. sessions, revenue) powered by Dapper.
+
+### Teacher Flow
+
+1. **Dashboard** (`/teacher`)  
+   Summary and quick access to availability, students, and sessions.
+
+2. **Availability** (`/teacher/availability`)  
+   Set **weekly time slots** when the teacher is available. Admin uses this for scheduling (Phase 1: manual confirmation).
+
+3. **Students** (`/teacher/students`)  
+   View **assigned students** (from active contracts): name, grade, subjects, contract status, contract ID, remaining hours. No parent contact details.
+
+4. **Sessions** (`/teacher/sessions`)  
+   - **Check-in** to start a session (and optionally **check-out** with lesson notes).  
+   - Session is tied to contract; remaining hours can be updated.  
+   - Admin can override or adjust in Attendance.
+
+5. **Profile** (`/teacher/profile`)  
+   Read-only view of own profile (name, email, education, rate, bio, specializations, verification status).
+
+### Parent Flow
+
+1. **My Students** (`/parent`)  
+   List of students linked to the parent account. Each student can be opened for a detailed learning view.
+
+2. **Student Learning** (`/parent/student/:studentId`)  
+   For one student: assigned teacher, contract info, **sessions** (check-in/out, lesson notes), and progress. Read-only; no self-registration or editing in Phase 1.
+
+### Data Flow Summary
+
+- **Users & roles**: Admin creates all users (teachers, parents). Teachers are verified by admin.  
+- **Contracts** link Teacher ↔ Student (package hours, remaining hours, status).  
+- **Sessions** (attendance) record check-in/out and notes; they consume or relate to contract hours.  
+- **Wallet** (student) and **transactions** track credit/deduct and balance.  
+- **Reports** aggregate sessions and revenue for admin.
 
 ## 🎯 Domain Entities
 
@@ -198,6 +276,7 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
 - [x] Exception handling middleware, Angular guards and interceptors
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
+- [x] **UI**: Sidebar layout (admin, parent, teacher) with on/off toggle; favicon PNG; row number column (#) in all DataGrids
 
 ### 🚧 To Be Implemented
 - [ ] Refresh token mechanism
@@ -392,3 +471,7 @@ For questions or support, contact the development team.
 
 **Last Updated**: February 2026  
 **Version**: 1.0.0
+
+---
+
+For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above.
