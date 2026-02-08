@@ -14,6 +14,7 @@ export const TEACHER_ROUTES: Routes = [
       { path: 'availability', loadComponent: () => import('./pages/availability/teacher-availability.component').then(m => m.TeacherAvailabilityComponent) },
       { path: 'students', loadComponent: () => import('./pages/students/teacher-students.component').then(m => m.TeacherStudentsComponent) },
       { path: 'sessions', loadComponent: () => import('./pages/sessions/teacher-sessions.component').then(m => m.TeacherSessionsComponent) },
+      { path: 'homework-grades', loadComponent: () => import('./pages/homework-grades/teacher-homework-grades.component').then(m => m.TeacherHomeworkGradesComponent) },
       { path: 'profile', loadComponent: () => import('./pages/profile/teacher-profile.component').then(m => m.TeacherProfileComponent) }
     ]
   }

@@ -19,6 +19,29 @@ export interface StudentLearningOverviewDto {
   totalRemainingHours: number;
   upcomingSessions: UpcomingSessionDto[];
   completedSessions: CompletedSessionDto[];
+  homeworks: HomeworkItemDto[];
+  grades: GradeItemDto[];
+}
+
+export interface HomeworkItemDto {
+  id: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: number;
+  statusText: string;
+  teacherFeedback?: string;
+  teacherName: string;
+}
+
+export interface GradeItemDto {
+  id: number;
+  title: string;
+  gradeValue: string;
+  maxValue?: number;
+  gradeDate: string;
+  notes?: string;
+  teacherName: string;
 }
 
 export interface AssignedTeacherDto {

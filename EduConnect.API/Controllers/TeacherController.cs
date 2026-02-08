@@ -1,5 +1,6 @@
 using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Attendance.Interfaces;
+using EduConnect.Application.Features.Homework.Interfaces;
 using EduConnect.Application.Features.Teachers.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,13 @@ public class TeacherController : BaseController
 {
     private readonly ITeacherService _teacherService;
     private readonly IAttendanceService _attendanceService;
+    private readonly IHomeworkService _homeworkService;
 
-    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService)
+    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService, IHomeworkService homeworkService)
     {
         _teacherService = teacherService;
         _attendanceService = attendanceService;
+        _homeworkService = homeworkService;
     }
 
     private async Task<int> GetTeacherIdAsync()
@@ -160,6 +163,103 @@ public class TeacherController : BaseController
                 return BadRequest(new { error = "SessionId is required." });
             await _attendanceService.CheckOutAsync(teacherId, sessionId, request.LessonNotes ?? string.Empty);
             return Ok(new { success = true, message = "Checked out successfully." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("homework")]
+    public async Task<IActionResult> GetHomeworks([FromQuery] int? studentId = null)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var result = await _homeworkService.GetHomeworksByTeacherAsync(teacherId, studentId);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("homework")]
+    public async Task<IActionResult> CreateHomework([FromBody] CreateHomeworkRequest request)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var result = await _homeworkService.CreateHomeworkAsync(teacherId, request);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("homework/{homeworkId}/status")]
+    public async Task<IActionResult> UpdateHomeworkStatus(int homeworkId, [FromBody] UpdateHomeworkStatusRequest request)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var result = await _homeworkService.UpdateHomeworkStatusAsync(teacherId, homeworkId, request);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("grades")]
+    public async Task<IActionResult> GetGrades([FromQuery] int? studentId = null)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var result = await _homeworkService.GetGradesByTeacherAsync(teacherId, studentId);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("grades")]
+    public async Task<IActionResult> CreateGrade([FromBody] CreateGradeRequest request)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var result = await _homeworkService.CreateGradeAsync(teacherId, request);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
         }
         catch (Exception ex)
         {

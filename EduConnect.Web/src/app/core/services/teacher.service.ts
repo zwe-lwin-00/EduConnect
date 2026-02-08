@@ -9,7 +9,12 @@ import {
   TeacherSessionItemDto,
   TeacherAvailabilityDto,
   CheckInRequest,
-  CheckOutRequest
+  CheckOutRequest,
+  HomeworkDto,
+  CreateHomeworkRequest,
+  UpdateHomeworkStatusRequest,
+  StudentGradeDto,
+  CreateGradeRequest
 } from '../models/teacher.model';
 
 @Injectable({
@@ -52,5 +57,31 @@ export class TeacherService {
 
   checkOut(request: CheckOutRequest): Observable<{ success: boolean; message: string }> {
     return this.apiService.post(API_ENDPOINTS.TEACHER.CHECK_OUT, request);
+  }
+
+  getHomeworks(studentId?: number): Observable<HomeworkDto[]> {
+    const endpoint = studentId != null
+      ? `${API_ENDPOINTS.TEACHER.HOMEWORK}?studentId=${studentId}`
+      : API_ENDPOINTS.TEACHER.HOMEWORK;
+    return this.apiService.get<HomeworkDto[]>(endpoint);
+  }
+
+  createHomework(request: CreateHomeworkRequest): Observable<HomeworkDto> {
+    return this.apiService.post<HomeworkDto>(API_ENDPOINTS.TEACHER.HOMEWORK, request);
+  }
+
+  updateHomeworkStatus(homeworkId: number, request: UpdateHomeworkStatusRequest): Observable<HomeworkDto> {
+    return this.apiService.put<HomeworkDto>(API_ENDPOINTS.TEACHER.HOMEWORK_STATUS(homeworkId), request);
+  }
+
+  getGrades(studentId?: number): Observable<StudentGradeDto[]> {
+    const endpoint = studentId != null
+      ? `${API_ENDPOINTS.TEACHER.GRADES}?studentId=${studentId}`
+      : API_ENDPOINTS.TEACHER.GRADES;
+    return this.apiService.get<StudentGradeDto[]>(endpoint);
+  }
+
+  createGrade(request: CreateGradeRequest): Observable<StudentGradeDto> {
+    return this.apiService.post<StudentGradeDto>(API_ENDPOINTS.TEACHER.GRADES, request);
   }
 }

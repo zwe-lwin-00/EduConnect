@@ -19,6 +19,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TeacherAvailability> TeacherAvailabilities { get; set; }
     public DbSet<StudentWallet> StudentWallets { get; set; }
     public DbSet<TransactionHistory> TransactionHistories { get; set; }
+    public DbSet<Homework> Homeworks { get; set; }
+    public DbSet<StudentGrade> StudentGrades { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -126,6 +128,44 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             
             entity.Property(e => e.Type)
                 .HasConversion<int>();
+        });
+
+        // Configure Homework
+        builder.Entity<Homework>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Student)
+                .WithMany(s => s.Homeworks)
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Teacher)
+                .WithMany(t => t.Homeworks)
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ContractSession)
+                .WithMany(c => c.Homeworks)
+                .HasForeignKey(e => e.ContractSessionId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.Property(e => e.Status)
+                .HasConversion<int>();
+        });
+
+        // Configure StudentGrade
+        builder.Entity<StudentGrade>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Student)
+                .WithMany(s => s.StudentGrades)
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Teacher)
+                .WithMany(t => t.StudentGrades)
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ContractSession)
+                .WithMany(c => c.StudentGrades)
+                .HasForeignKey(e => e.ContractSessionId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

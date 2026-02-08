@@ -106,6 +106,22 @@ public class ParentService : IParentService
                 : ""
         }).ToList();
 
+        var homeworks = await _context.Homeworks
+            .Include(h => h.Teacher).ThenInclude(t => t!.User)
+            .Where(h => h.StudentId == student.Id)
+            .OrderByDescending(h => h.DueDate)
+            .Take(50)
+            .ToListAsync();
+        var homeworkItems = homeworks.Select(h => HomeworkService.ToHomeworkItemDto(h, $"{h.Teacher.User.FirstName} {h.Teacher.User.LastName}")).ToList();
+
+        var grades = await _context.StudentGrades
+            .Include(g => g.Teacher).ThenInclude(t => t!.User)
+            .Where(g => g.StudentId == student.Id)
+            .OrderByDescending(g => g.GradeDate)
+            .Take(50)
+            .ToListAsync();
+        var gradeItems = grades.Select(g => HomeworkService.ToGradeItemDto(g, $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}")).ToList();
+
         return new StudentLearningOverviewDto
         {
             StudentId = student.Id,
@@ -115,7 +131,9 @@ public class ParentService : IParentService
             Subjects = subjectsStr,
             TotalRemainingHours = activeContracts.Sum(c => c.RemainingHours),
             UpcomingSessions = upcoming,
-            CompletedSessions = completed
+            CompletedSessions = completed,
+            Homeworks = homeworkItems,
+            Grades = gradeItems
         };
     }
 }

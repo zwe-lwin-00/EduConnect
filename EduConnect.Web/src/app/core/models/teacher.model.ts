@@ -64,3 +64,63 @@ export interface CheckOutRequest {
   sessionId: number;
   lessonNotes: string;
 }
+
+export const HOMEWORK_STATUS = { Assigned: 1, Submitted: 2, Graded: 3, Overdue: 4 } as const;
+
+export interface HomeworkDto {
+  id: number;
+  studentId: number;
+  studentName: string;
+  teacherId: number;
+  teacherName: string;
+  contractSessionId?: number;
+  contractIdDisplay?: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: number;
+  statusText: string;
+  submittedAt?: string;
+  gradedAt?: string;
+  teacherFeedback?: string;
+  createdAt: string;
+}
+
+export interface CreateHomeworkRequest {
+  studentId: number;
+  contractSessionId?: number;
+  title: string;
+  description?: string;
+  dueDate: string;
+}
+
+export interface UpdateHomeworkStatusRequest {
+  status: number;
+  teacherFeedback?: string;
+}
+
+export interface StudentGradeDto {
+  id: number;
+  studentId: number;
+  studentName: string;
+  teacherId: number;
+  teacherName: string;
+  contractSessionId?: number;
+  contractIdDisplay?: string;
+  title: string;
+  gradeValue: string;
+  maxValue?: number;
+  gradeDate: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface CreateGradeRequest {
+  studentId: number;
+  contractSessionId?: number;
+  title: string;
+  gradeValue: string;
+  maxValue?: number;
+  gradeDate: string;
+  notes?: string;
+}

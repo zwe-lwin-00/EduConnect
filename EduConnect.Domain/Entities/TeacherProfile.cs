@@ -21,4 +21,6 @@ public class TeacherProfile
     public ApplicationUser User { get; set; } = null!;
     public ICollection<ContractSession> ContractSessions { get; set; } = new List<ContractSession>();
     public ICollection<TeacherAvailability> Availabilities { get; set; } = new List<TeacherAvailability>();
+    public ICollection<Homework> Homeworks { get; set; } = new List<Homework>();
+    public ICollection<StudentGrade> StudentGrades { get; set; } = new List<StudentGrade>();
 }

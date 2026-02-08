@@ -13,6 +13,33 @@ public class StudentLearningOverviewDto
     public int TotalRemainingHours { get; set; }
     public List<UpcomingSessionDto> UpcomingSessions { get; set; } = new();
     public List<CompletedSessionDto> CompletedSessions { get; set; } = new();
+    public List<HomeworkItemDto> Homeworks { get; set; } = new();
+    public List<GradeItemDto> Grades { get; set; } = new();
+}
+
+/// <summary>Homework item for parent/student view.</summary>
+public class HomeworkItemDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime DueDate { get; set; }
+    public int Status { get; set; }
+    public string StatusText { get; set; } = string.Empty;
+    public string? TeacherFeedback { get; set; }
+    public string TeacherName { get; set; } = string.Empty;
+}
+
+/// <summary>Grade item for parent/student view.</summary>
+public class GradeItemDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string GradeValue { get; set; } = string.Empty;
+    public decimal? MaxValue { get; set; }
+    public DateTime GradeDate { get; set; }
+    public string? Notes { get; set; }
+    public string TeacherName { get; set; } = string.Empty;
 }
 
 public class AssignedTeacherDto

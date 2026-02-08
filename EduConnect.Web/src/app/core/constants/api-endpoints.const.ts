@@ -42,7 +42,10 @@ export const API_ENDPOINTS = {
     SESSIONS_UPCOMING: '/teacher/sessions/upcoming',
     AVAILABILITY: '/teacher/availability',
     CHECK_IN: '/teacher/check-in',
-    CHECK_OUT: '/teacher/check-out'
+    CHECK_OUT: '/teacher/check-out',
+    HOMEWORK: '/teacher/homework',
+    HOMEWORK_STATUS: (id: number) => `/teacher/homework/${id}/status`,
+    GRADES: '/teacher/grades'
   },
   PARENT: {
     MY_STUDENTS: '/parent/my-students',

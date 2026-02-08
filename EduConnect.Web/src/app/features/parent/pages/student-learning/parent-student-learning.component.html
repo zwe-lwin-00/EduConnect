@@ -57,5 +57,26 @@
         </div>
       </div>
     </section>
+
+    <section class="section">
+      <h2>Homework</h2>
+      <p class="hint">Assignments from teachers (read-only).</p>
+      <div *ngIf="!overview.homeworks?.length" class="empty">No homework yet.</div>
+      <div *ngFor="let h of overview.homeworks || []" class="session-card">
+        <div class="session-header">{{ h.title }} · {{ h.teacherName }} · Due {{ h.dueDate | date:'shortDate':'+0630' }} · {{ h.statusText }}</div>
+        <div class="session-notes" *ngIf="h.description">{{ h.description }}</div>
+        <div class="session-notes" *ngIf="h.teacherFeedback"><strong>Teacher feedback:</strong> {{ h.teacherFeedback }}</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Grades</h2>
+      <p class="hint">Grades and assessments from teachers (read-only).</p>
+      <div *ngIf="!overview.grades?.length" class="empty">No grades yet.</div>
+      <div *ngFor="let g of overview.grades || []" class="session-card">
+        <div class="session-header">{{ g.title }} · {{ g.teacherName }} · {{ g.gradeValue }}{{ g.maxValue != null ? ' / ' + g.maxValue : '' }} · {{ g.gradeDate | date:'shortDate':'+0630' }}</div>
+        <div class="session-notes" *ngIf="g.notes">{{ g.notes }}</div>
+      </div>
+    </section>
   </ng-container>
 </div>

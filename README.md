@@ -165,10 +165,10 @@ EduConnect.Web/
 | Role   | Access |
 |--------|--------|
 | **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, contracts, attendance, payments, reports. All users created by Admin. |
-| **Teacher**| Dashboard, weekly availability, assigned students, sessions (check-in/check-out, lesson notes), read-only profile. No pricing or parent contact. |
-| **Parent** | My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
+| **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, sessions (check-in/check-out, lesson notes), read-only profile. No pricing or parent contact. |
+| **Parent** | **Has account** (created by Admin via "Create Parent"). Logs in with email/password; sees My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
 
-Students (P1–P4) have no login in Phase 1; data is viewed via the Parent account.
+**Students (P1–P4)** do not have login accounts in Phase 1. They are linked to a parent; the parent views all student data (contracts, sessions, progress) under their own account. Optionally, student accounts could be added later (e.g. so students can log in to view their own schedule).
 
 ## 🔄 Project Flow
 
@@ -194,8 +194,8 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
    - **Edit** profile, **Reset password**, **Activate / Suspend**.
 
 3. **Parents & Students** (`/admin/parents`, `/admin/students`)  
-   - Create **parents** (email, name, phone).  
-   - Create **students** (parent, name, grade P1–P4, DOB, special needs). Students are linked to a parent; wallet balance is shown.
+   - Create **parents** (email, name, phone). Each parent gets a **login account** (Admin sets credentials; parent can log in at `/auth/login` and use the Parent area).  
+   - Create **students** (parent, name, grade P1–P4, DOB, special needs). Students are linked to a parent and have no login in Phase 1; wallet balance is shown.
 
 4. **Contracts** (`/admin/contracts`)  
    - Create **contract** (teacher + student + package hours + start/end date).  
@@ -229,16 +229,24 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
    - Session is tied to contract; remaining hours can be updated.  
    - Admin can override or adjust in Attendance.
 
-5. **Profile** (`/teacher/profile`)  
+5. **Homework & Grades** (`/teacher/homework-grades`)  
+   - **Assign homework** to assigned students (title, description, due date).  
+   - **Mark** homework as Submitted or Graded (with optional teacher feedback).  
+   - **Add grades** for students (title, value, optional max, date, notes).  
+   - Only students with an active contract with the teacher can receive homework/grades. Parents see homework and grades in the student learning overview.
+
+6. **Profile** (`/teacher/profile`)  
    Read-only view of own profile (name, email, education, rate, bio, specializations, verification status).
 
 ### Parent Flow
 
+Parents **have their own login accounts**. Admin creates each parent (Create Parent) and can share or reset credentials so the parent can sign in.
+
 1. **My Students** (`/parent`)  
-   List of students linked to the parent account. Each student can be opened for a detailed learning view.
+   After login, the parent sees a list of students linked to their account. Each student can be opened for a detailed learning view.
 
 2. **Student Learning** (`/parent/student/:studentId`)  
-   For one student: assigned teacher, contract info, **sessions** (check-in/out, lesson notes), and progress. Read-only; no self-registration or editing in Phase 1.
+   For one student: assigned teacher, contract info, **sessions** (check-in/out, lesson notes), **homework** (from teachers, with status and feedback), **grades** (assessments from teachers), and progress. Read-only; no self-registration or editing in Phase 1.
 
 ### Data Flow Summary
 
@@ -258,6 +266,8 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
 - **TeacherAvailability** - Weekly availability schedule
 - **StudentWallet** - Hours balance management
 - **TransactionHistory** - Transaction records
+- **Homework** - Teacher–student assignments (title, description, due date, status: Assigned / Submitted / Graded / Overdue, teacher feedback)
+- **StudentGrade** - Grades and assessments (title, grade value, optional max value, date, notes) linked to teacher and student
 
 ## ✨ Key Features
 
@@ -267,8 +277,8 @@ Students (P1–P4) have no login in Phase 1; data is viewed via the Parent accou
 - [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
 - [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), Attendance (today, override check-in/out, adjust hours), Payments (wallet credit/deduct), Reports (daily/monthly)
-- [x] **Teacher**: Dashboard, availability (weekly), assigned students, sessions (check-in/check-out with lesson notes), read-only profile
-- [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress)
+- [x] **Teacher**: Dashboard, availability (weekly), assigned students, sessions (check-in/check-out with lesson notes), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), read-only profile
+- [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
 - [x] Teacher management: onboard, **edit** (name, phone, education, hourly rate, bio, specializations), verify, reject, activate/suspend
 - [x] Check-in/check-out system (teacher + admin override)
 - [x] Wallet logic (credit/deduct hours, student active/freeze)
@@ -335,13 +345,15 @@ Example override in `appsettings.Development.json`:
 
 ### Database Setup
 
-The database is automatically created on first run. For manual setup:
+The database is automatically created on first run. For manual setup or after adding new entities (e.g. Homework, StudentGrade):
 
 ```bash
-cd EduConnect.Infrastructure
-dotnet ef migrations add InitialCreate --startup-project ../EduConnect.API
-dotnet ef database update --startup-project ../EduConnect.API
+cd EduConnect.API
+dotnet ef migrations add YourMigrationName --project ../EduConnect.Infrastructure
+dotnet ef database update --project ../EduConnect.Infrastructure
 ```
+
+If you added **Homework** and **StudentGrade** entities, run a migration named `AddHomeworkAndStudentGrade` (or use the name you prefer) so the new tables are created.
 
 ## 🔧 Troubleshooting
 

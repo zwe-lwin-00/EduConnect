@@ -20,4 +20,6 @@ public class ContractSession
     public TeacherProfile Teacher { get; set; } = null!;
     public Student Student { get; set; } = null!;
     public ICollection<AttendanceLog> AttendanceLogs { get; set; } = new List<AttendanceLog>();
+    public ICollection<Homework> Homeworks { get; set; } = new List<Homework>();
+    public ICollection<StudentGrade> StudentGrades { get; set; } = new List<StudentGrade>();
 }
