@@ -2,6 +2,7 @@ using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Parent;
 using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Homework.Interfaces;
+using EduConnect.Application.Features.Notifications.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Shared.Enums;
@@ -12,10 +13,12 @@ namespace EduConnect.Infrastructure.Services;
 public class HomeworkService : IHomeworkService
 {
     private readonly ApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public HomeworkService(ApplicationDbContext context)
+    public HomeworkService(ApplicationDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<bool> TeacherCanAccessStudentAsync(int teacherId, int studentId)
@@ -53,6 +56,9 @@ public class HomeworkService : IHomeworkService
         };
         _context.Homeworks.Add(homework);
         await _context.SaveChangesAsync();
+
+        var studentName = $"{student.FirstName} {student.LastName}";
+        await _notificationService.CreateForUserAsync(student.ParentId, "New homework for " + studentName, $"{request.Title}. Due {request.DueDate:dd MMM yyyy}.", NotificationType.HomeworkAssigned, "Homework", homework.Id);
 
         return MapToHomeworkDto(homework, student, teacher, contract);
     }
@@ -143,6 +149,9 @@ public class HomeworkService : IHomeworkService
         };
         _context.StudentGrades.Add(grade);
         await _context.SaveChangesAsync();
+
+        var studentName = $"{student.FirstName} {student.LastName}";
+        await _notificationService.CreateForUserAsync(student.ParentId, "New grade recorded", $"{request.Title}: {request.GradeValue}" + (request.MaxValue.HasValue ? $"/{request.MaxValue}" : "") + $" for {studentName}.", NotificationType.GradeRecorded, "Grade", grade.Id);
 
         return MapToGradeDto(grade, student, teacher, contract);
     }

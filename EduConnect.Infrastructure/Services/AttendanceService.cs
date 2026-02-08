@@ -1,5 +1,6 @@
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.Features.Attendance.Interfaces;
+using EduConnect.Application.Features.Notifications.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Infrastructure.Repositories;
@@ -12,11 +13,13 @@ public class AttendanceService : IAttendanceService
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly INotificationService _notificationService;
 
-    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork)
+    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork, INotificationService notificationService)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _notificationService = notificationService;
     }
 
     public async Task<int> CheckInAsync(int teacherId, int contractId)
@@ -54,7 +57,7 @@ public class AttendanceService : IAttendanceService
             throw new EduConnect.Application.Common.Exceptions.BusinessException("Lesson notes are required to check out.", "NOTES_REQUIRED");
 
         var log = await _context.AttendanceLogs
-            .Include(a => a.ContractSession)
+            .Include(a => a.ContractSession).ThenInclude(c => c!.Student)
             .FirstOrDefaultAsync(a => a.Id == attendanceLogId && a.ContractSession!.TeacherId == teacherId);
         if (log == null)
             throw new NotFoundException("Attendance session", attendanceLogId);
@@ -74,6 +77,12 @@ public class AttendanceService : IAttendanceService
         }
 
         await _unitOfWork.SaveChangesAsync();
+
+        if (log.ContractSession?.Student != null)
+        {
+            var studentName = $"{log.ContractSession.Student.FirstName} {log.ContractSession.Student.LastName}";
+            await _notificationService.CreateForUserAsync(log.ContractSession.Student.ParentId, "Session completed – notes added", $"Session for {studentName} has been completed with lesson notes.", NotificationType.SessionCompleted, "Attendance", log.Id);
+        }
         return true;
     }
 

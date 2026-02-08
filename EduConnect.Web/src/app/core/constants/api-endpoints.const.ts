@@ -5,6 +5,10 @@ export const API_ENDPOINTS = {
     LOGOUT: '/auth/logout',
     CHANGE_PASSWORD: '/auth/change-password'
   },
+  NOTIFICATIONS: {
+    LIST: '/notifications',
+    MARK_READ: (id: number) => `/notifications/${id}/read`
+  },
   ADMIN: {
     DASHBOARD: '/admin/dashboard',
     ONBOARD_TEACHER: '/admin/onboard-teacher',

@@ -1,0 +1,22 @@
+<div class="notification-bell">
+  <button type="button" class="btn-bell" (click)="toggle()" [attr.aria-label]="'Notifications' + (unreadCount ? ' (' + unreadCount + ' unread)' : '')" title="Notifications">
+    <span class="bell-icon">🔔</span>
+    <span *ngIf="unreadCount > 0" class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+  </button>
+  <div class="dropdown-backdrop" *ngIf="open" (click)="close()"></div>
+  <div class="dropdown" *ngIf="open" (click)="$event.stopPropagation()">
+    <div class="dropdown-header">
+      <strong>Notifications</strong>
+      <button type="button" class="btn-close" (click)="close()">×</button>
+    </div>
+    <div class="dropdown-body">
+      <div *ngIf="loading" class="loading">Loading...</div>
+      <div *ngIf="!loading && notifications.length === 0" class="empty">No notifications.</div>
+      <div *ngFor="let n of notifications" class="notification-item" [class.unread]="!n.isRead" (click)="markAsRead(n)">
+        <div class="notification-title">{{ n.title }}</div>
+        <div class="notification-message">{{ n.message }}</div>
+        <div class="notification-date">{{ n.createdAt | date:'short':'+0630' }}</div>
+      </div>
+    </div>
+  </div>
+</div>

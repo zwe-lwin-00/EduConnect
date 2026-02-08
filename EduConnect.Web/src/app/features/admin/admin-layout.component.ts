@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationBellComponent } from '../../shared/components/notifications/notification-bell.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationBellComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css'
 })

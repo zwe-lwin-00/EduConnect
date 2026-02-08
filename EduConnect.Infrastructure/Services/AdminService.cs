@@ -2,6 +2,7 @@ using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.Common.Models;
 using EduConnect.Application.DTOs.Admin;
 using EduConnect.Application.Features.Admin.Interfaces;
+using EduConnect.Application.Features.Notifications.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Infrastructure.Repositories;
@@ -18,17 +19,20 @@ public class AdminService : IAdminService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly INotificationService _notificationService;
 
     public AdminService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         IEncryptionService encryptionService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        INotificationService notificationService)
     {
         _context = context;
         _userManager = userManager;
         _encryptionService = encryptionService;
         _unitOfWork = unitOfWork;
+        _notificationService = notificationService;
     }
 
     public async Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId)
@@ -83,6 +87,13 @@ public class AdminService : IAdminService
 
         _context.TeacherProfiles.Add(teacherProfile);
         await _unitOfWork.SaveChangesAsync();
+
+        var teacherName = $"{user.FirstName} {user.LastName}";
+        var adminIds = await _context.Users.Where(u => u.Role == UserRole.Admin).Select(u => u.Id).ToListAsync();
+        foreach (var adminId in adminIds)
+        {
+            await _notificationService.CreateForUserAsync(adminId, "Pending teacher verification", $"Teacher {teacherName} is pending verification.", NotificationType.PendingVerification, "Teacher", teacherProfile.Id);
+        }
 
         return new OnboardTeacherResponse
         {
@@ -554,6 +565,22 @@ public class AdminService : IAdminService
         };
         _context.ContractSessions.Add(contract);
         await _unitOfWork.SaveChangesAsync();
+
+        var teacherUserId = teacher.UserId;
+        await _notificationService.CreateForUserAsync(teacherUserId, "New contract", $"New contract {contract.ContractId} with student {student.FirstName} {student.LastName}.", NotificationType.NewContract, "Contract", contract.Id);
+
+        if (contract.EndDate.HasValue)
+        {
+            var daysUntilEnd = (contract.EndDate.Value - DateTime.UtcNow.Date).TotalDays;
+            if (daysUntilEnd >= 0 && daysUntilEnd <= 14)
+            {
+                var adminIds = await _context.Users.Where(u => u.Role == UserRole.Admin).Select(u => u.Id).ToListAsync();
+                foreach (var adminId in adminIds)
+                {
+                    await _notificationService.CreateForUserAsync(adminId, "Contract ending soon", $"Contract {contract.ContractId} ends on {contract.EndDate:dd MMM yyyy}.", NotificationType.ContractEndingSoon, "Contract", contract.Id);
+                }
+            }
+        }
         return MapToContractDto(contract);
     }
 
