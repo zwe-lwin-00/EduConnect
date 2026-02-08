@@ -1,30 +1,41 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { DxButtonModule } from 'devextreme-angular';
 import { TeacherService } from '../../../../core/services/teacher.service';
-import { TeacherSessionItemDto } from '../../../../core/models/teacher.model';
+import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
 
 @Component({
   selector: 'app-teacher-sessions',
   standalone: true,
-  imports: [CommonModule, FormsModule, DxButtonModule],
+  imports: [CommonModule, FormsModule, RouterModule, DxButtonModule],
   templateUrl: './teacher-sessions.component.html',
   styleUrl: './teacher-sessions.component.css'
 })
 export class TeacherSessionsComponent implements OnInit {
   todaySessions: TeacherSessionItemDto[] = [];
   upcomingSessions: TeacherSessionItemDto[] = [];
+  groupClasses: GroupClassDto[] = [];
+  groupSessions: GroupSessionDto[] = [];
   loading = true;
   error = '';
   checkingInContractId: number | null = null;
   checkingOutSession: TeacherSessionItemDto | null = null;
   lessonNotes = '';
+  selectedGroupClassId: number | null = null;
+  checkingInGroupClassId: number | null = null;
+  checkingOutGroupSession: GroupSessionDto | null = null;
+  groupLessonNotes = '';
 
   constructor(private teacherService: TeacherService) {}
 
   ngOnInit(): void {
     this.load();
+  }
+
+  get inProgressGroupSession(): GroupSessionDto | null {
+    return this.groupSessions.find(s => !s.checkOutTime) ?? null;
   }
 
   load(): void {
@@ -36,7 +47,7 @@ export class TeacherSessionsComponent implements OnInit {
         this.teacherService.getUpcomingSessions().subscribe({
           next: (upcoming) => {
             this.upcomingSessions = upcoming;
-            this.loading = false;
+            this.loadGroupData();
           },
           error: () => { this.loading = false; }
         });
@@ -45,6 +56,22 @@ export class TeacherSessionsComponent implements OnInit {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
       }
+    });
+  }
+
+  private loadGroupData(): void {
+    this.teacherService.getGroupClasses().subscribe({
+      next: (classes) => {
+        this.groupClasses = classes;
+        this.teacherService.getGroupSessions().subscribe({
+          next: (sessions) => {
+            this.groupSessions = sessions;
+            this.loading = false;
+          },
+          error: () => { this.loading = false; }
+        });
+      },
+      error: () => { this.loading = false; }
     });
   }
 
@@ -90,6 +117,53 @@ export class TeacherSessionsComponent implements OnInit {
       error: (err) => {
         alert(err.error?.error || err.message || 'Check-out failed');
       }
+    });
+  }
+
+  startGroupSession(): void {
+    const id = this.selectedGroupClassId ?? 0;
+    if (!id) { this.error = 'Select a group class.'; return; }
+    const gc = this.groupClasses.find(c => c.id === id);
+    if (gc?.enrolledCount === 0) { this.error = 'Group class has no enrolled students.'; return; }
+    if (!confirm(`Start group session for "${gc?.name}"?`)) return;
+    this.checkingInGroupClassId = id;
+    this.teacherService.checkInGroup({ groupClassId: id }).subscribe({
+      next: () => {
+        this.checkingInGroupClassId = null;
+        this.load();
+      },
+      error: (err) => {
+        this.error = err.error?.error || err.message || 'Failed to start group session';
+        this.checkingInGroupClassId = null;
+      }
+    });
+  }
+
+  openGroupCheckOut(gs: GroupSessionDto): void {
+    this.checkingOutGroupSession = gs;
+    this.groupLessonNotes = '';
+  }
+
+  closeGroupCheckOut(): void {
+    this.checkingOutGroupSession = null;
+    this.groupLessonNotes = '';
+  }
+
+  submitGroupCheckOut(): void {
+    if (!this.checkingOutGroupSession) return;
+    if (!this.groupLessonNotes.trim()) {
+      alert('Lesson notes are required to check out.');
+      return;
+    }
+    this.teacherService.checkOutGroup({
+      groupSessionId: this.checkingOutGroupSession.id,
+      lessonNotes: this.groupLessonNotes.trim()
+    }).subscribe({
+      next: () => {
+        this.closeGroupCheckOut();
+        this.load();
+      },
+      error: (err) => alert(err.error?.error || err.message || 'Check-out failed')
     });
   }
 }

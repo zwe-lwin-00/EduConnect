@@ -46,6 +46,7 @@ export interface TeacherAssignedStudentDto {
   gradeLevel: string;
   subjects: string;
   contractStatus: string;
+  contractId: number;
   contractIdDisplay: string;
   remainingHours: number;
 }
@@ -137,4 +138,58 @@ export interface CreateGradeRequest {
   maxValue?: number;
   gradeDate: string;
   notes?: string;
+}
+
+// Group classes (one-to-one vs group)
+export interface GroupClassDto {
+  id: number;
+  teacherId: number;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  enrolledCount: number;
+}
+
+export interface GroupClassEnrollmentDto {
+  id: number;
+  groupClassId: number;
+  studentId: number;
+  studentName: string;
+  contractId: number;
+  contractIdDisplay: string;
+}
+
+export interface GroupSessionDto {
+  id: number;
+  groupClassId: number;
+  groupClassName: string;
+  checkInTime: string;
+  checkOutTime?: string;
+  totalDurationHours: number;
+  lessonNotes?: string;
+  status: number;
+  attendeeCount: number;
+}
+
+export interface GroupCheckInRequest {
+  groupClassId: number;
+}
+
+export interface GroupCheckOutRequest {
+  groupSessionId: number;
+  lessonNotes: string;
+}
+
+export interface CreateGroupClassRequest {
+  name: string;
+}
+
+export interface UpdateGroupClassRequest {
+  name?: string;
+  isActive: boolean;
+}
+
+export interface EnrollInGroupClassRequest {
+  studentId: number;
+  contractId: number;
 }

@@ -4,6 +4,7 @@ using EduConnect.Application.Features.Attendance.Interfaces;
 using EduConnect.Application.Features.Auth.Interfaces;
 using EduConnect.Application.Features.Parents.Interfaces;
 using EduConnect.Application.Features.Teachers.Interfaces;
+using EduConnect.Application.Features.GroupClass.Interfaces;
 using EduConnect.Application.Features.Homework.Interfaces;
 using EduConnect.Application.Features.Notifications.Interfaces;
 
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITeacherService, EduConnect.Infrastructure.Services.TeacherService>();
         services.AddScoped<IAttendanceService, EduConnect.Infrastructure.Services.AttendanceService>();
         services.AddScoped<IParentService, EduConnect.Infrastructure.Services.ParentService>();
+        services.AddScoped<IGroupClassService, EduConnect.Infrastructure.Services.GroupClassService>();
         services.AddScoped<IHomeworkService, EduConnect.Infrastructure.Services.HomeworkService>();
         services.AddScoped<INotificationService, EduConnect.Infrastructure.Services.NotificationService>();
         return services;

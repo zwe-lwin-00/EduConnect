@@ -12,6 +12,10 @@ public static class SchemaEnsurer
     {
         await EnsureNotificationsTableAsync(context, cancellationToken);
         await EnsureRefreshTokensTableAsync(context, cancellationToken);
+        await EnsureGroupClassesTableAsync(context, cancellationToken);
+        await EnsureGroupClassEnrollmentsTableAsync(context, cancellationToken);
+        await EnsureGroupSessionsTableAsync(context, cancellationToken);
+        await EnsureGroupSessionAttendancesTableAsync(context, cancellationToken);
     }
 
     private static async Task EnsureNotificationsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
@@ -57,5 +61,92 @@ public static class SchemaEnsurer
             END
             """;
         await context.Database.ExecuteSqlRawAsync(checkSql, cancellationToken);
+    }
+
+    private static async Task EnsureGroupClassesTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GroupClasses')
+            BEGIN
+                CREATE TABLE [GroupClasses] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [TeacherId] int NOT NULL,
+                    [Name] nvarchar(200) NOT NULL,
+                    [IsActive] bit NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_GroupClasses] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_GroupClasses_TeacherProfiles_TeacherId] FOREIGN KEY ([TeacherId]) REFERENCES [TeacherProfiles] ([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX [IX_GroupClasses_TeacherId] ON [GroupClasses] ([TeacherId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureGroupClassEnrollmentsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GroupClassEnrollments')
+            BEGIN
+                CREATE TABLE [GroupClassEnrollments] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [GroupClassId] int NOT NULL,
+                    [StudentId] int NOT NULL,
+                    [ContractId] int NOT NULL,
+                    [EnrolledAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_GroupClassEnrollments] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_GroupClassEnrollments_GroupClasses_GroupClassId] FOREIGN KEY ([GroupClassId]) REFERENCES [GroupClasses] ([Id]) ON DELETE CASCADE,
+                    CONSTRAINT [FK_GroupClassEnrollments_Students_StudentId] FOREIGN KEY ([StudentId]) REFERENCES [Students] ([Id]) ON DELETE NO ACTION,
+                    CONSTRAINT [FK_GroupClassEnrollments_ContractSessions_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [ContractSessions] ([Id]) ON DELETE NO ACTION
+                );
+                CREATE INDEX [IX_GroupClassEnrollments_GroupClassId] ON [GroupClassEnrollments] ([GroupClassId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureGroupSessionsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GroupSessions')
+            BEGIN
+                CREATE TABLE [GroupSessions] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [GroupClassId] int NOT NULL,
+                    [CheckInTime] datetime2 NOT NULL,
+                    [CheckOutTime] datetime2 NULL,
+                    [TotalDurationHours] decimal(18,2) NOT NULL,
+                    [LessonNotes] nvarchar(max) NULL,
+                    [Status] int NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_GroupSessions] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_GroupSessions_GroupClasses_GroupClassId] FOREIGN KEY ([GroupClassId]) REFERENCES [GroupClasses] ([Id]) ON DELETE CASCADE
+                );
+                CREATE INDEX [IX_GroupSessions_GroupClassId] ON [GroupSessions] ([GroupClassId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureGroupSessionAttendancesTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'GroupSessionAttendances')
+            BEGIN
+                CREATE TABLE [GroupSessionAttendances] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [GroupSessionId] int NOT NULL,
+                    [StudentId] int NOT NULL,
+                    [ContractId] int NOT NULL,
+                    [HoursUsed] decimal(18,2) NOT NULL,
+                    CONSTRAINT [PK_GroupSessionAttendances] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_GroupSessionAttendances_GroupSessions_GroupSessionId] FOREIGN KEY ([GroupSessionId]) REFERENCES [GroupSessions] ([Id]) ON DELETE CASCADE,
+                    CONSTRAINT [FK_GroupSessionAttendances_Students_StudentId] FOREIGN KEY ([StudentId]) REFERENCES [Students] ([Id]) ON DELETE NO ACTION,
+                    CONSTRAINT [FK_GroupSessionAttendances_ContractSessions_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [ContractSessions] ([Id]) ON DELETE NO ACTION
+                );
+                CREATE INDEX [IX_GroupSessionAttendances_GroupSessionId] ON [GroupSessionAttendances] ([GroupSessionId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 }

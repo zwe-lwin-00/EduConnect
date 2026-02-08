@@ -1,4 +1,5 @@
 using EduConnect.Application.Common.Exceptions;
+using EduConnect.Application.DTOs.GroupClass;
 using EduConnect.Application.Features.Attendance.Interfaces;
 using EduConnect.Application.Features.Notifications.Interfaces;
 using EduConnect.Domain.Entities;
@@ -84,6 +85,108 @@ public class AttendanceService : IAttendanceService
             await _notificationService.CreateForUserAsync(log.ContractSession.Student.ParentId, "Session completed – notes added", $"Session for {studentName} has been completed with lesson notes.", NotificationType.SessionCompleted, "Attendance", log.Id);
         }
         return true;
+    }
+
+    public async Task<int> CheckInGroupAsync(int teacherId, int groupClassId)
+    {
+        var group = await _context.GroupClasses
+            .Include(g => g.Enrollments)
+            .FirstOrDefaultAsync(g => g.Id == groupClassId && g.TeacherId == teacherId && g.IsActive);
+        if (group == null)
+            throw new NotFoundException("Group class", groupClassId);
+        if (group.Enrollments.Count == 0)
+            throw new BusinessException("Group class has no enrolled students.", "NO_ENROLLMENTS");
+        var inProgress = await _context.GroupSessions
+            .AnyAsync(s => s.GroupClassId == groupClassId && s.CheckOutTime == null);
+        if (inProgress)
+            throw new BusinessException("A group session is already in progress for this class.", "SESSION_IN_PROGRESS");
+        var session = new GroupSession
+        {
+            GroupClassId = groupClassId,
+            CheckInTime = DateTime.UtcNow,
+            Status = SessionStatus.InProgress,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.GroupSessions.Add(session);
+        await _unitOfWork.SaveChangesAsync();
+        return session.Id;
+    }
+
+    public async Task<bool> CheckOutGroupAsync(int teacherId, int groupSessionId, string lessonNotes)
+    {
+        if (string.IsNullOrWhiteSpace(lessonNotes))
+            throw new BusinessException("Lesson notes are required to check out.", "NOTES_REQUIRED");
+        var session = await _context.GroupSessions
+            .Include(s => s.GroupClass).ThenInclude(g => g!.Enrollments).ThenInclude(e => e.ContractSession).ThenInclude(c => c!.Student)
+            .FirstOrDefaultAsync(s => s.Id == groupSessionId && s.GroupClass!.TeacherId == teacherId);
+        if (session == null)
+            throw new NotFoundException("Group session", groupSessionId);
+        if (session.CheckOutTime != null)
+            throw new BusinessException("Session already checked out.", "ALREADY_CHECKED_OUT");
+        var now = DateTime.UtcNow;
+        session.CheckOutTime = now;
+        session.TotalDurationHours = (decimal)(now - session.CheckInTime).TotalHours;
+        session.LessonNotes = lessonNotes.Trim();
+        session.Status = SessionStatus.Completed;
+        var enrollments = session.GroupClass?.Enrollments?.ToList() ?? new List<GroupClassEnrollment>();
+        var count = enrollments.Count;
+        if (count == 0) { await _unitOfWork.SaveChangesAsync(); return true; }
+        var hoursPerStudent = Math.Max(0.25m, session.TotalDurationHours / count);
+        var hoursToDeductPerStudent = (int)Math.Ceiling(hoursPerStudent);
+        foreach (var e in enrollments)
+        {
+            var contract = e.ContractSession;
+            if (contract != null)
+            {
+                var deduct = Math.Min(hoursToDeductPerStudent, contract.RemainingHours);
+                contract.RemainingHours = Math.Max(0, contract.RemainingHours - deduct);
+            }
+            _context.GroupSessionAttendances.Add(new GroupSessionAttendance
+            {
+                GroupSessionId = session.Id,
+                StudentId = e.StudentId,
+                ContractId = e.ContractId,
+                HoursUsed = hoursPerStudent
+            });
+            if (e.ContractSession?.Student != null)
+            {
+                var studentName = $"{e.ContractSession.Student.FirstName} {e.ContractSession.Student.LastName}";
+                await _notificationService.CreateForUserAsync(e.ContractSession.Student.ParentId, "Session completed – notes added", $"Group session for {session.GroupClass?.Name} ({studentName}) has been completed with lesson notes.", NotificationType.SessionCompleted, "GroupSession", session.Id);
+            }
+        }
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<GroupSessionDto>> GetGroupSessionsByTeacherAsync(int teacherId, DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.GroupSessions
+            .AsNoTracking()
+            .Include(s => s.GroupClass)
+            .Where(s => s.GroupClass!.TeacherId == teacherId);
+        if (from.HasValue)
+            query = query.Where(s => s.CheckInTime >= from.Value);
+        if (to.HasValue)
+            query = query.Where(s => s.CheckInTime < to.Value);
+        var list = await query.OrderByDescending(s => s.CheckInTime).Take(100).ToListAsync();
+        var result = new List<GroupSessionDto>();
+        foreach (var s in list)
+        {
+            var attendeeCount = await _context.GroupSessionAttendances.CountAsync(a => a.GroupSessionId == s.Id);
+            result.Add(new GroupSessionDto
+            {
+                Id = s.Id,
+                GroupClassId = s.GroupClassId,
+                GroupClassName = s.GroupClass?.Name ?? "",
+                CheckInTime = s.CheckInTime,
+                CheckOutTime = s.CheckOutTime,
+                TotalDurationHours = s.TotalDurationHours,
+                LessonNotes = s.LessonNotes,
+                Status = (int)s.Status,
+                AttendeeCount = attendeeCount
+            });
+        }
+        return result;
     }
 
     public async Task<AttendanceSessionDto> GetSessionByIdAsync(int sessionId)

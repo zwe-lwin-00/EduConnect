@@ -21,3 +21,9 @@
 .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; }
 .form-control { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
 .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+.group-start { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.group-select { max-width: 280px; }
+.session-card.group-session { background: #f0f7ff; }
+.hint { font-size: 0.85rem; color: #666; margin-top: 8px; }
+.hint a { color: #1976d2; }

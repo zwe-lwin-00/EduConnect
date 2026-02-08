@@ -11,6 +11,14 @@ import {
   TeacherAvailabilityDto,
   CheckInRequest,
   CheckOutRequest,
+  GroupClassDto,
+  GroupClassEnrollmentDto,
+  GroupSessionDto,
+  GroupCheckInRequest,
+  GroupCheckOutRequest,
+  CreateGroupClassRequest,
+  UpdateGroupClassRequest,
+  EnrollInGroupClassRequest,
   HomeworkDto,
   CreateHomeworkRequest,
   UpdateHomeworkStatusRequest,
@@ -63,6 +71,51 @@ export class TeacherService {
 
   checkOut(request: CheckOutRequest): Observable<{ success: boolean; message: string }> {
     return this.apiService.post(API_ENDPOINTS.TEACHER.CHECK_OUT, request);
+  }
+
+  checkInGroup(request: GroupCheckInRequest): Observable<{ sessionId: number; message: string }> {
+    return this.apiService.post(API_ENDPOINTS.TEACHER.CHECK_IN_GROUP, request);
+  }
+
+  checkOutGroup(request: GroupCheckOutRequest): Observable<{ success: boolean; message: string }> {
+    return this.apiService.post(API_ENDPOINTS.TEACHER.CHECK_OUT_GROUP, request);
+  }
+
+  getGroupSessions(from?: string, to?: string): Observable<GroupSessionDto[]> {
+    let url = API_ENDPOINTS.TEACHER.GROUP_SESSIONS;
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    if (params.toString()) url += '?' + params.toString();
+    return this.apiService.get<GroupSessionDto[]>(url);
+  }
+
+  getGroupClasses(): Observable<GroupClassDto[]> {
+    return this.apiService.get<GroupClassDto[]>(API_ENDPOINTS.TEACHER.GROUP_CLASSES);
+  }
+
+  createGroupClass(request: CreateGroupClassRequest): Observable<GroupClassDto> {
+    return this.apiService.post<GroupClassDto>(API_ENDPOINTS.TEACHER.GROUP_CLASSES, request);
+  }
+
+  getGroupClassById(id: number): Observable<GroupClassDto> {
+    return this.apiService.get<GroupClassDto>(API_ENDPOINTS.TEACHER.GROUP_CLASS_BY_ID(id));
+  }
+
+  updateGroupClass(id: number, request: UpdateGroupClassRequest): Observable<{ success: boolean }> {
+    return this.apiService.put(API_ENDPOINTS.TEACHER.GROUP_CLASS_BY_ID(id), request);
+  }
+
+  getGroupClassEnrollments(id: number): Observable<GroupClassEnrollmentDto[]> {
+    return this.apiService.get<GroupClassEnrollmentDto[]>(API_ENDPOINTS.TEACHER.GROUP_CLASS_ENROLLMENTS(id));
+  }
+
+  enrollInGroupClass(groupClassId: number, request: EnrollInGroupClassRequest): Observable<{ success: boolean }> {
+    return this.apiService.post(API_ENDPOINTS.TEACHER.GROUP_CLASS_ENROLL(groupClassId), request);
+  }
+
+  unenrollFromGroupClass(enrollmentId: number): Observable<{ success: boolean }> {
+    return this.apiService.delete(API_ENDPOINTS.TEACHER.GROUP_CLASS_UNENROLL(enrollmentId));
   }
 
   getHomeworks(studentId?: number, dueDateFrom?: string, dueDateTo?: string): Observable<HomeworkDto[]> {

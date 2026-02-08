@@ -110,6 +110,7 @@ public class TeacherService : ITeacherService
             GradeLevel = c.Student.GradeLevel.ToString(),
             Subjects = c.Teacher?.Specializations ?? "",
             ContractStatus = c.Status.ToString(),
+            ContractId = c.Id,
             ContractIdDisplay = c.ContractId,
             RemainingHours = c.RemainingHours
         }).ToList();
@@ -241,7 +242,6 @@ public class TeacherService : ITeacherService
 
     private static TeacherSessionItemDto MapToSessionItem(AttendanceLog a)
     {
-        var canCheckOut = a.CheckOutTime == null && !string.IsNullOrEmpty(a.LessonNotes) == false;
         return new TeacherSessionItemDto
         {
             Id = a.Id,

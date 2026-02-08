@@ -23,4 +23,5 @@ public class TeacherProfile
     public ICollection<TeacherAvailability> Availabilities { get; set; } = new List<TeacherAvailability>();
     public ICollection<Homework> Homeworks { get; set; } = new List<Homework>();
     public ICollection<StudentGrade> StudentGrades { get; set; } = new List<StudentGrade>();
+    public ICollection<GroupClass> GroupClasses { get; set; } = new List<GroupClass>();
 }

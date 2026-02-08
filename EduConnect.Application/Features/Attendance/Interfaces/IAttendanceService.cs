@@ -1,4 +1,5 @@
 using EduConnect.Application.Common.Interfaces;
+using EduConnect.Application.DTOs.GroupClass;
 
 namespace EduConnect.Application.Features.Attendance.Interfaces;
 
@@ -6,8 +7,11 @@ public interface IAttendanceService : IService
 {
     Task<int> CheckInAsync(int teacherId, int contractId);
     Task<bool> CheckOutAsync(int teacherId, int attendanceLogId, string lessonNotes);
+    Task<int> CheckInGroupAsync(int teacherId, int groupClassId);
+    Task<bool> CheckOutGroupAsync(int teacherId, int groupSessionId, string lessonNotes);
     Task<AttendanceSessionDto> GetSessionByIdAsync(int sessionId);
     Task<List<AttendanceSessionDto>> GetSessionsByContractAsync(int contractId);
+    Task<List<GroupSessionDto>> GetGroupSessionsByTeacherAsync(int teacherId, DateTime? from = null, DateTime? to = null);
 }
 
 public class AttendanceSessionDto

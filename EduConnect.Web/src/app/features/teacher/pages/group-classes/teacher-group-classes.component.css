@@ -1,0 +1,186 @@
+.teacher-group-classes {
+  max-width: 800px;
+}
+
+.page-desc {
+  color: var(--text-muted, #666);
+  margin-bottom: 1.5rem;
+}
+
+.error {
+  color: var(--danger, #c00);
+  margin-bottom: 1rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.create-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.create-row .form-control {
+  flex: 1;
+  max-width: 300px;
+}
+
+.class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.class-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.class-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.class-info .badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #28a745;
+  color: #fff;
+}
+
+.class-info .badge.inactive {
+  background: #6c757d;
+}
+
+.enrolled {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  color: #666;
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.edit-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.edit-section label {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.edit-section .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.edit-section .btn-sm {
+  margin-top: 0.5rem;
+}
+
+.add-enroll {
+  margin-bottom: 1rem;
+}
+
+.enrollment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.enrollment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.enrollment-item .btn-sm {
+  font-size: 0.8rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.loading, .empty {
+  color: #666;
+  padding: 0.5rem 0;
+}

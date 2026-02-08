@@ -1,13 +1,13 @@
 <div class="teacher-sessions">
   <h1>Session Delivery</h1>
-  <p class="page-desc">Check-in to start a session. Check-out with lesson notes (required). Check-out is blocked until notes are entered.</p>
+  <p class="page-desc">One-to-one: check-in per contract. Group: start a group class session (all enrolled students). Check-out with lesson notes (required).</p>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <ng-container *ngIf="!loading && !error">
     <section class="section">
-      <h2>Today's sessions</h2>
+      <h2>One-to-one – Today's sessions</h2>
       <div *ngIf="todaySessions.length === 0" class="empty">No sessions today. Start one from &quot;Available to deliver&quot; below.</div>
       <div *ngFor="let s of todaySessions" class="session-card">
         <div class="session-info">
@@ -23,7 +23,7 @@
     </section>
 
     <section class="section">
-      <h2>Available to deliver</h2>
+      <h2>One-to-one – Available to deliver</h2>
       <div *ngIf="upcomingSessions.length === 0" class="empty">No contracts available to start.</div>
       <div *ngFor="let s of upcomingSessions" class="session-card">
         <div class="session-info">
@@ -37,6 +37,29 @@
       </div>
     </section>
 
+    <section class="section">
+      <h2>Group class</h2>
+      <div *ngIf="inProgressGroupSession" class="session-card group-session">
+        <div class="session-info">
+          <strong>{{ inProgressGroupSession.groupClassName }}</strong> – In progress
+          <span class="status">Started {{ inProgressGroupSession.checkInTime | date:'short':'+0630' }}</span>
+        </div>
+        <div class="session-actions">
+          <button type="button" class="btn btn-primary" (click)="openGroupCheckOut(inProgressGroupSession)">Check-out group (add notes)</button>
+        </div>
+      </div>
+      <div *ngIf="!inProgressGroupSession" class="group-start">
+        <select [(ngModel)]="selectedGroupClassId" class="form-control group-select">
+          <option [ngValue]="null">-- Select group class --</option>
+          <option *ngFor="let gc of groupClasses.filter(c => c.isActive && c.enrolledCount > 0)" [ngValue]="gc.id">{{ gc.name }} ({{ gc.enrolledCount }} enrolled)</option>
+        </select>
+        <button type="button" class="btn btn-success" (click)="startGroupSession()" [disabled]="!selectedGroupClassId || checkingInGroupClassId === selectedGroupClassId">
+          {{ checkingInGroupClassId ? 'Starting...' : 'Start group session' }}
+        </button>
+      </div>
+      <p class="hint">Manage group classes and enrollments under <a routerLink="/teacher/group-classes">Group classes</a>.</p>
+    </section>
+
     <div *ngIf="checkingOutSession" class="checkout-panel">
       <h3>Check-out – Lesson notes required</h3>
       <p><strong>{{ checkingOutSession.studentName }}</strong> – {{ checkingOutSession.contractIdDisplay }}</p>
@@ -47,6 +70,19 @@
       <div class="form-actions">
         <button type="button" class="btn" (click)="closeCheckOut()">Cancel</button>
         <button type="button" class="btn btn-primary" (click)="submitCheckOut()" [disabled]="!lessonNotes.trim()">Check-out</button>
+      </div>
+    </div>
+
+    <div *ngIf="checkingOutGroupSession" class="checkout-panel">
+      <h3>Check-out group – Lesson notes required</h3>
+      <p><strong>{{ checkingOutGroupSession.groupClassName }}</strong></p>
+      <div class="form-group">
+        <label>Lesson notes *</label>
+        <textarea [(ngModel)]="groupLessonNotes" class="form-control" rows="4" placeholder="Enter lesson notes (required)"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" (click)="closeGroupCheckOut()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="submitGroupCheckOut()" [disabled]="!groupLessonNotes.trim()">Check-out group</button>
       </div>
     </div>
   </ng-container>

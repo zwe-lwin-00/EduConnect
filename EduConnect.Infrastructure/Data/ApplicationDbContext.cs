@@ -23,6 +23,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StudentGrade> StudentGrades { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<GroupClass> GroupClasses { get; set; }
+    public DbSet<GroupClassEnrollment> GroupClassEnrollments { get; set; }
+    public DbSet<GroupSession> GroupSessions { get; set; }
+    public DbSet<GroupSessionAttendance> GroupSessionAttendances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -192,6 +196,64 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.Type)
                 .HasConversion<int>();
+        });
+
+        // Configure GroupClass
+        builder.Entity<GroupClass>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Teacher)
+                .WithMany(t => t.GroupClasses)
+                .HasForeignKey(e => e.TeacherId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure GroupClassEnrollment
+        builder.Entity<GroupClassEnrollment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.GroupClass)
+                .WithMany(g => g.Enrollments)
+                .HasForeignKey(e => e.GroupClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ContractSession)
+                .WithMany()
+                .HasForeignKey(e => e.ContractId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure GroupSession
+        builder.Entity<GroupSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.GroupClass)
+                .WithMany(g => g.Sessions)
+                .HasForeignKey(e => e.GroupClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Status)
+                .HasConversion<int>();
+        });
+
+        // Configure GroupSessionAttendance
+        builder.Entity<GroupSessionAttendance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.GroupSession)
+                .WithMany(s => s.Attendances)
+                .HasForeignKey(e => e.GroupSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ContractSession)
+                .WithMany()
+                .HasForeignKey(e => e.ContractId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
