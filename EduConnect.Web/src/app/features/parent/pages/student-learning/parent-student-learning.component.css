@@ -16,3 +16,24 @@
 .session-card { padding: 16px; margin-bottom: 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #eee; }
 .session-header { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
 .session-notes, .session-progress { font-size: 0.9rem; margin-top: 8px; color: #333; }
+
+.week-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.btn-nav { padding: 0.4rem 0.75rem; border: 1px solid #ccc; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.btn-nav:hover { background: #f5f5f5; }
+.week-label { font-weight: 600; min-width: 180px; text-align: center; }
+.btn-this-week { padding: 0.4rem 0.75rem; border: 1px solid #1976d2; background: #1976d2; color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.btn-this-week:hover { background: #1565c0; }
+.loading-inline { padding: 0.5rem 0; color: #666; }
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fafafa; margin-top: 0.5rem; }
+.day-column { min-height: 100px; background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; }
+.day-column:last-child { border-right: none; }
+.day-column.today { background: #e3f2fd; }
+.day-header { padding: 0.5rem; border-bottom: 1px solid #eee; text-align: center; font-size: 0.85rem; }
+.day-name { display: block; font-weight: 600; color: #333; }
+.day-date { display: block; color: #666; font-size: 0.8rem; }
+.day-sessions { padding: 0.5rem; flex: 1; }
+.session-block { padding: 0.4rem 0.5rem; margin-bottom: 0.35rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.8rem; }
+.session-block .session-time { font-weight: 600; color: #1565c0; margin-bottom: 2px; }
+.session-block .session-meta { color: #666; font-size: 0.75rem; }
+.no-sessions { color: #999; font-size: 0.85rem; text-align: center; padding: 0.5rem; }
+@media (max-width: 768px) { .week-grid { grid-template-columns: 1fr; } .day-column { border-right: none; border-bottom: 1px solid #eee; } }

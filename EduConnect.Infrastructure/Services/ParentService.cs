@@ -1,6 +1,8 @@
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Parent;
+using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Parents.Interfaces;
+using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -134,6 +136,48 @@ public class ParentService : IParentService
             CompletedSessions = completed,
             Homeworks = homeworkItems,
             Grades = gradeItems
+        };
+    }
+
+    public async Task<List<WeekSessionDto>> GetSessionsForStudentWeekAsync(string parentUserId, int studentId, DateTime weekStartMonday)
+    {
+        var student = await _context.Students
+            .FirstOrDefaultAsync(s => s.Id == studentId && s.ParentId == parentUserId);
+        if (student == null)
+            return new List<WeekSessionDto>();
+
+        var contractIds = await _context.ContractSessions
+            .Where(c => c.StudentId == studentId)
+            .Select(c => c.Id)
+            .ToListAsync();
+        if (contractIds.Count == 0)
+            return new List<WeekSessionDto>();
+
+        var (startUtc, endUtc) = MyanmarTimeHelper.GetUtcRangeForWeek(weekStartMonday);
+        var logs = await _context.AttendanceLogs
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Teacher!).ThenInclude(t => t.User)
+            .Where(a => contractIds.Contains(a.ContractId) && a.CheckInTime >= startUtc && a.CheckInTime < endUtc)
+            .OrderBy(a => a.CheckInTime)
+            .ToListAsync();
+        return logs.Select(a => MapToWeekSession(a)).ToList();
+    }
+
+    private static WeekSessionDto MapToWeekSession(AttendanceLog a)
+    {
+        var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(a.CheckInTime);
+        return new WeekSessionDto
+        {
+            AttendanceLogId = a.Id,
+            ContractId = a.ContractId,
+            ContractIdDisplay = a.ContractSession?.ContractId ?? "",
+            Date = dateMyanmar,
+            StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckInTime),
+            EndTime = a.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckOutTime.Value) : null,
+            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
+            TeacherName = a.ContractSession?.Teacher != null ? $"{a.ContractSession.Teacher.User.FirstName} {a.ContractSession.Teacher.User.LastName}" : "",
+            Status = a.Status.ToString(),
+            HoursUsed = a.HoursUsed
         };
     }
 }

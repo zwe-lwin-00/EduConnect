@@ -1,60 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ParentService } from '../../../../core/services/parent.service';
-import { StudentLearningOverviewDto } from '../../../../core/models/parent.model';
+import { TeacherService } from '../../../../core/services/teacher.service';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 @Component({
-  selector: 'app-parent-student-learning',
+  selector: 'app-teacher-calendar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './parent-student-learning.component.html',
-  styleUrl: './parent-student-learning.component.css'
+  imports: [CommonModule],
+  templateUrl: './teacher-calendar.component.html',
+  styleUrl: './teacher-calendar.component.css'
 })
-export class ParentStudentLearningComponent implements OnInit {
-  overview: StudentLearningOverviewDto | null = null;
-  studentId: number | null = null;
+export class TeacherCalendarComponent implements OnInit {
+  weekStart: Date = this.getMonday(new Date());
+  sessions: WeekSessionDto[] = [];
   loading = true;
   error = '';
 
-  weekStart: Date = this.getMonday(new Date());
-  weekSessions: WeekSessionDto[] = [];
-  weekLoading = false;
-
-  constructor(
-    private route: ActivatedRoute,
-    private parentService: ParentService
-  ) {}
+  constructor(private teacherService: TeacherService) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('studentId');
-    this.studentId = id ? +id : null;
-    if (this.studentId != null) {
-      this.load();
-      this.loadWeek();
-    } else {
-      this.error = 'Invalid student';
-      this.loading = false;
-    }
+    this.load();
   }
 
-  load(): void {
-    if (this.studentId == null) return;
-    this.loading = true;
-    this.error = '';
-    this.parentService.getStudentLearningOverview(this.studentId).subscribe({
-      next: (data) => {
-        this.overview = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = err.error?.error || err.message || 'Failed to load';
-        this.loading = false;
-      }
-    });
+  get weekStartStr(): string {
+    return this.formatYmd(this.weekStart);
   }
 
   get weekLabel(): string {
@@ -76,7 +47,7 @@ export class ParentStudentLearningComponent implements OnInit {
 
   sessionsOnDay(date: Date): WeekSessionDto[] {
     const ymd = this.formatYmd(date);
-    return this.weekSessions.filter(s => {
+    return this.sessions.filter(s => {
       const d = s.date ? (typeof s.date === 'string' ? s.date.slice(0, 10) : '') : '';
       return d === ymd;
     });
@@ -86,31 +57,33 @@ export class ParentStudentLearningComponent implements OnInit {
     const d = new Date(this.weekStart);
     d.setDate(d.getDate() - 7);
     this.weekStart = d;
-    this.loadWeek();
+    this.load();
   }
 
   nextWeek(): void {
     const d = new Date(this.weekStart);
     d.setDate(d.getDate() + 7);
     this.weekStart = d;
-    this.loadWeek();
+    this.load();
   }
 
   thisWeek(): void {
     this.weekStart = this.getMonday(new Date());
-    this.loadWeek();
+    this.load();
   }
 
-  private loadWeek(): void {
-    if (this.studentId == null) return;
-    this.weekLoading = true;
-    const weekStartStr = this.formatYmd(this.weekStart);
-    this.parentService.getStudentCalendarWeek(this.studentId, weekStartStr).subscribe({
+  private load(): void {
+    this.loading = true;
+    this.error = '';
+    this.teacherService.getCalendarWeek(this.weekStartStr).subscribe({
       next: (list) => {
-        this.weekSessions = list;
-        this.weekLoading = false;
+        this.sessions = list;
+        this.loading = false;
       },
-      error: () => { this.weekLoading = false; }
+      error: (err) => {
+        this.error = err.error?.error || err.message || 'Failed to load';
+        this.loading = false;
+      }
     });
   }
 

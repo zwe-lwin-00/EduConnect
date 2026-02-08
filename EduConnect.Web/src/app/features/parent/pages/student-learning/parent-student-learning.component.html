@@ -29,8 +29,35 @@
     </section>
 
     <section class="section">
-      <h2>Upcoming sessions</h2>
-      <p class="hint">Contracts with remaining hours (teacher delivers sessions; Admin confirms).</p>
+      <h2>Upcoming sessions (week view)</h2>
+      <p class="hint">Sessions this week for {{ overview.studentName }}. Times in Myanmar.</p>
+      <div class="week-nav">
+        <button type="button" class="btn-nav" (click)="prevWeek()">← Previous</button>
+        <span class="week-label">{{ weekLabel }}</span>
+        <button type="button" class="btn-nav" (click)="nextWeek()">Next →</button>
+        <button type="button" class="btn-this-week" (click)="thisWeek()">This week</button>
+      </div>
+      <div *ngIf="weekLoading" class="loading-inline">Loading...</div>
+      <div *ngIf="!weekLoading" class="week-grid">
+        <div *ngFor="let col of dayColumns" class="day-column" [class.today]="col.isToday">
+          <div class="day-header">
+            <span class="day-name">{{ col.label }}</span>
+            <span class="day-date">{{ col.date | date:'d MMM' }}</span>
+          </div>
+          <div class="day-sessions">
+            <div *ngFor="let s of sessionsOnDay(col.date)" class="session-block">
+              <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+              <div class="session-meta">{{ s.teacherName }} · {{ s.contractIdDisplay }} · {{ s.status }}</div>
+            </div>
+            <div *ngIf="sessionsOnDay(col.date).length === 0" class="no-sessions">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Contracts with remaining hours</h2>
+      <p class="hint">Teacher delivers sessions; Admin confirms.</p>
       <div *ngIf="overview.upcomingSessions.length === 0" class="empty">None.</div>
       <ul class="list" *ngIf="overview.upcomingSessions.length > 0">
         <li *ngFor="let u of overview.upcomingSessions">

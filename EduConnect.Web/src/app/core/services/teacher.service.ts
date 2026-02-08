@@ -7,6 +7,7 @@ import {
   TeacherProfileDto,
   TeacherAssignedStudentDto,
   TeacherSessionItemDto,
+  WeekSessionDto,
   TeacherAvailabilityDto,
   CheckInRequest,
   CheckOutRequest,
@@ -41,6 +42,11 @@ export class TeacherService {
 
   getUpcomingSessions(): Observable<TeacherSessionItemDto[]> {
     return this.apiService.get<TeacherSessionItemDto[]>(API_ENDPOINTS.TEACHER.SESSIONS_UPCOMING);
+  }
+
+  getCalendarWeek(weekStart?: string): Observable<WeekSessionDto[]> {
+    const q = weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : '';
+    return this.apiService.get<WeekSessionDto[]>(API_ENDPOINTS.TEACHER.CALENDAR_WEEK + q);
   }
 
   getAvailability(): Observable<TeacherAvailabilityDto[]> {

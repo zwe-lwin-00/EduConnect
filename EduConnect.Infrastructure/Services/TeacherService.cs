@@ -209,6 +209,36 @@ public class TeacherService : ITeacherService
         }).ToList();
     }
 
+    public async Task<List<WeekSessionDto>> GetSessionsForWeekAsync(int teacherId, DateTime weekStartMonday)
+    {
+        var (startUtc, endUtc) = MyanmarTimeHelper.GetUtcRangeForWeek(weekStartMonday);
+        var logs = await _context.AttendanceLogs
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Teacher!).ThenInclude(t => t.User)
+            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= startUtc && a.CheckInTime < endUtc)
+            .OrderBy(a => a.CheckInTime)
+            .ToListAsync();
+        return logs.Select(a => MapToWeekSession(a)).ToList();
+    }
+
+    private static WeekSessionDto MapToWeekSession(AttendanceLog a)
+    {
+        var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(a.CheckInTime);
+        return new WeekSessionDto
+        {
+            AttendanceLogId = a.Id,
+            ContractId = a.ContractId,
+            ContractIdDisplay = a.ContractSession?.ContractId ?? "",
+            Date = dateMyanmar,
+            StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckInTime),
+            EndTime = a.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckOutTime.Value) : null,
+            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
+            TeacherName = "",
+            Status = a.Status.ToString(),
+            HoursUsed = a.HoursUsed
+        };
+    }
+
     private static TeacherSessionItemDto MapToSessionItem(AttendanceLog a)
     {
         var canCheckOut = a.CheckOutTime == null && !string.IsNullOrEmpty(a.LessonNotes) == false;

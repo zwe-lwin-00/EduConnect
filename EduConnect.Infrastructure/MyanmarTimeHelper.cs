@@ -55,4 +55,37 @@ public static class MyanmarTimeHelper
         var endUtc = TimeZoneInfo.ConvertTimeToUtc(endMyanmar, MyanmarTimeZone);
         return (startUtc, endUtc);
     }
+
+    /// <summary>Monday of the week containing the given Myanmar date.</summary>
+    public static DateTime GetWeekStartMonday(DateTime myanmarDate)
+    {
+        var d = myanmarDate.Date;
+        var diff = (7 + (d.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return d.AddDays(-diff);
+    }
+
+    /// <summary>UTC range for a full week starting at Monday 00:00 Myanmar. weekStartMonday is date-only in Myanmar.</summary>
+    public static (DateTime StartUtc, DateTime EndUtc) GetUtcRangeForWeek(DateTime weekStartMonday)
+    {
+        var start = weekStartMonday.Date;
+        var end = start.AddDays(7);
+        var startMyanmar = DateTime.SpecifyKind(start, DateTimeKind.Unspecified);
+        var endMyanmar = DateTime.SpecifyKind(end, DateTimeKind.Unspecified);
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(startMyanmar, MyanmarTimeZone);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(endMyanmar, MyanmarTimeZone);
+        return (startUtc, endUtc);
+    }
+
+    /// <summary>Convert UTC to Myanmar time and return time as "HH:mm".</summary>
+    public static string FormatTimeUtcToMyanmar(DateTime utc)
+    {
+        var local = TimeZoneInfo.ConvertTimeFromUtc(utc, MyanmarTimeZone);
+        return local.ToString("HH:mm");
+    }
+
+    /// <summary>Convert UTC to Myanmar date (date only).</summary>
+    public static DateTime UtcToMyanmarDate(DateTime utc)
+    {
+        return TimeZoneInfo.ConvertTimeFromUtc(utc, MyanmarTimeZone).Date;
+    }
 }

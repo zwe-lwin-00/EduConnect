@@ -20,6 +20,20 @@ export interface TeacherSessionItemDto {
   canCheckOut: boolean;
 }
 
+/** Week calendar session (teacher "My sessions this week" / parent "Upcoming sessions"). */
+export interface WeekSessionDto {
+  attendanceLogId: number;
+  contractId: number;
+  contractIdDisplay: string;
+  date: string;
+  startTime: string;
+  endTime?: string;
+  studentName: string;
+  teacherName: string;
+  status: string;
+  hoursUsed: number;
+}
+
 export interface TeacherAlertDto {
   type: string;
   message: string;

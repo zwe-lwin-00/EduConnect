@@ -92,6 +92,30 @@ public class TeacherController : BaseController
         }
     }
 
+    [HttpGet("calendar/week")]
+    public async Task<IActionResult> GetCalendarWeek([FromQuery] string? weekStart)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            var monday = ParseWeekStartMonday(weekStart);
+            var result = await _teacherService.GetSessionsForWeekAsync(teacherId, monday);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static DateTime ParseWeekStartMonday(string? weekStart)
+    {
+        if (!string.IsNullOrEmpty(weekStart) && DateTime.TryParse(weekStart, out var parsed))
+            return parsed.Date;
+        var today = EduConnect.Infrastructure.MyanmarTimeHelper.GetTodayInMyanmar();
+        return EduConnect.Infrastructure.MyanmarTimeHelper.GetWeekStartMonday(today);
+    }
+
     [HttpGet("sessions/upcoming")]
     public async Task<IActionResult> GetUpcomingSessions()
     {

@@ -6,6 +6,7 @@ import {
   ParentStudentDto,
   StudentLearningOverviewDto
 } from '../models/parent.model';
+import { WeekSessionDto } from '../models/teacher.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,5 +22,10 @@ export class ParentService {
     return this.apiService.get<StudentLearningOverviewDto>(
       API_ENDPOINTS.PARENT.STUDENT_LEARNING_OVERVIEW(studentId)
     );
+  }
+
+  getStudentCalendarWeek(studentId: number, weekStart?: string): Observable<WeekSessionDto[]> {
+    const q = weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : '';
+    return this.apiService.get<WeekSessionDto[]>(API_ENDPOINTS.PARENT.STUDENT_CALENDAR_WEEK(studentId) + q);
   }
 }

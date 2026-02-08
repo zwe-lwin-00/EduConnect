@@ -44,6 +44,7 @@ export const API_ENDPOINTS = {
     STUDENTS: '/teacher/students',
     SESSIONS_TODAY: '/teacher/sessions/today',
     SESSIONS_UPCOMING: '/teacher/sessions/upcoming',
+    CALENDAR_WEEK: '/teacher/calendar/week',
     AVAILABILITY: '/teacher/availability',
     CHECK_IN: '/teacher/check-in',
     CHECK_OUT: '/teacher/check-out',
@@ -53,7 +54,8 @@ export const API_ENDPOINTS = {
   },
   PARENT: {
     MY_STUDENTS: '/parent/my-students',
-    STUDENT_LEARNING_OVERVIEW: (studentId: number) => `/parent/my-students/${studentId}/learning-overview`
+    STUDENT_LEARNING_OVERVIEW: (studentId: number) => `/parent/my-students/${studentId}/learning-overview`,
+    STUDENT_CALENDAR_WEEK: (studentId: number) => `/parent/my-students/${studentId}/calendar/week`
   },
   STUDENT: {
     LIST: '/student',
