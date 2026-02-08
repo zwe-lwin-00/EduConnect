@@ -167,6 +167,7 @@ using (var scope = app.Services.CreateScope())
     var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     
     await context.Database.EnsureCreatedAsync();
+    await EduConnect.Infrastructure.Data.SchemaEnsurer.EnsureMissingTablesAsync(context, cancellationToken: default);
     await EduConnect.Infrastructure.Data.DbSeeder.SeedAsync(context, userManager, roleManager, configuration);
 }
 

@@ -1,4 +1,5 @@
 using EduConnect.Application.Common.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json;
 
@@ -8,11 +9,13 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IWebHostEnvironment _env;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,7 +31,7 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var code = HttpStatusCode.InternalServerError;
         var result = string.Empty;
@@ -48,7 +51,10 @@ public class ExceptionHandlingMiddleware
                 result = JsonSerializer.Serialize(new { error = "Unauthorized access", code = "UNAUTHORIZED" });
                 break;
             default:
-                result = JsonSerializer.Serialize(new { error = "An error occurred while processing your request", code = "INTERNAL_ERROR" });
+                var message = "An error occurred while processing your request";
+                if (_env.IsDevelopment() && exception is DbUpdateException dbEx)
+                    message = dbEx.InnerException?.Message ?? dbEx.Message;
+                result = JsonSerializer.Serialize(new { error = message, code = "INTERNAL_ERROR" });
                 break;
         }
 
