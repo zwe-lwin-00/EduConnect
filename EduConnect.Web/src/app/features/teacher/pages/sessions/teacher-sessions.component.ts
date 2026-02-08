@@ -38,6 +38,11 @@ export class TeacherSessionsComponent implements OnInit {
     return this.groupSessions.find(s => !s.checkOutTime) ?? null;
   }
 
+  /** Active group classes that have at least one enrolled student (for start-session dropdown). */
+  get startableGroupClasses(): GroupClassDto[] {
+    return this.groupClasses.filter(c => c.isActive && c.enrolledCount > 0);
+  }
+
   load(): void {
     this.loading = true;
     this.error = '';

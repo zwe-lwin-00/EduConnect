@@ -51,7 +51,7 @@
       <div *ngIf="!inProgressGroupSession" class="group-start">
         <select [(ngModel)]="selectedGroupClassId" class="form-control group-select">
           <option [ngValue]="null">-- Select group class --</option>
-          <option *ngFor="let gc of groupClasses.filter(c => c.isActive && c.enrolledCount > 0)" [ngValue]="gc.id">{{ gc.name }} ({{ gc.enrolledCount }} enrolled)</option>
+          <option *ngFor="let gc of startableGroupClasses" [ngValue]="gc.id">{{ gc.name }} ({{ gc.enrolledCount }} enrolled)</option>
         </select>
         <button type="button" class="btn btn-success" (click)="startGroupSession()" [disabled]="!selectedGroupClassId || checkingInGroupClassId === selectedGroupClassId">
           {{ checkingInGroupClassId ? 'Starting...' : 'Start group session' }}

@@ -8,7 +8,7 @@
     <h2>Create group class</h2>
     <div class="create-row">
       <input type="text" [(ngModel)]="newClassName" class="form-control" placeholder="Group class name" />
-      <button type="button" class="btn btn-primary" (click)="createGroupClass()" [disabled]="creating || !newClassName?.trim()">
+      <button type="button" class="btn btn-primary" (click)="createGroupClass()" [disabled]="creating || !(newClassName || '').trim()">
         {{ creating ? 'Creating...' : 'Create' }}
       </button>
     </div>
