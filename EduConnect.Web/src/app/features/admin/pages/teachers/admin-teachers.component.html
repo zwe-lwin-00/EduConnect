@@ -61,7 +61,7 @@
               <p-button icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="openEditPopup(t)" title="Edit" />
               <p-button icon="pi pi-key" [outlined]="true" size="small" (onClick)="onResetTeacherPassword(t)" title="Reset password" />
               <p-button *ngIf="t.verificationStatus === 1" icon="pi pi-check" label="Verify" severity="success" [outlined]="true" size="small" (onClick)="onVerifyTeacher(t)" />
-              <p-button *ngIf="t.verificationStatus === 1" icon="pi pi-times" label="Reject" severity="danger" [outlined]="true" size="small" (onClick)="onRejectTeacher(t)" />
+              <p-button *ngIf="t.verificationStatus === 1" icon="pi pi-times" label="Reject" severity="danger" [outlined]="true" size="small" (onClick)="openRejectDialog(t)" />
             </div>
           </td>
         </tr>
@@ -148,6 +148,18 @@
     </ng-container>
     <ng-template pTemplate="footer">
       <p-button label="Close" (onClick)="closeTeacherDetails()" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog header="Reject teacher" [(visible)]="showRejectDialog" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRejectDialog()">
+    <p *ngIf="rejectTeacherTarget" class="mb-3">Reject {{ rejectTeacherTarget.firstName }} {{ rejectTeacherTarget.lastName }}? Enter the reason below.</p>
+    <div class="field">
+      <label for="rejectReason">Reason</label>
+      <input pInputText id="rejectReason" type="text" [(ngModel)]="rejectReason" class="w-full" placeholder="Rejection reason (required)" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeRejectDialog()" />
+      <p-button label="Reject" icon="pi pi-times" severity="danger" (onClick)="onConfirmReject()" [disabled]="!rejectReason.trim()" />
     </ng-template>
   </p-dialog>
 </div>

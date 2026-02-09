@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Student, Parent, CreateStudentRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-students',
@@ -29,7 +30,9 @@ export class AdminStudentsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     this.createForm = this.fb.group({
       parentId: ['', Validators.required],
@@ -86,20 +89,27 @@ export class AdminStudentsComponent implements OnInit {
       };
       this.adminService.createStudent(request).subscribe({
         next: () => {
-          alert('Student created successfully!');
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Student created successfully' });
           this.closeCreatePopup();
           this.loadStudents();
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
 
   setStudentActive(student: Student, isActive: boolean): void {
-    if (!confirm(`${isActive ? 'Activate' : 'Freeze'} student ${student.firstName} ${student.lastName}?`)) return;
-    this.adminService.setStudentActive(student.id, isActive).subscribe({
-      next: () => this.loadStudents(),
-      error: (err) => alert('Error: ' + (err.error?.error || err.message))
+    const action = isActive ? 'Activate' : 'Freeze';
+    this.confirmationService.confirm({
+      message: `${action} student ${student.firstName} ${student.lastName}?`,
+      header: action + ' student',
+      icon: isActive ? 'pi pi-check' : 'pi pi-ban',
+      accept: () => {
+        this.adminService.setStudentActive(student.id, isActive).subscribe({
+          next: () => this.loadStudents(),
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
     });
   }
 }

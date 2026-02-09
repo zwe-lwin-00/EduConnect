@@ -11,7 +11,7 @@ import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
 import { ContractDto, CreateContractRequest, Teacher, Student } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-contracts',
@@ -53,7 +53,8 @@ export class AdminContractsComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private fb: FormBuilder,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     this.createForm = this.fb.group({
       teacherId: [null, Validators.required],
@@ -146,10 +147,17 @@ export class AdminContractsComponent implements OnInit {
   }
 
   cancelContract(c: ContractDto): void {
-    if (!confirm(`Cancel contract ${c.contractId}?`)) return;
-    this.adminService.cancelContract(c.id).subscribe({
-      next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract cancelled' }); this.loadContracts(); },
-      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+    this.confirmationService.confirm({
+      message: `Cancel contract ${c.contractId}?`,
+      header: 'Cancel contract',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.adminService.cancelContract(c.id).subscribe({
+          next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract cancelled' }); this.loadContracts(); },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
     });
   }
 

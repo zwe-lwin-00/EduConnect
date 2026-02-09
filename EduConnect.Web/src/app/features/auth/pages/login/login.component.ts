@@ -6,6 +6,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
+import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -20,11 +21,14 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  private readonly redirectDelayMs = 1200;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private messageService: MessageService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -73,7 +77,13 @@ export class LoginComponent implements OnInit {
             const role = response.user.role;
             const roleHome = role === 'Admin' || role === 1 ? '/admin' : role === 'Teacher' || role === 2 ? '/teacher' : role === 'Parent' || role === 3 ? '/parent' : '/dashboard';
             if (returnUrl && returnUrl.startsWith(roleHome) && returnUrl.length > roleHome.length) {
-              this.router.navigateByUrl(returnUrl);
+              this.messageService.add({
+                severity: 'info',
+                summary: 'Redirecting',
+                detail: 'Taking you back to where you were…',
+                life: this.redirectDelayMs
+              });
+              setTimeout(() => this.router.navigateByUrl(returnUrl), this.redirectDelayMs);
             } else {
               this.router.navigate([roleHome]);
             }

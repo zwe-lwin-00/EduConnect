@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Table, TableModule } from 'primeng/table';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
@@ -12,13 +13,14 @@ import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Teacher, OnboardTeacherRequest, UpdateTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-teachers',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     TableModule,
     ToolbarModule,
@@ -48,11 +50,15 @@ export class AdminTeachersComponent implements OnInit {
   credentialsPassword = '';
   credentialsNote = 'The teacher must change the password on first login.';
   copyFeedback = '';
+  showRejectDialog = false;
+  rejectTeacherTarget: Teacher | null = null;
+  rejectReason = '';
 
   constructor(
     private adminService: AdminService,
     private fb: FormBuilder,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     this.onboardForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -203,48 +209,78 @@ export class AdminTeachersComponent implements OnInit {
   }
 
   onVerifyTeacher(teacher: Teacher): void {
-    if (confirm(`Verify teacher ${teacher.firstName} ${teacher.lastName}?`)) {
-      this.adminService.verifyTeacher(teacher.id).subscribe({
-        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher verified' }); this.loadTeachers(); },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
-      });
-    }
+    this.confirmationService.confirm({
+      message: `Verify teacher ${teacher.firstName} ${teacher.lastName}?`,
+      header: 'Verify teacher',
+      icon: 'pi pi-check-circle',
+      accept: () => {
+        this.adminService.verifyTeacher(teacher.id).subscribe({
+          next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher verified' }); this.loadTeachers(); },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
+    });
   }
 
   onResetTeacherPassword(teacher: Teacher): void {
-    if (confirm(`Reset password for ${teacher.firstName} ${teacher.lastName}? A new temporary password will be generated. Share it with the teacher.`)) {
-      this.adminService.resetTeacherPassword(teacher.id).subscribe({
-        next: (response) => {
-          this.credentialsEmail = response.email;
-          this.credentialsPassword = response.temporaryPassword;
-          this.credentialsNote = 'The teacher must change the password on next login.';
-          this.copyFeedback = '';
-          this.showCredentialsPopup = true;
-          this.closeTeacherDetails();
-        },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
-      });
-    }
+    this.confirmationService.confirm({
+      message: `Reset password for ${teacher.firstName} ${teacher.lastName}? A new temporary password will be generated. Share it with the teacher.`,
+      header: 'Reset password',
+      icon: 'pi pi-key',
+      accept: () => {
+        this.adminService.resetTeacherPassword(teacher.id).subscribe({
+          next: (response) => {
+            this.credentialsEmail = response.email;
+            this.credentialsPassword = response.temporaryPassword;
+            this.credentialsNote = 'The teacher must change the password on next login.';
+            this.copyFeedback = '';
+            this.showCredentialsPopup = true;
+            this.closeTeacherDetails();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
+    });
   }
 
-  onRejectTeacher(teacher: Teacher): void {
-    const reason = prompt('Enter rejection reason:');
-    if (reason) {
-      this.adminService.rejectTeacher(teacher.id, reason).subscribe({
-        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher rejected' }); this.loadTeachers(); },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
-      });
-    }
+  openRejectDialog(teacher: Teacher): void {
+    this.rejectTeacherTarget = teacher;
+    this.rejectReason = '';
+    this.showRejectDialog = true;
+  }
+
+  closeRejectDialog(): void {
+    this.showRejectDialog = false;
+    this.rejectTeacherTarget = null;
+    this.rejectReason = '';
+  }
+
+  onConfirmReject(): void {
+    const teacher = this.rejectTeacherTarget;
+    if (!teacher || !this.rejectReason.trim()) return;
+    this.adminService.rejectTeacher(teacher.id, this.rejectReason.trim()).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher rejected' });
+        this.loadTeachers();
+        this.closeRejectDialog();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+    });
   }
 
   onSetTeacherActive(teacher: Teacher, isActive: boolean): void {
     const action = isActive ? 'activate' : 'suspend';
-    if (confirm(`${action} teacher ${teacher.firstName} ${teacher.lastName}?`)) {
-      this.adminService.setTeacherActive(teacher.id, isActive).subscribe({
-        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Done' }); this.loadTeachers(); this.closeTeacherDetails(); },
-        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
-      });
-    }
+    this.confirmationService.confirm({
+      message: `${action} teacher ${teacher.firstName} ${teacher.lastName}?`,
+      header: isActive ? 'Activate teacher' : 'Suspend teacher',
+      icon: isActive ? 'pi pi-check' : 'pi pi-ban',
+      accept: () => {
+        this.adminService.setTeacherActive(teacher.id, isActive).subscribe({
+          next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Done' }); this.loadTeachers(); this.closeTeacherDetails(); },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
+    });
   }
 
   onViewTeacherDetails(teacher: Teacher): void {

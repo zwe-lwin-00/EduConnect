@@ -10,6 +10,7 @@ import {
   UpdateGroupClassRequest,
   EnrollInGroupClassRequest
 } from '../../../../core/models/teacher.model';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-teacher-group-classes',
@@ -34,7 +35,10 @@ export class TeacherGroupClassesComponent implements OnInit {
   editIsActive = true;
   updating = false;
 
-  constructor(private teacherService: TeacherService) {}
+  constructor(
+    private teacherService: TeacherService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   /** Assigned contracts whose student is not already enrolled (backend allows one enrollment per student per group). */
   get assignableContracts(): TeacherAssignedStudentDto[] {
@@ -133,13 +137,19 @@ export class TeacherGroupClassesComponent implements OnInit {
   }
 
   unenroll(enrollmentId: number): void {
-    if (!confirm('Remove this student from the group class?')) return;
-    this.teacherService.unenrollFromGroupClass(enrollmentId).subscribe({
-      next: () => {
-        if (this.selectedGroupClass) this.viewEnrollments(this.selectedGroupClass);
-        this.load();
-      },
-      error: (err) => this.error = err.error?.error || err.message || 'Failed'
+    this.confirmationService.confirm({
+      message: 'Remove this student from the group class?',
+      header: 'Remove enrollment',
+      icon: 'pi pi-user-minus',
+      accept: () => {
+        this.teacherService.unenrollFromGroupClass(enrollmentId).subscribe({
+          next: () => {
+            if (this.selectedGroupClass) this.viewEnrollments(this.selectedGroupClass);
+            this.load();
+          },
+          error: (err) => this.error = err.error?.error || err.message || 'Failed'
+        });
+      }
     });
   }
 

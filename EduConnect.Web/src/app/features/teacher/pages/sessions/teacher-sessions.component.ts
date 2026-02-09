@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-teacher-sessions',
@@ -28,7 +29,10 @@ export class TeacherSessionsComponent implements OnInit {
   checkingOutGroupSession: GroupSessionDto | null = null;
   groupLessonNotes = '';
 
-  constructor(private teacherService: TeacherService) {}
+  constructor(
+    private teacherService: TeacherService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -81,16 +85,22 @@ export class TeacherSessionsComponent implements OnInit {
   }
 
   checkIn(contractId: number): void {
-    if (!confirm('Start session (Check-in) for this contract?')) return;
-    this.checkingInContractId = contractId;
-    this.teacherService.checkIn({ contractId }).subscribe({
-      next: () => {
-        this.checkingInContractId = null;
-        this.load();
-      },
-      error: (err) => {
-        this.error = err.error?.error || err.message || 'Check-in failed';
-        this.checkingInContractId = null;
+    this.confirmationService.confirm({
+      message: 'Start session (Check-in) for this contract?',
+      header: 'Check-in',
+      icon: 'pi pi-play',
+      accept: () => {
+        this.checkingInContractId = contractId;
+        this.teacherService.checkIn({ contractId }).subscribe({
+          next: () => {
+            this.checkingInContractId = null;
+            this.load();
+          },
+          error: (err) => {
+            this.error = err.error?.error || err.message || 'Check-in failed';
+            this.checkingInContractId = null;
+          }
+        });
       }
     });
   }
@@ -130,16 +140,22 @@ export class TeacherSessionsComponent implements OnInit {
     if (!id) { this.error = 'Select a group class.'; return; }
     const gc = this.groupClasses.find(c => c.id === id);
     if (gc?.enrolledCount === 0) { this.error = 'Group class has no enrolled students.'; return; }
-    if (!confirm(`Start group session for "${gc?.name}"?`)) return;
-    this.checkingInGroupClassId = id;
-    this.teacherService.checkInGroup({ groupClassId: id }).subscribe({
-      next: () => {
-        this.checkingInGroupClassId = null;
-        this.load();
-      },
-      error: (err) => {
-        this.error = err.error?.error || err.message || 'Failed to start group session';
-        this.checkingInGroupClassId = null;
+    this.confirmationService.confirm({
+      message: `Start group session for "${gc?.name}"?`,
+      header: 'Start group session',
+      icon: 'pi pi-play',
+      accept: () => {
+        this.checkingInGroupClassId = id;
+        this.teacherService.checkInGroup({ groupClassId: id }).subscribe({
+          next: () => {
+            this.checkingInGroupClassId = null;
+            this.load();
+          },
+          error: (err) => {
+            this.error = err.error?.error || err.message || 'Failed to start group session';
+            this.checkingInGroupClassId = null;
+          }
+        });
       }
     });
   }

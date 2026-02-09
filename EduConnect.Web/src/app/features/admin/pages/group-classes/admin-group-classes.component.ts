@@ -10,6 +10,7 @@ import {
   Teacher,
   ContractDto
 } from '../../../../core/models/admin.model';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-group-classes',
@@ -46,7 +47,10 @@ export class AdminGroupClassesComponent implements OnInit {
   enrollContractId: number | null = null;
   enrolling = false;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -185,13 +189,19 @@ export class AdminGroupClassesComponent implements OnInit {
   }
 
   unenroll(enrollmentId: number): void {
-    if (!confirm('Remove this student from the group class?')) return;
-    this.adminService.unenrollFromGroupClass(enrollmentId).subscribe({
-      next: () => {
-        if (this.selectedClass) this.openEnrollments(this.selectedClass);
-        this.load();
-      },
-      error: (err) => this.error = err.error?.error || err.message || 'Failed'
+    this.confirmationService.confirm({
+      message: 'Remove this student from the group class?',
+      header: 'Remove enrollment',
+      icon: 'pi pi-user-minus',
+      accept: () => {
+        this.adminService.unenrollFromGroupClass(enrollmentId).subscribe({
+          next: () => {
+            if (this.selectedClass) this.openEnrollments(this.selectedClass);
+            this.load();
+          },
+          error: (err) => this.error = err.error?.error || err.message || 'Failed'
+        });
+      }
     });
   }
 }

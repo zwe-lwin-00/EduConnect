@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { AdminService } from '../../../../core/services/admin.service';
 import { TodaySessionDto } from '../../../../core/models/admin.model';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-attendance',
@@ -19,7 +20,11 @@ export class AdminAttendanceComponent implements OnInit {
   adjustHours = 0;
   adjustReason = '';
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -37,18 +42,30 @@ export class AdminAttendanceComponent implements OnInit {
   }
 
   overrideCheckIn(s: TodaySessionDto): void {
-    if (!confirm(`Override check-in for ${s.teacherName} – ${s.studentName}?`)) return;
-    this.adminService.overrideCheckIn(s.id).subscribe({
-      next: () => this.load(),
-      error: (err) => alert('Error: ' + (err.error?.error || err.message))
+    this.confirmationService.confirm({
+      message: `Override check-in for ${s.teacherName} – ${s.studentName}?`,
+      header: 'Override check-in',
+      icon: 'pi pi-sign-in',
+      accept: () => {
+        this.adminService.overrideCheckIn(s.id).subscribe({
+          next: () => this.load(),
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
     });
   }
 
   overrideCheckOut(s: TodaySessionDto): void {
-    if (!confirm(`Override check-out for ${s.teacherName} – ${s.studentName}?`)) return;
-    this.adminService.overrideCheckOut(s.id).subscribe({
-      next: () => this.load(),
-      error: (err) => alert('Error: ' + (err.error?.error || err.message))
+    this.confirmationService.confirm({
+      message: `Override check-out for ${s.teacherName} – ${s.studentName}?`,
+      header: 'Override check-out',
+      icon: 'pi pi-sign-out',
+      accept: () => {
+        this.adminService.overrideCheckOut(s.id).subscribe({
+          next: () => this.load(),
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
+        });
+      }
     });
   }
 
