@@ -3,6 +3,7 @@ using EduConnect.Application.DTOs.Auth;
 using EduConnect.Application.Features.Auth.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EduConnect.API.Controllers;
 
@@ -16,6 +17,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         Logger.InformationLog("Login attempt");
@@ -93,15 +95,4 @@ public class AuthController : BaseController
             return BadRequest(new { error = ex.Message });
         }
     }
-}
-
-public class RefreshTokenRequest
-{
-    public string RefreshToken { get; set; } = string.Empty;
-}
-
-public class ChangePasswordRequest
-{
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
 }

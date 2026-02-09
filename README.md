@@ -51,6 +51,8 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 |-----------|------|-----|
 | **Backend API** | **5049** | `http://localhost:5049` (API base; frontend calls `http://localhost:5049/api`) |
 | **Frontend (Angular)** | **5480** | `http://localhost:5480` |
+| **Health (liveness)** | 5049 | `http://localhost:5049/health/live` |
+| **Health (readiness)** | 5049 | `http://localhost:5049/health/ready` |
 
 The frontend (`EduConnect.Web/src/environments/environment.ts`) must have `apiUrl: 'http://localhost:5049/api'`. The backend CORS (`appsettings.json` / `appsettings.Development.json`) must allow `http://localhost:5480`. If you see "Cannot connect to server", ensure (1) the API is running (`dotnet run` in `EduConnect.API`) and (2) these ports match.
 
@@ -325,7 +327,10 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Wallet logic (credit/deduct hours, student active/freeze)
 - [x] Daily and monthly reports (Dapper-powered)
 - [x] Exception handling middleware, Angular guards and interceptors
+- [x] **Time zone**: All times use **Myanmar (Asia/Yangon, UTC+6:30)**—backend “today” and reports use Myanmar date; frontend displays dates/times with `+0630`; API serializes `DateTime` as UTC with `Z` for correct client display
+- [x] **Admin reset teacher password**: Admin can reset a teacher’s password from Teachers list or teacher details; a new temporary password is shown and the teacher must change it on next login
 - [x] **Logging**: Serilog file sink; LoggerExtensions (Shared) used in API and Infrastructure for traceable logs (Method/LineNumber, credential redaction)
+- [x] **API & security**: Server-side validation (FluentValidation), rate limiting on login, health checks (liveness/readiness), consistent error contract (`error`, `code`, `details?`, `requestId?`)
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 - [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. **Breadcrumbs**: Admin, Teacher, and Parent layouts show a PrimeNG breadcrumb (e.g. Home > Teachers, Home > Learning overview) above the main content so users know where they are and can navigate back. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
@@ -463,6 +468,16 @@ If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a
 - **Account Lockout**: After 5 failed attempts, account locked for 5 minutes
 - **Audit Logging**: All admin actions logged using Serilog
 
+### Backend – API & Security
+
+- **Request validation**: Server-side validation with **FluentValidation** on DTOs (e.g. `LoginRequest`, `CreateParentRequest`, `OnboardTeacherRequest`, `CreateStudentRequest`, `ChangePasswordRequest`, `RefreshTokenRequest`). Invalid payloads are rejected with a standard error response before hitting business logic.
+- **Rate limiting**: Built-in ASP.NET Core rate limiter—global limit per IP and a stricter **auth** policy (e.g. 10 requests/minute) on `POST /api/auth/login` to reduce brute-force and abuse.
+- **Health checks**: 
+  - **Liveness**: `GET /health/live` – process is running (for containers/orchestration).
+  - **Readiness**: `GET /health/ready` – DB connectivity check. Use for load balancers and Kubernetes readiness probes.
+  - Legacy `GET /api/health` remains and documents the above endpoints.
+- **Consistent error contract**: All API errors use the same JSON shape: `{ "error", "code", "details?", "requestId?" }`. Exception middleware and validation filter use the same format; `requestId` matches `HttpContext.TraceIdentifier` for log correlation.
+
 ## 📊 Development Guidelines
 
 ### Backend
@@ -533,7 +548,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 ---
 

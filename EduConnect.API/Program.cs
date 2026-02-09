@@ -3,13 +3,16 @@ using EduConnect.Infrastructure.Data;
 using EduConnect.Infrastructure.Repositories;
 using EduConnect.Infrastructure.Services;
 using EduConnect.API.Extensions;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +33,18 @@ Log.Logger = loggerConfig.CreateLogger();
 
 builder.Host.UseSerilog();
 
+// FluentValidation (server-side request validation)
+var validatorAssembly = typeof(EduConnect.Application.Validators.LoginRequestValidator).Assembly;
+builder.Services.AddValidatorsFromAssembly(validatorAssembly);
+#pragma warning disable CS0618
+builder.Services.AddScoped<IValidatorFactory, ServiceProviderValidatorFactory>();
+#pragma warning restore CS0618
+
 // Add services to the container
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<EduConnect.API.Filters.ValidationFilter>();
+})
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
@@ -144,6 +157,29 @@ builder.Services.AddApplicationServices();
 var encryptionKey = builder.Configuration["Encryption:Key"] ?? throw new InvalidOperationException("Encryption key not configured");
 builder.Services.AddSingleton<IEncryptionService>(sp => new EncryptionService(encryptionKey));
 
+// Rate limiting (e.g. brute-force protection on login)
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 100, Window = TimeSpan.FromMinutes(1) }));
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Too many requests. Try again later.", code = "RATE_LIMITED" }, token);
+    };
+});
+
+// Health checks (liveness = process; readiness = DB)
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("OK"), tags: new[] { "live" })
+    .AddDbContextCheck<ApplicationDbContext>("db", tags: new[] { "ready" });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -163,9 +199,12 @@ else
 
 app.UseCors("AllowAngularApp");
 app.UseCustomMiddleware();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("live") });
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
 
 // Ensure database is created and seed data (SeedData from appsettings)
 using (var scope = app.Services.CreateScope())
