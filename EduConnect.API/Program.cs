@@ -111,9 +111,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 // CORS Configuration (origins from appsettings Cors:AllowedOrigins, semicolon-separated)
+// Frontend runs on port 5480 (see EduConnect.Web/angular.json). API runs on 5049 (see Properties/launchSettings.json).
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string>()?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:4200", "https://localhost:4200" };
+    ?? new[] { "http://localhost:5480", "https://localhost:5480" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>

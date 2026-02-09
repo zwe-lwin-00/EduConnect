@@ -45,6 +45,15 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 - SQL Server (LocalDB or full instance)
 - Visual Studio 2022 / VS Code / Rider (optional)
 
+## 🔌 Port reference
+
+| Service   | Port | URL |
+|-----------|------|-----|
+| **Backend API** | **5049** | `http://localhost:5049` (API base; frontend calls `http://localhost:5049/api`) |
+| **Frontend (Angular)** | **5480** | `http://localhost:5480` |
+
+The frontend (`EduConnect.Web/src/environments/environment.ts`) must have `apiUrl: 'http://localhost:5049/api'`. The backend CORS (`appsettings.json` / `appsettings.Development.json`) must allow `http://localhost:5480`. If you see "Cannot connect to server", ensure (1) the API is running (`dotnet run` in `EduConnect.API`) and (2) these ports match.
+
 ## 🛠️ Quick Start
 
 ### Step 1: Start the Backend API
@@ -83,13 +92,13 @@ npm install
 npm start
 ```
 
-The app will open at `http://localhost:4200`
+The app will open at `http://localhost:5480`
 
 **Note:** The frontend uses PrimeNG with Angular 20. `EduConnect.Web/.npmrc` sets `legacy-peer-deps=true` so `npm install` works without conflicts (PrimeNG 19 lists Angular 19 as peer).
 
 ### Step 4: Login
 
-1. Navigate to `http://localhost:4200` (redirects to `/auth/login`)
+1. Navigate to `http://localhost:5480` (redirects to `/auth/login`)
 2. Enter credentials:
    - **Email:** `admin@educonnect.com`
    - **Password:** `1qaz!QAZ`
@@ -337,7 +346,7 @@ All backend config is driven by `appsettings.json`. Override per environment wit
 | Section | Key | Description |
 |--------|-----|-------------|
 | **ConnectionStrings** | DefaultConnection | SQL Server connection string |
-| **Cors** | AllowedOrigins | Semicolon-separated origins (e.g. `http://localhost:4200;https://localhost:4200`) |
+| **Cors** | AllowedOrigins | Semicolon-separated origins (e.g. `http://localhost:5480;https://localhost:5480`) |
 | **JwtSettings** | SecretKey, Issuer, Audience, ExpirationInMinutes | JWT auth |
 | **Encryption** | Key | AES key for sensitive data |
 | **SeedData** | **Roles** | Array of role names to seed (default: Admin, Teacher, Parent) |
@@ -348,7 +357,7 @@ Example override in `appsettings.Development.json`:
 
 ```json
 {
-  "Cors": { "AllowedOrigins": "http://localhost:4200;https://localhost:4200" },
+  "Cors": { "AllowedOrigins": "http://localhost:5480;https://localhost:5480" },
   "SeedData": {
     "DefaultAdmin": {
       "Email": "admin@educonnect.com",
@@ -402,9 +411,8 @@ If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a
 2. **Common Issues:**
 
    - **"Cannot connect to server"**
-     - API is not running
-     - Wrong port in `environment.ts`
-     - Solution: Check API console for actual port, update `environment.ts`
+     - API is not running, or wrong port / CORS mismatch
+     - Solution: See [Port reference](#-port-reference) above. Start the API first (`dotnet run` in `EduConnect.API` → port 5049). Ensure `environment.ts` has `apiUrl: 'http://localhost:5049/api'` and backend CORS allows `http://localhost:5480`.
 
    - **"Invalid email or password"**
      - Wrong credentials (case-sensitive)
@@ -413,7 +421,7 @@ If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a
 
    - **CORS Error**
      - Frontend URL not allowed
-     - Solution: Check `Program.cs` CORS settings allow `http://localhost:4200`
+     - Solution: Check `Program.cs` CORS settings allow `http://localhost:5480`
 
    - **SSL Certificate Error or 404 after redirect**
      - API is redirecting HTTP to HTTPS but HTTPS isn't configured
