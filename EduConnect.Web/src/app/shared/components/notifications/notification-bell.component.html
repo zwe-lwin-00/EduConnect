@@ -7,7 +7,10 @@
   <div class="dropdown" *ngIf="open" (click)="$event.stopPropagation()">
     <div class="dropdown-header">
       <strong>Notifications</strong>
-      <button type="button" class="btn-close" (click)="close()">×</button>
+      <div class="header-actions">
+        <button type="button" class="btn-mark-all" *ngIf="unreadCount > 0" (click)="markAllAsRead()" [disabled]="markingAll">{{ markingAll ? '...' : 'Mark all as read' }}</button>
+        <button type="button" class="btn-close" (click)="close()">×</button>
+      </div>
     </div>
     <div class="dropdown-body">
       <div *ngIf="loading" class="loading">Loading...</div>

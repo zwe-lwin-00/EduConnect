@@ -47,4 +47,18 @@ public class NotificationsController : BaseController
         Logger.InformationLog("Notification marked as read");
         return Ok(new { success = true });
     }
+
+    [HttpPost("mark-all-read")]
+    public async Task<IActionResult> MarkAllAsRead()
+    {
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            Logger.WarningLog("MarkAllAsRead: unauthorized");
+            return Unauthorized();
+        }
+        var markedCount = await _notificationService.MarkAllAsReadAsync(userId);
+        Logger.InformationLog($"Mark all as read: {markedCount} notification(s)");
+        return Ok(new { success = true, markedCount });
+    }
 }

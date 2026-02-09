@@ -21,4 +21,8 @@ export class NotificationService {
   markAsRead(id: number): Observable<{ success: boolean }> {
     return this.api.patch<{ success: boolean }>(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id), {});
   }
+
+  markAllAsRead(): Observable<{ success: boolean; markedCount: number }> {
+    return this.api.post<{ success: boolean; markedCount: number }>(API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ, {});
+  }
 }

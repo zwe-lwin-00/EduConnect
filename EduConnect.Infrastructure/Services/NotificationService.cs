@@ -113,6 +113,16 @@ public class NotificationService : INotificationService
         return true;
     }
 
+    public async Task<int> MarkAllAsReadAsync(string userId)
+    {
+        var toUpdate = await _context.Notifications.Where(n => n.UserId == userId && !n.IsRead).ToListAsync();
+        foreach (var n in toUpdate)
+            n.IsRead = true;
+        if (toUpdate.Count > 0)
+            await _context.SaveChangesAsync();
+        return toUpdate.Count;
+    }
+
     private static string TypeName(NotificationType t)
     {
         return t switch

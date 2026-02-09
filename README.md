@@ -337,6 +337,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Two class types**: One-to-one (contract-based check-in/out) and **group classes** (create group, enroll students by contract, start/check-out group session; hours split across enrollments; parent notifications)
 - [x] **Zoom for teaching**: Each teacher uses their own Zoom account. Teachers set default Zoom join URL in Profile (1:1) and per group class; app shows “Join Zoom meeting” when a session is in progress (no Zoom API—links stored and displayed)
 - [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
+- [x] **Notifications – Mark all as read**: Notification bell (Admin, Teacher, Parent) includes “Mark all as read”; API `POST /notifications/mark-all-read` marks all stored notifications for the current user (better UX when there are many notifications)
 
 ### 🚧 To Be Implemented
 - [ ] Teacher NRC/certificate document upload and verification workflow

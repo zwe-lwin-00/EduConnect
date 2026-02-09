@@ -16,6 +16,7 @@ export class NotificationBellComponent implements OnInit {
   unreadCount = 0;
   open = false;
   loading = false;
+  markingAll = false;
 
   constructor(private notificationService: NotificationService) {}
 
@@ -58,6 +59,20 @@ export class NotificationBellComponent implements OnInit {
         this.unreadCount = Math.max(0, this.unreadCount - 1);
         this.refreshUnreadCount();
       }
+    });
+  }
+
+  markAllAsRead(): void {
+    if (this.markingAll || this.unreadCount === 0) return;
+    this.markingAll = true;
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(n => { n.isRead = true; });
+        this.unreadCount = 0;
+        this.markingAll = false;
+        this.refreshUnreadCount();
+      },
+      error: () => { this.markingAll = false; }
     });
   }
 

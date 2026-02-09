@@ -7,7 +7,8 @@ export const API_ENDPOINTS = {
   },
   NOTIFICATIONS: {
     LIST: '/notifications',
-    MARK_READ: (id: number) => `/notifications/${id}/read`
+    MARK_READ: (id: number) => `/notifications/${id}/read`,
+    MARK_ALL_READ: '/notifications/mark-all-read'
   },
   ADMIN: {
     DASHBOARD: '/admin/dashboard',
