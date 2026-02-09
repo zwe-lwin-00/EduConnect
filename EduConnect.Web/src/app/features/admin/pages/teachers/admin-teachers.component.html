@@ -4,17 +4,31 @@
       <h1>Teachers</h1>
       <p class="page-desc-short">Onboard, verify, edit, and manage teacher accounts.</p>
     </div>
-    <p-button label="Onboard teacher" icon="pi pi-plus" severity="success" (onClick)="openOnboardPopup()" />
   </div>
 
-  <div class="card table-card">
+  <p-card>
+    <p-toolbar styleClass="mb-2">
+      <ng-template pTemplate="start">
+        <p-button label="Onboard teacher" icon="pi pi-plus" severity="success" (onClick)="openOnboardPopup()" />
+      </ng-template>
+      <ng-template pTemplate="end">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search by name or email" class="global-filter-input" />
+        </span>
+      </ng-template>
+    </p-toolbar>
     <p-table
+      #dt
       [value]="teachers"
+      [loading]="loading"
+      [globalFilterFields]="['firstName','lastName','email']"
       [tableStyle]="{ 'min-width': '56rem' }"
       styleClass="p-datatable-gridlines p-datatable-striped"
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} teachers"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
@@ -54,11 +68,17 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="10">No teachers.</td>
+          <td colspan="10">
+            <div class="empty-table-message">
+              <i class="pi pi-users empty-icon"></i>
+              <p>No teachers found.</p>
+              <p class="empty-hint">Try adjusting your search or onboard a new teacher.</p>
+            </div>
+          </td>
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 
   <p-dialog header="Onboard new teacher" [(visible)]="showOnboardPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeOnboardPopup()">
     <form [formGroup]="onboardForm" (ngSubmit)="onSubmitOnboard()" class="dialog-form">

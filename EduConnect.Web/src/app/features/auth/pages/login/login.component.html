@@ -1,48 +1,31 @@
-<div class="login-container">
-  <div class="login-card">
-    <h2>Login to EduConnect</h2>
-    
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          formControlName="email"
-          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-        <div class="error-message" *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched">
-          Email is required
-        </div>
-        <div class="error-message" *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched">
-          Invalid email format
-        </div>
+<div class="login-wrapper">
+  <div class="login-bg"></div>
+  <div class="login-content">
+    <p-card styleClass="login-card">
+      <div class="login-header">
+        <span class="login-logo"><i class="pi pi-book"></i></span>
+        <h1>EduConnect</h1>
+        <p class="login-subtitle">Sign in to your account</p>
       </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password"
-          [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-        <div class="error-message" *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">
-          Password is required
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <p-message *ngIf="errorMessage" severity="error" [text]="errorMessage" styleClass="w-full mb-3" />
+        <div class="field">
+          <label for="email" class="block text-color-secondary font-medium mb-2">Email</label>
+          <input pInputText id="email" type="email" formControlName="email" class="w-full" placeholder="name@example.com"
+            [class.p-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" />
+          <small class="p-error block mt-1" *ngIf="loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched">Email is required</small>
+          <small class="p-error block mt-1" *ngIf="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched">Enter a valid email</small>
         </div>
-        <div class="error-message" *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">
-          Password must be at least 8 characters
+        <div class="field mt-4">
+          <label for="password" class="block text-color-secondary font-medium mb-2">Password</label>
+          <input pInputText id="password" type="password" formControlName="password" class="w-full" placeholder="••••••••"
+            [class.p-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" />
+          <small class="p-error block mt-1" *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">Password is required</small>
+          <small class="p-error block mt-1" *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">At least 8 characters</small>
         </div>
-      </div>
-
-      <div class="error-message" *ngIf="errorMessage" style="background-color: #ffebee; padding: 10px; border-radius: 4px; margin: 10px 0;">
-        {{ errorMessage }}
-      </div>
-
-      <button 
-        type="submit" 
-        class="btn-primary" 
-        [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
-      </button>
-    </form>
+        <p-button type="submit" label="{{ isLoading ? 'Signing in...' : 'Sign in' }}" icon="pi pi-sign-in" [loading]="isLoading" [disabled]="loginForm.invalid || isLoading"
+          styleClass="w-full mt-4" />
+      </form>
+    </p-card>
   </div>
 </div>

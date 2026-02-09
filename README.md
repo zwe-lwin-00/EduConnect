@@ -33,8 +33,8 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 
 ### Frontend
 - **Framework**: Angular 20
-- **UI Components**: PrimeNG (Table, Dialog, Button, Tag, etc.) with Aura theme
-- **Theme**: Material Design
+- **UI Components**: PrimeNG 19 (Card, Table, Dialog, Button, Tag, Toolbar, Skeleton, Message, Toast, InputText, etc.) with Aura theme
+- **Theme**: PrimeNG design tokens (Aura); consistent spacing and typography
 - **State Management**: Angular Signals
 - **Architecture**: Feature modules with lazy loading
 
@@ -189,13 +189,13 @@ So: **parent account = parent + their students**. Admin creates the parent first
 ### Entry & Authentication
 
 1. **Login** (`/auth/login`)  
-   User enters email and password. API returns JWT and user role. If `mustChangePassword` is true, user is sent to Change Password; otherwise redirected by role:
+   User enters email and password. If already authenticated, user is redirected by role (no login form shown). Otherwise, API returns JWT and user role. If `mustChangePassword` is true, user is sent to Change Password; otherwise redirected by role. If the user had been sent to login with a `returnUrl` (e.g. after session expiry), they are sent back to that URL when it belongs to their role (e.g. `/admin/teachers` for Admin).
    - **Admin** → `/admin` (dashboard home)
    - **Teacher** → `/teacher` (dashboard)
    - **Parent** → `/parent` (my students list)
 
 2. **Guards**  
-   All `/admin`, `/teacher`, and `/parent` routes are protected by `authGuard` (valid JWT) and `roleGuard` (correct role). Unauthorized or wrong-role access redirects to login.
+   All `/admin`, `/teacher`, and `/parent` routes are protected by `authGuard` (valid JWT) and `roleGuard` (correct role). Unauthorized or wrong-role access redirects to login (with `returnUrl` or `unauthorized=1` for access-denied).
 
 ### Admin Flow
 
@@ -317,7 +317,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Exception handling middleware, Angular guards and interceptors
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
-- [x] **UI**: Sidebar layout (admin, parent, teacher) with on/off toggle; favicon PNG; row number column (#) in all DataGrids
+- [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
 - [x] **Two class types**: One-to-one (contract-based check-in/out) and **group classes** (create group, enroll students by contract, start/check-out group session; hours split across enrollments; parent notifications)
 - [x] **Zoom for teaching**: Each teacher uses their own Zoom account. Teachers set default Zoom join URL in Profile (1:1) and per group class; app shows “Join Zoom meeting” when a session is in progress (no Zoom API—links stored and displayed)
 - [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
@@ -459,6 +459,8 @@ If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a
 
 ### Frontend
 - Use feature modules for new features (lazy-loaded)
+- Prefer PrimeNG components (Card, Table, Toolbar, Button, Tag, Skeleton, Message, Toast, Dialog, InputText) for consistent UI; use design tokens (`var(--p-primary-*)`, `var(--p-surface-*)`, `var(--p-text-color)`) in component styles
+- Use `MessageService` (Toast) for success/error feedback instead of `alert()`
 - Place shared components in `shared/components/`
 - Use Angular Signals for reactive state management
 - Implement guards for route protection
@@ -515,7 +517,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.1.0
+**Version**: 1.2.0
 
 ---
 

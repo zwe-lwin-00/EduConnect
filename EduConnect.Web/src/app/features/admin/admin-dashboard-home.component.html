@@ -6,57 +6,76 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
+
+  <ng-container *ngIf="loading">
+    <div class="dashboard-grid">
+      <p-card>
+        <p-skeleton width="8rem" height="1.25rem" />
+        <p-skeleton width="100%" height="4rem" class="mt-3" />
+        <p-skeleton width="100%" height="4rem" class="mt-2" />
+      </p-card>
+      <p-card>
+        <p-skeleton width="8rem" height="1.25rem" />
+        <p-skeleton width="100%" height="5rem" class="mt-3" />
+      </p-card>
+      <p-card>
+        <p-skeleton width="8rem" height="1.25rem" />
+        <p-skeleton width="6rem" height="3rem" class="mt-3" />
+      </p-card>
+      <p-card>
+        <p-skeleton width="8rem" height="1.25rem" />
+        <p-skeleton width="100%" height="3rem" class="mt-3" />
+        <p-skeleton width="100%" height="3rem" class="mt-2" />
+      </p-card>
+    </div>
+  </ng-container>
 
   <ng-container *ngIf="dashboard && !loading">
-    <div class="widgets">
-      <section class="widget widget-alerts">
-        <h2 class="section-title">Alerts</h2>
-        <div *ngIf="dashboard.alerts.length === 0" class="empty">No alerts</div>
-        <ul class="alert-list">
-          <li *ngFor="let a of dashboard.alerts" [class]="'alert-item ' + alertClass(a.type)">
-            <span class="alert-type">{{ a.type }}</span>
+    <div class="dashboard-grid">
+      <p-card header="Alerts">
+        <div *ngIf="dashboard.alerts.length === 0" class="empty-state">No alerts</div>
+        <div *ngIf="dashboard.alerts.length > 0" class="alert-list">
+          <div *ngFor="let a of dashboard.alerts" class="alert-item">
+            <p-tag [value]="a.type" [severity]="alertSeverity(a.type)" styleClass="mr-2" />
             <span class="alert-message">{{ a.message }}</span>
-          </li>
-        </ul>
-      </section>
-
-      <section class="widget widget-sessions">
-        <h2 class="section-title">Today</h2>
-        <div *ngIf="dashboard.todaySessions.length === 0" class="empty">No sessions today</div>
-        <div class="session-list">
-          <div *ngFor="let s of dashboard.todaySessions" class="session-item">
-            <div class="session-row"><strong>{{ s.teacherName }}</strong> – {{ s.studentName }}</div>
-            <div class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | date:'short':'+0630' }}</span></div>
           </div>
         </div>
-        <a routerLink="/admin/attendance" class="link-more">Attendance →</a>
-      </section>
+        <p-button routerLink="/admin/attendance" label="View all" icon="pi pi-arrow-right" iconPos="right" [link]="true" styleClass="p-0 mt-2" />
+      </p-card>
 
-      <section class="widget widget-pending">
-        <h2 class="section-title">Pending</h2>
-        <div class="pending-count">{{ dashboard.pendingActionsCount }}</div>
-        <p class="pending-desc">Need your attention</p>
-        <a routerLink="/admin/teachers" class="link-more">Teachers →</a>
-      </section>
+      <p-card header="Today">
+        <div *ngIf="dashboard.todaySessions.length === 0" class="empty-state">No sessions today</div>
+        <ul *ngIf="dashboard.todaySessions.length > 0" class="session-list">
+          <li *ngFor="let s of dashboard.todaySessions" class="session-item">
+            <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
+            <span class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | date:'short':'+0630' }}</span></span>
+          </li>
+        </ul>
+        <p-button routerLink="/admin/attendance" label="Attendance" icon="pi pi-arrow-right" iconPos="right" [link]="true" styleClass="p-0 mt-2" />
+      </p-card>
 
-      <section class="widget widget-revenue">
-        <h2 class="section-title">This month</h2>
-        <div class="revenue-row">
-          <span class="label">Revenue</span>
-          <span class="value">{{ dashboard.revenueSnapshot.revenueThisMonth | number:'1.0-0' }} MMK</span>
+      <p-card header="Pending">
+        <div class="stat-value">{{ dashboard.pendingActionsCount }}</div>
+        <p class="stat-desc">Need your attention</p>
+        <p-button routerLink="/admin/teachers" label="Teachers" icon="pi pi-arrow-right" iconPos="right" [link]="true" styleClass="p-0 mt-2" />
+      </p-card>
+
+      <p-card header="This month">
+        <div class="data-row">
+          <span class="data-label">Revenue</span>
+          <span class="data-value">{{ dashboard.revenueSnapshot.revenueThisMonth | number:'1.0-0' }} MMK</span>
         </div>
-        <div class="revenue-row">
-          <span class="label">Sessions</span>
-          <span class="value">{{ dashboard.revenueSnapshot.sessionsDeliveredThisMonth }}</span>
+        <div class="data-row">
+          <span class="data-label">Sessions</span>
+          <span class="data-value">{{ dashboard.revenueSnapshot.sessionsDeliveredThisMonth }}</span>
         </div>
-        <div class="revenue-row">
-          <span class="label">Hours</span>
-          <span class="value">{{ dashboard.revenueSnapshot.hoursConsumedThisMonth | number:'1.1-1' }}</span>
+        <div class="data-row">
+          <span class="data-label">Hours</span>
+          <span class="data-value">{{ dashboard.revenueSnapshot.hoursConsumedThisMonth | number:'1.1-1' }}</span>
         </div>
-        <a routerLink="/admin/reports" class="link-more">Reports →</a>
-      </section>
+        <p-button routerLink="/admin/reports" label="Reports" icon="pi pi-arrow-right" iconPos="right" [link]="true" styleClass="p-0 mt-2" />
+      </p-card>
     </div>
   </ng-container>
 </div>

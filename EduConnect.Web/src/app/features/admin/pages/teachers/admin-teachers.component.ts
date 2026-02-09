@@ -1,13 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
+import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Teacher, OnboardTeacherRequest, UpdateTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-teachers',
@@ -16,16 +21,21 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
     CommonModule,
     ReactiveFormsModule,
     TableModule,
+    ToolbarModule,
     ButtonModule,
     DialogModule,
     TagModule,
-    InputTextModule
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule,
+    CardModule
   ],
   templateUrl: './admin-teachers.component.html',
   styleUrl: './admin-teachers.component.css'
 })
 export class AdminTeachersComponent implements OnInit {
   teachers: Teacher[] = [];
+  loading = false;
   showOnboardPopup = false;
   onboardForm: FormGroup;
   showEditPopup = false;
@@ -41,7 +51,8 @@ export class AdminTeachersComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService
   ) {
     this.onboardForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -70,12 +81,23 @@ export class AdminTeachersComponent implements OnInit {
   }
 
   loadTeachers(): void {
+    this.loading = true;
     this.adminService.getTeachers().subscribe({
       next: (data) => {
         this.teachers = Array.isArray(data) ? data : (data as PagedResult<Teacher>).items;
+        this.loading = false;
       },
-      error: (err) => console.error('Error loading teachers:', err)
+      error: (err) => {
+        console.error('Error loading teachers:', err);
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load teachers' });
+      }
     });
+  }
+
+  onGlobalFilter(table: Table, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    table.filterGlobal(value, 'contains');
   }
 
   openOnboardPopup(): void {
@@ -113,12 +135,12 @@ export class AdminTeachersComponent implements OnInit {
       const request: UpdateTeacherRequest = this.editForm.value;
       this.adminService.updateTeacher(this.editingTeacherId, request).subscribe({
         next: () => {
-          alert('Teacher updated successfully!');
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher updated successfully' });
           this.closeEditPopup();
           this.loadTeachers();
           this.closeTeacherDetails();
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -136,7 +158,7 @@ export class AdminTeachersComponent implements OnInit {
           this.copyFeedback = '';
           this.showCredentialsPopup = true;
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -183,8 +205,8 @@ export class AdminTeachersComponent implements OnInit {
   onVerifyTeacher(teacher: Teacher): void {
     if (confirm(`Verify teacher ${teacher.firstName} ${teacher.lastName}?`)) {
       this.adminService.verifyTeacher(teacher.id).subscribe({
-        next: () => { alert('Teacher verified.'); this.loadTeachers(); },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher verified' }); this.loadTeachers(); },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -200,7 +222,7 @@ export class AdminTeachersComponent implements OnInit {
           this.showCredentialsPopup = true;
           this.closeTeacherDetails();
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -209,8 +231,8 @@ export class AdminTeachersComponent implements OnInit {
     const reason = prompt('Enter rejection reason:');
     if (reason) {
       this.adminService.rejectTeacher(teacher.id, reason).subscribe({
-        next: () => { alert('Teacher rejected.'); this.loadTeachers(); },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher rejected' }); this.loadTeachers(); },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -219,8 +241,8 @@ export class AdminTeachersComponent implements OnInit {
     const action = isActive ? 'activate' : 'suspend';
     if (confirm(`${action} teacher ${teacher.firstName} ${teacher.lastName}?`)) {
       this.adminService.setTeacherActive(teacher.id, isActive).subscribe({
-        next: () => { alert('Done.'); this.loadTeachers(); this.closeTeacherDetails(); },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Done' }); this.loadTeachers(); this.closeTeacherDetails(); },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }

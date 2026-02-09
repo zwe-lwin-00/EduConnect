@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { ButtonModule } from 'primeng/button';
+import { SkeletonModule } from 'primeng/skeleton';
+import { MessageModule } from 'primeng/message';
 import { AdminService } from '../../core/services/admin.service';
 import { DashboardDto } from '../../core/models/admin.model';
 
-/**
- * Admin Dashboard (Home) — Master Doc B1.
- * Daily command center: Alerts, Today's Sessions, Pending Actions, Revenue Snapshot.
- */
 @Component({
   selector: 'app-admin-dashboard-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CardModule, TagModule, ButtonModule, SkeletonModule, MessageModule],
   templateUrl: './admin-dashboard-home.component.html',
   styleUrl: './admin-dashboard-home.component.css'
 })
@@ -41,10 +42,10 @@ export class AdminDashboardHomeComponent implements OnInit {
     });
   }
 
-  alertClass(type: string): string {
-    if (type === 'LowHours') return 'alert-warning';
-    if (type === 'NoCheckIn') return 'alert-danger';
-    if (type === 'ContractExpiring') return 'alert-info';
-    return 'alert-default';
+  alertSeverity(type: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    if (type === 'LowHours') return 'warn';
+    if (type === 'NoCheckIn') return 'danger';
+    if (type === 'ContractExpiring') return 'info';
+    return 'secondary';
   }
 }

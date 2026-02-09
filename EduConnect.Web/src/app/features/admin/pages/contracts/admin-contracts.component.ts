@@ -1,14 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, Table } from 'primeng/table';
+import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
+import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
 import { ContractDto, CreateContractRequest, Teacher, Student } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-contracts',
@@ -18,10 +21,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
     FormsModule,
     ReactiveFormsModule,
     TableModule,
+    ToolbarModule,
     ButtonModule,
     DialogModule,
     TagModule,
-    InputTextModule
+    InputTextModule,
+    CardModule
   ],
   templateUrl: './admin-contracts.component.html',
   styleUrl: './admin-contracts.component.css'
@@ -30,6 +35,7 @@ export class AdminContractsComponent implements OnInit {
   contracts: ContractDto[] = [];
   teachers: Teacher[] = [];
   students: Student[] = [];
+  loading = false;
   showCreatePopup = false;
   createForm: FormGroup;
 
@@ -46,7 +52,8 @@ export class AdminContractsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService
   ) {
     this.createForm = this.fb.group({
       teacherId: [null, Validators.required],
@@ -64,13 +71,19 @@ export class AdminContractsComponent implements OnInit {
   }
 
   loadContracts(): void {
+    this.loading = true;
     const teacherId = this.filterTeacherId ?? undefined;
     const studentId = this.filterStudentId ?? undefined;
     const status = this.filterStatus ?? undefined;
     this.adminService.getContracts(teacherId, studentId, status).subscribe({
-      next: (data) => this.contracts = data,
-      error: (err) => console.error('Error loading contracts:', err)
+      next: (data) => { this.contracts = data; this.loading = false; },
+      error: (err) => { console.error('Error loading contracts:', err); this.loading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load contracts' }); }
     });
+  }
+
+  onGlobalFilter(table: Table, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    table.filterGlobal(value, 'contains');
   }
 
   applyContractFilters(): void {
@@ -123,11 +136,11 @@ export class AdminContractsComponent implements OnInit {
       };
       this.adminService.createContract(request).subscribe({
         next: () => {
-          alert('Contract created successfully!');
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract created successfully' });
           this.closeCreatePopup();
           this.loadContracts();
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
       });
     }
   }
@@ -135,8 +148,8 @@ export class AdminContractsComponent implements OnInit {
   cancelContract(c: ContractDto): void {
     if (!confirm(`Cancel contract ${c.contractId}?`)) return;
     this.adminService.cancelContract(c.id).subscribe({
-      next: () => this.loadContracts(),
-      error: (err) => alert('Error: ' + (err.error?.error || err.message))
+      next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract cancelled' }); this.loadContracts(); },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
     });
   }
 

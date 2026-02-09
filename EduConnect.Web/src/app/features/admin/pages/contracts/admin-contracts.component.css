@@ -1,8 +1,17 @@
 .admin-contracts { padding: 0; }
+.page-header-compact { margin-bottom: 1.25rem; }
+.page-header-compact h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 600; color: var(--p-text-color); }
+.page-desc-short { margin: 0; font-size: 0.9rem; color: var(--p-text-color-secondary); }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .page-header h1 { margin: 0; color: #1e3a5f; font-size: 1.5rem; }
-.filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
-.filter-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; min-width: 140px; }
+.filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-left: 1rem; }
+.filter-select { padding: 6px 10px; border: 1px solid var(--p-surface-300); border-radius: 6px; font-size: 14px; min-width: 140px; }
+.mb-2 { margin-bottom: 0.5rem; }
+.global-filter-input { min-width: 14rem; }
+.empty-table-message { padding: 2rem 1rem; text-align: center; color: var(--p-text-color-secondary); }
+.empty-table-message .empty-icon { font-size: 2.5rem; opacity: 0.5; display: block; margin-bottom: 0.5rem; }
+.empty-table-message p { margin: 0.25rem 0; }
+.empty-table-message .empty-hint { font-size: 0.875rem; opacity: 0.9; }
 .btn-filter { padding: 6px 14px; border-radius: 4px; font-size: 14px; cursor: pointer; background: #1976d2; color: #fff; border: none; }
 .btn-filter:hover { background: #1565c0; }
 .btn-filter-outline { padding: 6px 14px; border-radius: 4px; font-size: 14px; cursor: pointer; background: #fff; border: 1px solid #ccc; color: #555; }

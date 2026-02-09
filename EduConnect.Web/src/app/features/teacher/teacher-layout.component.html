@@ -43,15 +43,16 @@
     </nav>
   </aside>
   <div class="layout-body">
-    <header class="topbar">
-      <button type="button" class="btn-menu" (click)="toggleSidebar()" [attr.aria-label]="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'" [title]="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'">
-        <span class="menu-icon">{{ sidebarOpen ? '◀' : '☰' }}</span>
-      </button>
-      <div class="topbar-spacer"></div>
-      <div class="topbar-actions">
-        <app-notification-bell></app-notification-bell>
-        <button type="button" class="btn-logout" (click)="logout()">Logout</button>
-      </div>
+    <header class="topbar topbar-prime">
+      <p-toolbar styleClass="topbar-toolbar">
+        <ng-template pTemplate="start">
+          <p-button [icon]="sidebarOpen ? 'pi pi-chevron-left' : 'pi pi-bars'" (onClick)="toggleSidebar()" [rounded]="true" [text]="true" [attr.aria-label]="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'" />
+        </ng-template>
+        <ng-template pTemplate="end">
+          <app-notification-bell></app-notification-bell>
+          <p-button label="Logout" icon="pi pi-sign-out" (onClick)="logout()" [text]="true" styleClass="ml-2" />
+        </ng-template>
+      </p-toolbar>
     </header>
     <main class="teacher-main">
       <router-outlet></router-outlet>
