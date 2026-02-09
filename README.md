@@ -326,7 +326,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Exception handling middleware, Angular guards and interceptors
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
-- [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
+- [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. **Breadcrumbs**: Admin, Teacher, and Parent layouts show a PrimeNG breadcrumb (e.g. Home > Teachers, Home > Learning overview) above the main content so users know where they are and can navigate back. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
 - [x] **Two class types**: One-to-one (contract-based check-in/out) and **group classes** (create group, enroll students by contract, start/check-out group session; hours split across enrollments; parent notifications)
 - [x] **Zoom for teaching**: Each teacher uses their own Zoom account. Teachers set default Zoom join URL in Profile (1:1) and per group class; app shows “Join Zoom meeting” when a session is in progress (no Zoom API—links stored and displayed)
 - [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
@@ -525,7 +525,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.3.0
+**Version**: 1.4.0
 
 ---
 

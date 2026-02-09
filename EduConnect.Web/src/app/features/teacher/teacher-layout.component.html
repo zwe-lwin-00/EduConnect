@@ -55,6 +55,12 @@
       </p-toolbar>
     </header>
     <main class="teacher-main">
+      <app-breadcrumb
+        basePath="teacher"
+        homeLabel="Dashboard"
+        homeRouterLink="/teacher"
+        [segmentLabels]="teacherSegmentLabels"
+      />
       <router-outlet></router-outlet>
     </main>
   </div>

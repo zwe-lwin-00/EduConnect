@@ -22,6 +22,12 @@
       </div>
     </header>
     <main class="parent-main">
+      <app-breadcrumb
+        basePath="parent"
+        homeLabel="My Students"
+        homeRouterLink="/parent"
+        [segmentLabels]="parentSegmentLabels"
+      />
       <router-outlet></router-outlet>
     </main>
   </div>

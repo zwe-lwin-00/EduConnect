@@ -58,6 +58,12 @@
       </p-toolbar>
     </header>
     <main class="admin-main">
+      <app-breadcrumb
+        basePath="admin"
+        homeLabel="Dashboard"
+        homeRouterLink="/admin"
+        [segmentLabels]="adminSegmentLabels"
+      />
       <router-outlet></router-outlet>
     </main>
   </div>

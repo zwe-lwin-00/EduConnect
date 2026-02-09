@@ -5,16 +5,27 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationBellComponent } from '../../shared/components/notifications/notification-bell.component';
+import { AppBreadcrumbComponent } from '../../shared/components/breadcrumb/app-breadcrumb.component';
 
 @Component({
   selector: 'app-teacher-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, NotificationBellComponent],
+  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, NotificationBellComponent, AppBreadcrumbComponent],
   templateUrl: './teacher-layout.component.html',
   styleUrl: './teacher-layout.component.css'
 })
 export class TeacherLayoutComponent {
   sidebarOpen = true;
+
+  readonly teacherSegmentLabels: Record<string, string> = {
+    availability: 'Availability',
+    students: 'Students',
+    sessions: 'Sessions',
+    'group-classes': 'Group classes',
+    calendar: 'Calendar',
+    'homework-grades': 'Homework & Grades',
+    profile: 'Profile'
+  };
 
   constructor(
     private router: Router,
