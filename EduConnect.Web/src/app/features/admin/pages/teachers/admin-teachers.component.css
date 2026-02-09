@@ -21,6 +21,14 @@
 .mb-2 { margin-bottom: 0.5rem; }
 .global-filter-input { min-width: 16rem; }
 
+@media (max-width: 768px) {
+  .global-filter-input {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 .empty-table-message {
   padding: 2rem 1rem;
   text-align: center;

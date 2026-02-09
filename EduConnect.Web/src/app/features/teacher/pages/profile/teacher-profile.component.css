@@ -12,3 +12,10 @@
 .zoom-section .hint { font-size: 0.85rem; color: #666; margin-bottom: 12px; }
 .zoom-section .form-control { max-width: 400px; margin-bottom: 8px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
 .zoom-section .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; background: #1976d2; color: #fff; }
+
+@media (max-width: 768px) {
+  .teacher-profile { max-width: 100%; }
+  .profile-card { padding: 16px; }
+  .detail-row strong { min-width: 0; }
+  .zoom-section .form-control { max-width: 100%; }
+}

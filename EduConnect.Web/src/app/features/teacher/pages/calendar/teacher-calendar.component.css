@@ -147,6 +147,11 @@
 }
 
 @media (max-width: 768px) {
+  .teacher-calendar {
+    max-width: 100%;
+    padding: 0.75rem;
+  }
+
   .week-grid {
     grid-template-columns: 1fr;
   }

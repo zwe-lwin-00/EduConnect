@@ -1,4 +1,8 @@
 .parent-student-learning { max-width: 800px; margin: 0 auto; }
+
+@media (max-width: 768px) {
+  .parent-student-learning { max-width: 100%; }
+}
 .back-link { display: inline-block; margin-bottom: 20px; color: #1565c0; text-decoration: none; font-size: 0.9rem; }
 .back-link:hover { text-decoration: underline; }
 .loading, .error { padding: 20px; }

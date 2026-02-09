@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationBellComponent } from '../../shared/components/notifications/notification-bell.component';
 import { AppBreadcrumbComponent } from '../../shared/components/breadcrumb/app-breadcrumb.component';
@@ -8,7 +10,7 @@ import { AppBreadcrumbComponent } from '../../shared/components/breadcrumb/app-b
 @Component({
   selector: 'app-parent-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationBellComponent, AppBreadcrumbComponent],
+  imports: [CommonModule, RouterModule, ToolbarModule, ButtonModule, NotificationBellComponent, AppBreadcrumbComponent],
   templateUrl: './parent-layout.component.html',
   styleUrl: './parent-layout.component.css'
 })

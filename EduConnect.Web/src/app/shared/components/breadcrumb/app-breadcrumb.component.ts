@@ -21,6 +21,12 @@ import { MenuItem } from 'primeng/api';
     />
   `,
   styles: [`
+    :host {
+      display: block;
+      min-width: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     :host ::ng-deep .app-breadcrumb {
       padding: 0.5rem 0;
       background: transparent;

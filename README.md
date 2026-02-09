@@ -338,6 +338,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Zoom for teaching**: Each teacher uses their own Zoom account. Teachers set default Zoom join URL in Profile (1:1) and per group class; app shows “Join Zoom meeting” when a session is in progress (no Zoom API—links stored and displayed)
 - [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
 - [x] **Notifications – Mark all as read**: Notification bell (Admin, Teacher, Parent) includes “Mark all as read”; API `POST /notifications/mark-all-read` marks all stored notifications for the current user (better UX when there are many notifications)
+- [x] **Sidebar UI/UX**: Professional sidebar (Admin/Teacher/Parent): PrimeIcons for nav items, two-line brand (EduConnect + role), dark gradients, section labels with borders, active state with left accent; parent layout uses same PrimeNG Toolbar as admin/teacher
+- [x] **Responsive UI**: Viewport meta and 768px breakpoint; sidebar off-canvas + overlay on mobile; main padding 16px on small screens; PrimeNG tables scroll horizontally; toolbars and filters wrap; dashboard grids single column on mobile; reports, attendance, forms, and page containers full width on mobile; breadcrumb and auth pages avoid overflow
 
 ### 🚧 To Be Implemented
 - [ ] Teacher NRC/certificate document upload and verification workflow

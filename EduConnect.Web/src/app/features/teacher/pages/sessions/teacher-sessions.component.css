@@ -1,4 +1,8 @@
 .teacher-sessions { max-width: 900px; }
+
+@media (max-width: 768px) {
+  .teacher-sessions { max-width: 100%; }
+}
 .page-desc { margin-bottom: 20px; color: #666; font-size: 0.9rem; }
 .loading, .error { padding: 20px; }
 .error { color: #c62828; background: #ffebee; border-radius: 4px; }

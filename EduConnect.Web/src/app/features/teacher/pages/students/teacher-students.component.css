@@ -1,4 +1,8 @@
 .teacher-students { max-width: 1000px; }
+
+@media (max-width: 768px) {
+  .teacher-students { max-width: 100%; }
+}
 .page-desc { margin-bottom: 20px; color: #666; font-size: 0.9rem; }
 .loading, .error { padding: 20px; }
 .error { color: #c62828; background: #ffebee; border-radius: 4px; }

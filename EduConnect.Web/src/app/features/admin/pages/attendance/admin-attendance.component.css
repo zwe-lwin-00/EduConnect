@@ -18,3 +18,21 @@
 .form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #555; }
 .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
 .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+@media (max-width: 768px) {
+  .session-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .session-actions .btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+  }
+  .adjust-panel {
+    max-width: 100%;
+    padding: 16px;
+  }
+  .session-card {
+    padding: 12px;
+  }
+}

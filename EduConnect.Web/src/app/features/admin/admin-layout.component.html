@@ -1,46 +1,46 @@
 <div class="admin-layout" [class.sidebar-collapsed]="!sidebarOpen">
   <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
     <div class="sidebar-brand">
-      <a routerLink="/admin">EduConnect Admin</a>
+      <a routerLink="/admin"><span class="brand-app">EduConnect</span><span class="brand-role">Admin</span></a>
     </div>
     <nav class="sidebar-nav">
       <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <span class="nav-icon">⌂</span>
+        <i class="nav-icon pi pi-home"></i>
         <span class="nav-label">Dashboard</span>
       </a>
       <span class="nav-section-label">People</span>
       <a routerLink="/admin/teachers" routerLinkActive="active">
-        <span class="nav-icon">👤</span>
+        <i class="nav-icon pi pi-id-card"></i>
         <span class="nav-label">Teachers</span>
       </a>
       <a routerLink="/admin/parents" routerLinkActive="active">
-        <span class="nav-icon">👤</span>
+        <i class="nav-icon pi pi-users"></i>
         <span class="nav-label">Parents</span>
       </a>
       <a routerLink="/admin/students" routerLinkActive="active">
-        <span class="nav-icon">🎓</span>
+        <i class="nav-icon pi pi-graduation-cap"></i>
         <span class="nav-label">Students</span>
       </a>
       <span class="nav-section-label">Teaching</span>
       <a routerLink="/admin/contracts" routerLinkActive="active">
-        <span class="nav-icon">📄</span>
+        <i class="nav-icon pi pi-file-edit"></i>
         <span class="nav-label">Contracts</span>
       </a>
       <a routerLink="/admin/group-classes" routerLinkActive="active">
-        <span class="nav-icon">👥</span>
+        <i class="nav-icon pi pi-users"></i>
         <span class="nav-label">Group classes</span>
       </a>
       <a routerLink="/admin/attendance" routerLinkActive="active">
-        <span class="nav-icon">✓</span>
+        <i class="nav-icon pi pi-check-square"></i>
         <span class="nav-label">Attendance</span>
       </a>
       <span class="nav-section-label">Finance</span>
       <a routerLink="/admin/payments" routerLinkActive="active">
-        <span class="nav-icon">💰</span>
+        <i class="nav-icon pi pi-wallet"></i>
         <span class="nav-label">Payments</span>
       </a>
       <a routerLink="/admin/reports" routerLinkActive="active">
-        <span class="nav-icon">📊</span>
+        <i class="nav-icon pi pi-chart-bar"></i>
         <span class="nav-label">Reports</span>
       </a>
     </nav>

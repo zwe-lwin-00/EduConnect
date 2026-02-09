@@ -1,43 +1,43 @@
 <div class="teacher-layout" [class.sidebar-collapsed]="!sidebarOpen">
   <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
     <div class="sidebar-brand">
-      <a routerLink="/teacher">EduConnect Teacher</a>
+      <a routerLink="/teacher"><span class="brand-app">EduConnect</span><span class="brand-role">Teacher</span></a>
     </div>
     <nav class="sidebar-nav">
       <a routerLink="/teacher" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <span class="nav-icon">⌂</span>
+        <i class="nav-icon pi pi-home"></i>
         <span class="nav-label">Dashboard</span>
       </a>
       <span class="nav-section-label">Teaching</span>
       <a routerLink="/teacher/sessions" routerLinkActive="active">
-        <span class="nav-icon">📅</span>
+        <i class="nav-icon pi pi-calendar"></i>
         <span class="nav-label">Sessions</span>
       </a>
       <a routerLink="/teacher/group-classes" routerLinkActive="active">
-        <span class="nav-icon">👥</span>
+        <i class="nav-icon pi pi-users"></i>
         <span class="nav-label">Group classes</span>
       </a>
       <span class="nav-section-label">My work</span>
       <a routerLink="/teacher/students" routerLinkActive="active">
-        <span class="nav-icon">🎓</span>
+        <i class="nav-icon pi pi-graduation-cap"></i>
         <span class="nav-label">Students</span>
       </a>
       <a routerLink="/teacher/homework-grades" routerLinkActive="active">
-        <span class="nav-icon">📝</span>
+        <i class="nav-icon pi pi-pencil"></i>
         <span class="nav-label">Homework & Grades</span>
       </a>
       <span class="nav-section-label">Schedule</span>
       <a routerLink="/teacher/availability" routerLinkActive="active">
-        <span class="nav-icon">🕐</span>
+        <i class="nav-icon pi pi-clock"></i>
         <span class="nav-label">Availability</span>
       </a>
       <a routerLink="/teacher/calendar" routerLinkActive="active">
-        <span class="nav-icon">📆</span>
+        <i class="nav-icon pi pi-calendar-plus"></i>
         <span class="nav-label">Calendar</span>
       </a>
       <span class="nav-section-label">Account</span>
       <a routerLink="/teacher/profile" routerLinkActive="active">
-        <span class="nav-icon">👤</span>
+        <i class="nav-icon pi pi-user"></i>
         <span class="nav-label">Profile</span>
       </a>
     </nav>

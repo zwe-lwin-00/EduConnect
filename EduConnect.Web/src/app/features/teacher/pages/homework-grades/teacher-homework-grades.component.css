@@ -2,6 +2,12 @@
   max-width: 900px;
 }
 
+@media (max-width: 768px) {
+  .teacher-homework-grades {
+    max-width: 100%;
+  }
+}
+
 .page-desc {
   color: #555;
   margin-bottom: 1.5rem;

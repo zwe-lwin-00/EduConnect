@@ -31,16 +31,18 @@
       <div class="report-row"><span class="label">Sessions delivered</span><span class="value">{{ monthlyReport.sessionsDelivered }}</span></div>
       <div class="report-row"><span class="label">Hours consumed</span><span class="value">{{ monthlyReport.hoursConsumed | number:'1.1-1' }}</span></div>
       <h3>Teacher utilization</h3>
-      <table class="util-table">
-        <thead><tr><th>Teacher</th><th>Hours</th><th>Sessions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let t of monthlyReport.teacherUtilization">
-            <td>{{ t.teacherName }}</td>
-            <td>{{ t.hoursDelivered | number:'1.1-1' }}</td>
-            <td>{{ t.sessionsCount }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="util-table-wrapper">
+        <table class="util-table">
+          <thead><tr><th>Teacher</th><th>Hours</th><th>Sessions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let t of monthlyReport.teacherUtilization">
+              <td>{{ t.teacherName }}</td>
+              <td>{{ t.hoursDelivered | number:'1.1-1' }}</td>
+              <td>{{ t.sessionsCount }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 </div>

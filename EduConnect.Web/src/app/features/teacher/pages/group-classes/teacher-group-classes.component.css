@@ -2,6 +2,12 @@
   max-width: 800px;
 }
 
+@media (max-width: 768px) {
+  .teacher-group-classes {
+    max-width: 100%;
+  }
+}
+
 .page-desc {
   color: var(--text-muted, #666);
   margin-bottom: 1.5rem;
