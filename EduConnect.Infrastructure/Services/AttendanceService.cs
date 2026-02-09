@@ -6,7 +6,9 @@ using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Infrastructure.Repositories;
 using EduConnect.Shared.Enums;
+using EduConnect.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EduConnect.Infrastructure.Services;
 
@@ -15,12 +17,14 @@ public class AttendanceService : IAttendanceService
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
+    private readonly ILogger<AttendanceService> _logger;
 
-    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork, INotificationService notificationService)
+    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork, INotificationService notificationService, ILogger<AttendanceService> logger)
     {
         _context = context;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task<int> CheckInAsync(int teacherId, int contractId)
@@ -28,7 +32,10 @@ public class AttendanceService : IAttendanceService
         var contract = await _context.ContractSessions
             .FirstOrDefaultAsync(c => c.Id == contractId && c.TeacherId == teacherId && c.Status == ContractStatus.Active);
         if (contract == null)
+        {
+            _logger.WarningLog("CheckIn: contract not found");
             throw new NotFoundException("Contract", contractId);
+        }
         if (contract.RemainingHours <= 0)
             throw new EduConnect.Application.Common.Exceptions.BusinessException("No remaining hours on this contract.", "NO_HOURS");
 
@@ -49,6 +56,7 @@ public class AttendanceService : IAttendanceService
         await _unitOfWork.SaveChangesAsync();
         log.SessionId = log.Id;
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Check-in completed");
         return log.Id;
     }
 
@@ -84,6 +92,7 @@ public class AttendanceService : IAttendanceService
             var studentName = $"{log.ContractSession.Student.FirstName} {log.ContractSession.Student.LastName}";
             await _notificationService.CreateForUserAsync(log.ContractSession.Student.ParentId, "Session completed – notes added", $"Session for {studentName} has been completed with lesson notes.", NotificationType.SessionCompleted, "Attendance", log.Id);
         }
+        _logger.InformationLog("Check-out completed");
         return true;
     }
 

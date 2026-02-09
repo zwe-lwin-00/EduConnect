@@ -1,3 +1,4 @@
+using EduConnect.Shared.Extensions;
 using EduConnect.Application.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -26,7 +27,7 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred");
+            _logger.ErrorLog(ex, "Unhandled exception");
             await HandleExceptionAsync(context, ex);
         }
     }

@@ -1,3 +1,4 @@
+using EduConnect.Shared.Extensions;
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Attendance.Interfaces;
@@ -17,7 +18,7 @@ public class TeacherController : BaseController
     private readonly IHomeworkService _homeworkService;
     private readonly IGroupClassService _groupClassService;
 
-    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService, IHomeworkService homeworkService, IGroupClassService groupClassService)
+    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService, IHomeworkService homeworkService, IGroupClassService groupClassService, ILogger<TeacherController> logger) : base(logger)
     {
         _teacherService = teacherService;
         _attendanceService = attendanceService;
@@ -47,7 +48,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetDashboard: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetDashboard failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -62,7 +65,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetProfile: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetProfile failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -73,11 +78,14 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             await _teacherService.UpdateZoomJoinUrlAsync(teacherId, request.ZoomJoinUrl);
+            Logger.InformationLog("Zoom URL updated");
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
-            return ex is NotFoundException ? NotFound() : BadRequest(new { error = ex.Message });
+            if (ex is NotFoundException) { Logger.WarningLog("UpdateZoomJoinUrl: not found"); return NotFound(); }
+            Logger.ErrorLog(ex, "UpdateZoomJoinUrl failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -92,7 +100,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetAssignedStudents: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetAssignedStudents failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -107,7 +117,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetTodaySessions: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetTodaySessions failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -123,7 +135,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetCalendarWeek: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetCalendarWeek failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -146,7 +160,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetUpcomingSessions: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetUpcomingSessions failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -161,7 +177,9 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetAvailability: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetAvailability failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -172,11 +190,14 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             await _teacherService.UpdateAvailabilityFromRequestAsync(teacherId, availabilities ?? new List<TeacherAvailabilityRequestDto>());
+            Logger.InformationLog("Availability updated");
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
-            return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("UpdateAvailability: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "UpdateAvailability failed");
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -187,10 +208,12 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var sessionId = await _attendanceService.CheckInAsync(teacherId, request.ContractId);
+            Logger.InformationLog("Check-in succeeded");
             return Ok(new { sessionId, message = "Checked in successfully." });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CheckIn failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -203,12 +226,17 @@ public class TeacherController : BaseController
             var teacherId = await GetTeacherIdAsync();
             var sessionId = request.SessionId;
             if (sessionId <= 0)
+            {
+                Logger.WarningLog("CheckOut: SessionId required");
                 return BadRequest(new { error = "SessionId is required." });
+            }
             await _attendanceService.CheckOutAsync(teacherId, sessionId, request.LessonNotes ?? string.Empty);
+            Logger.InformationLog("Check-out succeeded");
             return Ok(new { success = true, message = "Checked out successfully." });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CheckOut failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -220,10 +248,12 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var sessionId = await _attendanceService.CheckInGroupAsync(teacherId, request.GroupClassId);
+            Logger.InformationLog("Group check-in succeeded");
             return Ok(new { sessionId, message = "Group session started." });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CheckInGroup failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -235,10 +265,12 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             await _attendanceService.CheckOutGroupAsync(teacherId, request.GroupSessionId, request.LessonNotes ?? string.Empty);
+            Logger.InformationLog("Group check-out succeeded");
             return Ok(new { success = true, message = "Group session completed." });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CheckOutGroup failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -254,6 +286,7 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetGroupSessions failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -269,6 +302,7 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetGroupClasses failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -280,11 +314,12 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var result = await _groupClassService.GetByIdAsync(id, teacherId);
-            if (result == null) return NotFound();
+            if (result == null) { Logger.WarningLog("GetGroupClassById: not found"); return NotFound(); }
             return Ok(result);
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetGroupClassById failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -296,11 +331,13 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var ok = await _groupClassService.UpdateAsync(id, teacherId, request.Name ?? "", request.IsActive, request.ZoomJoinUrl);
-            if (!ok) return NotFound();
+            if (!ok) { Logger.WarningLog("UpdateGroupClass: not found"); return NotFound(); }
+            Logger.InformationLog("Group class updated");
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "UpdateGroupClass failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -316,6 +353,7 @@ public class TeacherController : BaseController
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetGroupClassEnrollments failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -327,10 +365,12 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             await _groupClassService.EnrollStudentAsync(id, teacherId, request.StudentId, request.ContractId);
+            Logger.InformationLog("Student enrolled in group class");
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "EnrollInGroupClass failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -342,11 +382,13 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var ok = await _groupClassService.UnenrollAsync(enrollmentId, teacherId);
-            if (!ok) return NotFound();
+            if (!ok) { Logger.WarningLog("UnenrollFromGroupClass: not found"); return NotFound(); }
+            Logger.InformationLog("Student unenrolled from group class");
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "UnenrollFromGroupClass failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -362,10 +404,12 @@ public class TeacherController : BaseController
         }
         catch (UnauthorizedAccessException)
         {
+            Logger.WarningLog("GetHomeworks: unauthorized");
             return Unauthorized();
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetHomeworks failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -377,14 +421,17 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var result = await _homeworkService.CreateHomeworkAsync(teacherId, request);
+            Logger.InformationLog("Homework created");
             return Ok(result);
         }
         catch (UnauthorizedAccessException)
         {
+            Logger.WarningLog("CreateHomework: unauthorized");
             return Unauthorized();
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CreateHomework failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -396,16 +443,18 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var result = await _homeworkService.UpdateHomeworkStatusAsync(teacherId, homeworkId, request);
-            if (result == null)
-                return NotFound();
+            if (result == null) { Logger.WarningLog("UpdateHomeworkStatus: not found"); return NotFound(); }
+            Logger.InformationLog("Homework status updated");
             return Ok(result);
         }
         catch (UnauthorizedAccessException)
         {
+            Logger.WarningLog("UpdateHomeworkStatus: unauthorized");
             return Unauthorized();
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "UpdateHomeworkStatus failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -421,10 +470,12 @@ public class TeacherController : BaseController
         }
         catch (UnauthorizedAccessException)
         {
+            Logger.WarningLog("GetGrades: unauthorized");
             return Unauthorized();
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "GetGrades failed");
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -436,14 +487,17 @@ public class TeacherController : BaseController
         {
             var teacherId = await GetTeacherIdAsync();
             var result = await _homeworkService.CreateGradeAsync(teacherId, request);
+            Logger.InformationLog("Grade created");
             return Ok(result);
         }
         catch (UnauthorizedAccessException)
         {
+            Logger.WarningLog("CreateGrade: unauthorized");
             return Unauthorized();
         }
         catch (Exception ex)
         {
+            Logger.ErrorLog(ex, "CreateGrade failed");
             return BadRequest(new { error = ex.Message });
         }
     }

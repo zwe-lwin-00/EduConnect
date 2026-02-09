@@ -3,7 +3,9 @@ using EduConnect.Application.DTOs.Auth;
 using EduConnect.Application.Features.Auth.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
+using EduConnect.Shared.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -19,15 +21,18 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext context,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _context = context;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -35,12 +40,14 @@ public class AuthService : IAuthService
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null || !user.IsActive)
         {
+            _logger.WarningLog("Login failed: user not found or inactive");
             throw new BusinessException("Invalid email or password.", "INVALID_CREDENTIALS");
         }
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!passwordValid)
         {
+            _logger.WarningLog("Login failed: invalid password");
             throw new BusinessException("Invalid email or password.", "INVALID_CREDENTIALS");
         }
 
@@ -57,6 +64,7 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         });
         await _context.SaveChangesAsync();
+        _logger.InformationLog("Login succeeded");
 
         return new LoginResponse
         {
@@ -86,7 +94,10 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
 
         if (stored == null || stored.RevokedAt != null || stored.ExpiresAt < DateTime.UtcNow)
+        {
+            _logger.WarningLog("Refresh token invalid or expired");
             throw new BusinessException("Invalid or expired refresh token.", "INVALID_REFRESH_TOKEN");
+        }
 
         var user = stored.User;
         if (user == null || !user.IsActive)
@@ -136,6 +147,7 @@ public class AuthService : IAuthService
         foreach (var rt in tokens)
             rt.RevokedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+        _logger.InformationLog("Logout completed");
         return true;
     }
 
@@ -157,7 +169,7 @@ public class AuthService : IAuthService
 
         user.MustChangePassword = false;
         await _userManager.UpdateAsync(user);
-
+        _logger.InformationLog("Password changed successfully");
         return true;
     }
 

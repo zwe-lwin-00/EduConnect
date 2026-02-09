@@ -4,17 +4,21 @@ using EduConnect.Application.Features.GroupClass.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Shared.Enums;
+using EduConnect.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EduConnect.Infrastructure.Services;
 
 public class GroupClassService : IGroupClassService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<GroupClassService> _logger;
 
-    public GroupClassService(ApplicationDbContext context)
+    public GroupClassService(ApplicationDbContext context, ILogger<GroupClassService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<GroupClassDto> CreateAsync(int teacherId, string name, string? zoomJoinUrl = null)
@@ -34,6 +38,7 @@ public class GroupClassService : IGroupClassService
         };
         _context.GroupClasses.Add(group);
         await _context.SaveChangesAsync();
+        _logger.InformationLog("Group class created");
         return MapToDto(group, 0);
     }
 

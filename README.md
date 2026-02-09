@@ -11,7 +11,7 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 - **EduConnect.Application** - Business logic layer (Feature-based Services, DTOs, Common)
 - **EduConnect.Domain** - Domain entities and core business models
 - **EduConnect.Infrastructure** - Data access layer (EF Core, Dapper, External services)
-- **EduConnect.Shared** - Shared enums and common types
+- **EduConnect.Shared** - Shared enums, common types, and logging extensions (LoggerExtensions for consistent tracing)
 
 ### Frontend (Angular 20)
 - **EduConnect.Web** - Angular SPA with PrimeNG components
@@ -27,7 +27,7 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 - **Micro-ORM**: Dapper (for reads/reporting)
 - **Database**: SQL Server
 - **Authentication**: JWT with Refresh Tokens
-- **Logging**: Serilog
+- **Logging**: Serilog (console + file); LoggerExtensions in Shared for consistent Method/LineNumber and credential redaction
 - **Security**: AES-256 encryption for sensitive data
 - **Architecture**: Clean Architecture with Feature-based organization
 
@@ -149,7 +149,8 @@ EduConnect/
 │   └── Services/                      # External services
 │
 └── EduConnect.Shared/                 # Shared Layer
-    └── Enums/                         # Shared enums
+    ├── Enums/                         # Shared enums
+    └── Extensions/                    # LoggerExtensions (tracing, no credentials)
 ```
 
 ### Frontend Structure
@@ -324,6 +325,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Wallet logic (credit/deduct hours, student active/freeze)
 - [x] Daily and monthly reports (Dapper-powered)
 - [x] Exception handling middleware, Angular guards and interceptors
+- [x] **Logging**: Serilog file sink; LoggerExtensions (Shared) used in API and Infrastructure for traceable logs (Method/LineNumber, credential redaction)
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 - [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. **Breadcrumbs**: Admin, Teacher, and Parent layouts show a PrimeNG breadcrumb (e.g. Home > Teachers, Home > Learning overview) above the main content so users know where they are and can navigate back. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
@@ -375,6 +377,12 @@ Example override in `appsettings.Development.json`:
 - **`src/environments/environment.ts`** – Development: set `apiUrl` to your API base (e.g. `http://localhost:5049/api`).
 - **`src/environments/environment.prod.ts`** – Production: set `apiUrl` per deployment (replaced at build time).
 - **`src/app/core/constants/app-config.ts`** – Central config re-export; use `appConfig` in services. Add more keys here as needed.
+
+### Logging (Serilog + file, no credentials)
+
+- **Console and file**: Serilog writes to console and to rolling text files under `Logs/` (path configurable via `Serilog:File:Path` in appsettings; default `Logs/educonnect-.txt` with daily rolling). `Serilog:File:RetainedFileCountDays` limits how many days of files to keep (e.g. 31).
+- **Standard format**: Use `LoggerExtensions` from **`EduConnect.Shared/Extensions/LoggerExtensions.cs`** so each log line includes **Method** and **LineNumber** (via Serilog `LogContext`): `ErrorLog(ex, message)`, `ErrorLog(message)`, `InformationLog(message)`, `WarningLog(message)`, `DebugLog(message)`. Caller info is filled automatically via `[CallerMemberName]` and `[CallerLineNumber]`. The same extensions are used in **API** (controllers, middleware) and **Infrastructure** (services) for consistent, traceable logs.
+- **No credentials**: All message strings passed to these extensions are redacted for common credential-like substrings (password, token, secret, authorization, etc.) before writing. Never log request bodies or headers that may contain credentials; use the extensions for consistent, safe logging.
 
 ### Production / Security
 
@@ -462,7 +470,7 @@ If you added **Homework**, **StudentGrade**, or **RefreshToken** entities, run a
 - Use **EF Core** for write operations and Identity management
 - Follow feature-based organization when adding new features
 - Implement services in `Infrastructure/Services/` (implements Application interfaces)
-- Use `BaseController` for common controller functionality
+- Use `BaseController` for common controller functionality (provides `Logger` and `GetUserId()`; inject `ILogger<T>` and pass to base)
 - Throw custom exceptions (`BusinessException`, `NotFoundException`)
 
 ### Frontend
@@ -525,7 +533,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.4.0
+**Version**: 1.5.0
 
 ---
 

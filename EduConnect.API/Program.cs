@@ -13,12 +13,20 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
+// Configure Serilog (console + file; do not log credentials — use LoggerExtensions which redact)
+var logPath = builder.Configuration["Serilog:File:Path"] ?? "Logs/educonnect-.txt";
+var logRetainedDays = builder.Configuration.GetValue<int?>("Serilog:File:RetainedFileCountDays");
+var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console()
-    .CreateLogger();
+    .WriteTo.File(
+        logPath,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: logRetainedDays,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} (Method={Method}, LineNumber={LineNumber}){NewLine}{Exception}",
+        shared: true);
+Log.Logger = loggerConfig.CreateLogger();
 
 builder.Host.UseSerilog();
 

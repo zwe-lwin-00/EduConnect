@@ -7,7 +7,9 @@ using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Infrastructure.Repositories;
 using EduConnect.Shared.Enums;
+using EduConnect.Shared.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
@@ -20,27 +22,30 @@ public class AdminService : IAdminService
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
+    private readonly ILogger<AdminService> _logger;
 
     public AdminService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         IEncryptionService encryptionService,
         IUnitOfWork unitOfWork,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ILogger<AdminService> logger)
     {
         _context = context;
         _userManager = userManager;
         _encryptionService = encryptionService;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId)
     {
-        // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
         {
+            _logger.WarningLog("OnboardTeacher: user with email already exists");
             throw new BusinessException("A user with this email already exists.", "USER_EXISTS");
         }
 
@@ -94,6 +99,7 @@ public class AdminService : IAdminService
         {
             await _notificationService.CreateForUserAsync(adminId, "Pending teacher verification", $"Teacher {teacherName} is pending verification.", NotificationType.PendingVerification, "Teacher", teacherProfile.Id);
         }
+        _logger.InformationLog("Teacher onboarded successfully");
 
         return new OnboardTeacherResponse
         {
@@ -158,6 +164,7 @@ public class AdminService : IAdminService
         teacher.User.IsActive = true;
 
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Teacher verified");
         return true;
     }
 
@@ -176,6 +183,7 @@ public class AdminService : IAdminService
         teacher.User.IsActive = false;
 
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Teacher rejected");
         return true;
     }
 
@@ -331,10 +339,11 @@ public class AdminService : IAdminService
         // Search filter
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var term = request.SearchTerm.Trim();
             query = query.Where(u =>
-                u.FirstName.Contains(request.SearchTerm) ||
-                u.LastName.Contains(request.SearchTerm) ||
-                u.Email.Contains(request.SearchTerm));
+                (u.FirstName != null && u.FirstName.Contains(term)) ||
+                (u.LastName != null && u.LastName.Contains(term)) ||
+                (u.Email != null && u.Email.Contains(term)));
         }
 
         // Sorting
@@ -579,6 +588,7 @@ public class AdminService : IAdminService
         };
         _context.ContractSessions.Add(contract);
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Contract created");
 
         var teacherUserId = teacher.UserId;
         await _notificationService.CreateForUserAsync(teacherUserId, "New contract", $"New contract {contract.ContractId} with student {student.FirstName} {student.LastName}.", NotificationType.NewContract, "Contract", contract.Id);
@@ -605,6 +615,7 @@ public class AdminService : IAdminService
             throw new NotFoundException("Contract", id);
         c.Status = ContractStatus.Active;
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Contract activated");
         return true;
     }
 
@@ -615,6 +626,7 @@ public class AdminService : IAdminService
             throw new NotFoundException("Contract", id);
         c.Status = ContractStatus.Cancelled;
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Contract cancelled");
         return true;
     }
 
@@ -704,6 +716,7 @@ public class AdminService : IAdminService
             throw new NotFoundException("Contract", contractId);
         c.RemainingHours += (int)Math.Ceiling(request.Hours);
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Wallet credited");
         return true;
     }
 
@@ -714,6 +727,7 @@ public class AdminService : IAdminService
             throw new NotFoundException("Contract", contractId);
         c.RemainingHours = Math.Max(0, c.RemainingHours - (int)Math.Ceiling(request.Hours));
         await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Wallet deducted");
         return true;
     }
 
