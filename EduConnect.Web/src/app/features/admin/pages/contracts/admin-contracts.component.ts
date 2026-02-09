@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DxDataGridModule, DxButtonModule, DxPopupModule } from 'devextreme-angular';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
+import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { ContractDto, CreateContractRequest, Teacher, Student } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,7 +13,16 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 @Component({
   selector: 'app-admin-contracts',
   standalone: true,
-  imports: [CommonModule, FormsModule, DxDataGridModule, DxButtonModule, DxPopupModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    DialogModule,
+    TagModule,
+    InputTextModule
+  ],
   templateUrl: './admin-contracts.component.html',
   styleUrl: './admin-contracts.component.css'
 })
@@ -23,6 +36,13 @@ export class AdminContractsComponent implements OnInit {
   filterTeacherId: number | null = null;
   filterStudentId: number | null = null;
   filterStatus: number | null = null;
+
+  statusOptions = [
+    { label: 'Active', value: 1 },
+    { label: 'Completed', value: 2 },
+    { label: 'Cancelled', value: 3 },
+    { label: 'Expired', value: 4 }
+  ];
 
   constructor(
     private adminService: AdminService,
@@ -123,5 +143,15 @@ export class AdminContractsComponent implements OnInit {
   statusName(status: number): string {
     const map: Record<number, string> = { 1: 'Active', 2: 'Completed', 3: 'Cancelled', 4: 'Expired' };
     return map[status] ?? 'Unknown';
+  }
+
+  statusSeverity(status: number): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    const map: Record<number, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+      1: 'success',
+      2: 'info',
+      3: 'danger',
+      4: 'warn'
+    };
+    return map[status] ?? 'secondary';
   }
 }

@@ -121,7 +121,7 @@ export class TeacherGroupClassesComponent implements OnInit {
     this.teacherService.enrollInGroupClass(this.selectedGroupClass.id, request).subscribe({
       next: () => {
         this.enrolling = false;
-        this.showEnrollModal = false;
+        this.selectedEnrollContract = null;
         this.viewEnrollments(this.selectedGroupClass!);
         this.load();
       },

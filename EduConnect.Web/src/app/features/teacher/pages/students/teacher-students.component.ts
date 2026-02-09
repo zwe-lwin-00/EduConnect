@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DxDataGridModule } from 'devextreme-angular';
+import { TableModule } from 'primeng/table';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherAssignedStudentDto } from '../../../../core/models/teacher.model';
 
 @Component({
   selector: 'app-teacher-students',
   standalone: true,
-  imports: [CommonModule, DxDataGridModule],
+  imports: [CommonModule, TableModule],
   templateUrl: './teacher-students.component.html',
   styleUrl: './teacher-students.component.css'
 })

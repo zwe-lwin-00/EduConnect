@@ -1,14 +1,18 @@
 <div class="teacher-sessions">
-  <h1>Session Delivery</h1>
-  <p class="page-desc">One-to-one: check-in per contract. Group: start a group class session (all enrolled students). Use your own Zoom links (set in Profile and Group classes) to teach; join via &quot;Join Zoom meeting&quot; when a session is in progress. Check-out with lesson notes (required).</p>
+  <div class="page-header-compact">
+    <div>
+      <h1>Sessions</h1>
+      <p class="page-desc-short">Check-in 1:1 or start a group session. Check-out with lesson notes. Zoom link in Profile or per group class.</p>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <ng-container *ngIf="!loading && !error">
     <section class="section">
-      <h2>One-to-one – Today's sessions</h2>
-      <div *ngIf="todaySessions.length === 0" class="empty">No sessions today. Start one from &quot;Available to deliver&quot; below.</div>
+      <h2 class="section-title">1:1 in progress</h2>
+      <div *ngIf="todaySessions.length === 0" class="empty">None. Start one below.</div>
       <div *ngFor="let s of todaySessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
@@ -24,8 +28,8 @@
     </section>
 
     <section class="section">
-      <h2>One-to-one – Available to deliver</h2>
-      <div *ngIf="upcomingSessions.length === 0" class="empty">No contracts available to start.</div>
+      <h2 class="section-title">Start 1:1</h2>
+      <div *ngIf="upcomingSessions.length === 0" class="empty">No contracts to start.</div>
       <div *ngFor="let s of upcomingSessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
@@ -39,7 +43,7 @@
     </section>
 
     <section class="section">
-      <h2>Group class</h2>
+      <h2 class="section-title">Group session</h2>
       <div *ngIf="inProgressGroupSession" class="session-card group-session">
         <div class="session-info">
           <strong>{{ inProgressGroupSession.groupClassName }}</strong> – In progress
@@ -59,11 +63,11 @@
           {{ checkingInGroupClassId ? 'Starting...' : 'Start group session' }}
         </button>
       </div>
-      <p class="hint">Manage group classes and enrollments under <a routerLink="/teacher/group-classes">Group classes</a>.</p>
+      <p class="hint"><a routerLink="/teacher/group-classes">Group classes</a> → edit name, Zoom, enroll students</p>
     </section>
 
     <div *ngIf="checkingOutSession" class="checkout-panel">
-      <h3>Check-out – Lesson notes required</h3>
+      <h3>Check-out 1:1</h3>
       <p><strong>{{ checkingOutSession.studentName }}</strong> – {{ checkingOutSession.contractIdDisplay }}</p>
       <div class="form-group">
         <label>Lesson notes *</label>
@@ -76,7 +80,7 @@
     </div>
 
     <div *ngIf="checkingOutGroupSession" class="checkout-panel">
-      <h3>Check-out group – Lesson notes required</h3>
+      <h3>Check-out group</h3>
       <p><strong>{{ checkingOutGroupSession.groupClassName }}</strong></p>
       <div class="form-group">
         <label>Lesson notes *</label>

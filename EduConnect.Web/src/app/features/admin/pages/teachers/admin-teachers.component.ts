@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DxDataGridModule, DxButtonModule, DxPopupModule, DxFormModule } from 'devextreme-angular';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
+import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Teacher, OnboardTeacherRequest, UpdateTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,11 +14,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   standalone: true,
   imports: [
     CommonModule,
-    DxDataGridModule,
-    DxButtonModule,
-    DxPopupModule,
-    DxFormModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    DialogModule,
+    TagModule,
+    InputTextModule
   ],
   templateUrl: './admin-teachers.component.html',
   styleUrl: './admin-teachers.component.css'
@@ -245,6 +250,15 @@ export class AdminTeachersComponent implements OnInit {
       case 2: return 'Verified';
       case 3: return 'Rejected';
       default: return 'Unknown';
+    }
+  }
+
+  getVerificationSeverity(status: number): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    switch (status) {
+      case 1: return 'warn';
+      case 2: return 'success';
+      case 3: return 'danger';
+      default: return 'secondary';
     }
   }
 }

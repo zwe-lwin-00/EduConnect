@@ -1,15 +1,18 @@
 <div class="dashboard-home">
-  <h1 class="page-title">Admin Dashboard</h1>
-  <p class="page-desc">Daily command center — Master Doc B1</p>
+  <div class="page-header-compact">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="page-desc-short">Today’s overview and quick links</p>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <ng-container *ngIf="dashboard && !loading">
     <div class="widgets">
-      <!-- 1. Alerts -->
       <section class="widget widget-alerts">
-        <h2>Alerts</h2>
+        <h2 class="section-title">Alerts</h2>
         <div *ngIf="dashboard.alerts.length === 0" class="empty">No alerts</div>
         <ul class="alert-list">
           <li *ngFor="let a of dashboard.alerts" [class]="'alert-item ' + alertClass(a.type)">
@@ -19,48 +22,40 @@
         </ul>
       </section>
 
-      <!-- 2. Today's Sessions -->
       <section class="widget widget-sessions">
-        <h2>Today's Sessions</h2>
+        <h2 class="section-title">Today</h2>
         <div *ngIf="dashboard.todaySessions.length === 0" class="empty">No sessions today</div>
         <div class="session-list">
           <div *ngFor="let s of dashboard.todaySessions" class="session-item">
-            <div class="session-row">
-              <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
-            </div>
-            <div class="session-meta">Status: {{ s.status }}
-              <span *ngIf="s.checkInTime"> | Check-in: {{ s.checkInTime | date:'short':'+0630' }}</span>
-              <span *ngIf="s.checkOutTime"> | Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</span>
-            </div>
+            <div class="session-row"><strong>{{ s.teacherName }}</strong> – {{ s.studentName }}</div>
+            <div class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | date:'short':'+0630' }}</span></div>
           </div>
         </div>
-        <a routerLink="/admin/attendance" class="link-more">View attendance →</a>
+        <a routerLink="/admin/attendance" class="link-more">Attendance →</a>
       </section>
 
-      <!-- 3. Pending Actions -->
       <section class="widget widget-pending">
-        <h2>Pending Actions</h2>
+        <h2 class="section-title">Pending</h2>
         <div class="pending-count">{{ dashboard.pendingActionsCount }}</div>
-        <p class="pending-desc">Items need your attention (e.g. unverified teachers)</p>
-        <a routerLink="/admin/teachers" class="link-more">Go to Teachers →</a>
+        <p class="pending-desc">Need your attention</p>
+        <a routerLink="/admin/teachers" class="link-more">Teachers →</a>
       </section>
 
-      <!-- 4. Revenue Snapshot -->
       <section class="widget widget-revenue">
-        <h2>Revenue Snapshot (This Month)</h2>
+        <h2 class="section-title">This month</h2>
         <div class="revenue-row">
           <span class="label">Revenue</span>
           <span class="value">{{ dashboard.revenueSnapshot.revenueThisMonth | number:'1.0-0' }} MMK</span>
         </div>
         <div class="revenue-row">
-          <span class="label">Sessions delivered</span>
+          <span class="label">Sessions</span>
           <span class="value">{{ dashboard.revenueSnapshot.sessionsDeliveredThisMonth }}</span>
         </div>
         <div class="revenue-row">
-          <span class="label">Hours consumed</span>
+          <span class="label">Hours</span>
           <span class="value">{{ dashboard.revenueSnapshot.hoursConsumedThisMonth | number:'1.1-1' }}</span>
         </div>
-        <a routerLink="/admin/reports" class="link-more">View reports →</a>
+        <a routerLink="/admin/reports" class="link-more">Reports →</a>
       </section>
     </div>
   </ng-container>

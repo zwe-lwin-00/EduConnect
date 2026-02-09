@@ -1,79 +1,77 @@
 <div class="admin-payments">
-  <div class="page-header">
-    <h1>Payments & Wallet Control</h1>
-    <div class="header-actions">
-      <dx-button text="Credit Hours" type="success" (onClick)="openCreditPopup()" [icon]="'plus'"></dx-button>
-      <dx-button text="Deduct Hours" type="danger" stylingMode="outlined" (onClick)="openDeductPopup()" [icon]="'minus'"></dx-button>
+  <div class="page-header-compact">
+    <div>
+      <h1>Payments & wallet</h1>
+      <p class="page-desc-short">Credit or deduct hours on a contract. Freeze student on Students page.</p>
+    </div>
+    <div class="flex gap-2">
+      <p-button label="Credit hours" icon="pi pi-plus" severity="success" (onClick)="openCreditPopup()" />
+      <p-button label="Deduct hours" icon="pi pi-minus" severity="danger" [outlined]="true" (onClick)="openDeductPopup()" />
     </div>
   </div>
-  <p class="page-desc">Manual confirmation — add/deduct hours on contract. Freeze = set student inactive (Students page).</p>
 
-  <dx-data-grid
-    [dataSource]="students"
-    [allowColumnReordering]="true"
-    [columnAutoWidth]="true"
-    [showBorders]="true">
-    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
-    <dxi-column dataField="firstName" caption="First Name"></dxi-column>
-    <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
-    <dxi-column dataField="parentName" caption="Parent"></dxi-column>
-    <dxi-column dataField="gradeLevelName" caption="Grade"></dxi-column>
-    <dxi-column dataField="walletBalance" caption="Wallet (hrs)" dataType="number"></dxi-column>
-    <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
-    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
-  </dx-data-grid>
+  <div class="card table-card">
+    <p-table
+      [value]="students"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25]"
+      [showCurrentPageReport]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem">#</th>
+          <th>First name</th>
+          <th>Last name</th>
+          <th>Parent</th>
+          <th>Grade</th>
+          <th>Wallet (hrs)</th>
+          <th>Active</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
+        <tr>
+          <td>{{ rowIndex + 1 }}</td>
+          <td>{{ s.firstName }}</td>
+          <td>{{ s.lastName }}</td>
+          <td>{{ s.parentName }}</td>
+          <td>{{ s.gradeLevelName }}</td>
+          <td>{{ s.walletBalance }}</td>
+          <td>{{ s.isActive ? 'Yes' : 'No' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">No students.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 
-  <dx-popup [(visible)]="showCreditPopup" [showTitle]="true" title="Credit Hours" [width]="450" [showCloseButton]="true" (onHiding)="closeCreditPopup()">
-    <div *dxTemplate="let data of 'content'">
-      <form [formGroup]="creditForm" (ngSubmit)="onSubmitCredit()" class="form-panel">
-        <div class="form-group">
-          <label>Student *</label>
-          <select formControlName="studentId" class="form-control">
-            <option [ngValue]="null">-- Select Student --</option>
-            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Contract *</label>
-          <select formControlName="contractId" class="form-control">
-            <option [ngValue]="null">-- Select Contract --</option>
-            <option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs left)</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Hours *</label><input type="number" formControlName="hours" class="form-control" step="0.5" min="0.5" /></div>
-        <div class="form-group"><label>Reason *</label><input type="text" formControlName="reason" class="form-control" /></div>
-        <div class="form-actions">
-          <dx-button text="Cancel" type="normal" (onClick)="closeCreditPopup()"></dx-button>
-          <dx-button text="Credit" type="success" (onClick)="onSubmitCredit()" [disabled]="!creditForm.valid"></dx-button>
-        </div>
-      </form>
-    </div>
-  </dx-popup>
+  <p-dialog header="Credit hours" [(visible)]="showCreditPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeCreditPopup()">
+    <form [formGroup]="creditForm" (ngSubmit)="onSubmitCredit()" class="dialog-form">
+      <div class="field"><label>Student</label><select formControlName="studentId" class="p-inputtext w-full"><option [ngValue]="null">Select student</option><option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option></select></div>
+      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs)</option></select></div>
+      <div class="field"><label>Hours</label><input pInputText type="number" formControlName="hours" class="w-full" step="0.5" min="0.5" /></div>
+      <div class="field"><label>Reason</label><input pInputText type="text" formControlName="reason" class="w-full" /></div>
+    </form>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeCreditPopup()" />
+      <p-button label="Credit" icon="pi pi-check" (onClick)="onSubmitCredit()" [disabled]="!creditForm.valid" />
+    </ng-template>
+  </p-dialog>
 
-  <dx-popup [(visible)]="showDeductPopup" [showTitle]="true" title="Deduct Hours" [width]="450" [showCloseButton]="true" (onHiding)="closeDeductPopup()">
-    <div *dxTemplate="let data of 'content'">
-      <form [formGroup]="deductForm" (ngSubmit)="onSubmitDeduct()" class="form-panel">
-        <div class="form-group">
-          <label>Student *</label>
-          <select formControlName="studentId" class="form-control">
-            <option [ngValue]="null">-- Select Student --</option>
-            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Contract *</label>
-          <select formControlName="contractId" class="form-control">
-            <option [ngValue]="null">-- Select Contract --</option>
-            <option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs left)</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Hours *</label><input type="number" formControlName="hours" class="form-control" step="0.5" min="0.5" /></div>
-        <div class="form-group"><label>Reason *</label><input type="text" formControlName="reason" class="form-control" /></div>
-        <div class="form-actions">
-          <dx-button text="Cancel" type="normal" (onClick)="closeDeductPopup()"></dx-button>
-          <dx-button text="Deduct" type="danger" (onClick)="onSubmitDeduct()" [disabled]="!deductForm.valid"></dx-button>
-        </div>
-      </form>
-    </div>
-  </dx-popup>
+  <p-dialog header="Deduct hours" [(visible)]="showDeductPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeDeductPopup()">
+    <form [formGroup]="deductForm" (ngSubmit)="onSubmitDeduct()" class="dialog-form">
+      <div class="field"><label>Student</label><select formControlName="studentId" class="p-inputtext w-full"><option [ngValue]="null">Select student</option><option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option></select></div>
+      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs)</option></select></div>
+      <div class="field"><label>Hours</label><input pInputText type="number" formControlName="hours" class="w-full" step="0.5" min="0.5" /></div>
+      <div class="field"><label>Reason</label><input pInputText type="text" formControlName="reason" class="w-full" /></div>
+    </form>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeDeductPopup()" />
+      <p-button label="Deduct" severity="danger" icon="pi pi-check" (onClick)="onSubmitDeduct()" [disabled]="!deductForm.valid" />
+    </ng-template>
+  </p-dialog>
 </div>

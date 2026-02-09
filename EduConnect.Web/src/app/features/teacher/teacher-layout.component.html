@@ -5,35 +5,39 @@
     </div>
     <nav class="sidebar-nav">
       <a routerLink="/teacher" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <span class="nav-icon">◉</span>
+        <span class="nav-icon">⌂</span>
         <span class="nav-label">Dashboard</span>
       </a>
-      <a routerLink="/teacher/availability" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">Availability</span>
-      </a>
-      <a routerLink="/teacher/students" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">Students</span>
-      </a>
+      <span class="nav-section-label">Teaching</span>
       <a routerLink="/teacher/sessions" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
+        <span class="nav-icon">📅</span>
         <span class="nav-label">Sessions</span>
       </a>
       <a routerLink="/teacher/group-classes" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
+        <span class="nav-icon">👥</span>
         <span class="nav-label">Group classes</span>
       </a>
-      <a routerLink="/teacher/calendar" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">Calendar</span>
+      <span class="nav-section-label">My work</span>
+      <a routerLink="/teacher/students" routerLinkActive="active">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-label">Students</span>
       </a>
       <a routerLink="/teacher/homework-grades" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
+        <span class="nav-icon">📝</span>
         <span class="nav-label">Homework & Grades</span>
       </a>
+      <span class="nav-section-label">Schedule</span>
+      <a routerLink="/teacher/availability" routerLinkActive="active">
+        <span class="nav-icon">🕐</span>
+        <span class="nav-label">Availability</span>
+      </a>
+      <a routerLink="/teacher/calendar" routerLinkActive="active">
+        <span class="nav-icon">📆</span>
+        <span class="nav-label">Calendar</span>
+      </a>
+      <span class="nav-section-label">Account</span>
       <a routerLink="/teacher/profile" routerLinkActive="active">
-        <span class="nav-icon">◉</span>
+        <span class="nav-icon">👤</span>
         <span class="nav-label">Profile</span>
       </a>
     </nav>

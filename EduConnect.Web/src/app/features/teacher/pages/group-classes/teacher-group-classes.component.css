@@ -93,6 +93,30 @@
   overflow: auto;
 }
 
+.modal.modal-lg {
+  max-width: 560px;
+}
+
+.subheading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.add-enroll-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.add-enroll-inline .inline-select {
+  max-width: 280px;
+  min-width: 180px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

@@ -1,23 +1,50 @@
 <div class="teacher-students">
-  <h1>Assigned Students</h1>
-  <p class="page-desc">Student name, grade (P1–P4), subjects, contract status. No parent contact details.</p>
+  <div class="page-header-compact">
+    <div>
+      <h1>Assigned Students</h1>
+      <p class="page-desc-short">Student, grade, contract status, remaining hours.</p>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
-  <dx-data-grid
-    *ngIf="!loading && !error"
-    [dataSource]="students"
-    [allowColumnReordering]="true"
-    [columnAutoWidth]="true"
-    [showBorders]="true">
-    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
-    <dxi-column dataField="studentName" caption="Student"></dxi-column>
-    <dxi-column dataField="gradeLevel" caption="Grade"></dxi-column>
-    <dxi-column dataField="subjects" caption="Subjects"></dxi-column>
-    <dxi-column dataField="contractStatus" caption="Contract Status"></dxi-column>
-    <dxi-column dataField="contractIdDisplay" caption="Contract ID"></dxi-column>
-    <dxi-column dataField="remainingHours" caption="Remaining Hours" dataType="number"></dxi-column>
-    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
-  </dx-data-grid>
+  <div class="card table-card" *ngIf="!loading && !error">
+    <p-table
+      [value]="students"
+      [tableStyle]="{ 'min-width': '40rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25]"
+      [showCurrentPageReport]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem">#</th>
+          <th>Student</th>
+          <th>Grade</th>
+          <th>Subjects</th>
+          <th>Contract Status</th>
+          <th>Contract ID</th>
+          <th>Remaining</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
+        <tr>
+          <td>{{ rowIndex + 1 }}</td>
+          <td>{{ s.studentName }}</td>
+          <td>{{ s.gradeLevel }}</td>
+          <td>{{ s.subjects }}</td>
+          <td>{{ s.contractStatus }}</td>
+          <td>{{ s.contractIdDisplay }}</td>
+          <td>{{ s.remainingHours }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">No assigned students.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 </div>

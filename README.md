@@ -14,7 +14,7 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 - **EduConnect.Shared** - Shared enums and common types
 
 ### Frontend (Angular 20)
-- **EduConnect.Web** - Angular SPA with DevExtreme components
+- **EduConnect.Web** - Angular SPA with PrimeNG components
   - Feature-based modules (lazy-loaded)
   - Core services, guards, and interceptors
   - Shared components and layout
@@ -33,7 +33,7 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 
 ### Frontend
 - **Framework**: Angular 20
-- **UI Components**: DevExtreme (Scheduler, DataGrid, etc.)
+- **UI Components**: PrimeNG (Table, Dialog, Button, Tag, etc.) with Aura theme
 - **Theme**: Material Design
 - **State Management**: Angular Signals
 - **Architecture**: Feature modules with lazy loading
@@ -84,6 +84,8 @@ npm start
 ```
 
 The app will open at `http://localhost:4200`
+
+**Note:** The frontend uses PrimeNG with Angular 20. `EduConnect.Web/.npmrc` sets `legacy-peer-deps=true` so `npm install` works without conflicts (PrimeNG 19 lists Angular 19 as peer).
 
 ### Step 4: Login
 

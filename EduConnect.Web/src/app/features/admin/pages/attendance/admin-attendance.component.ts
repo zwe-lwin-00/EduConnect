@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DxButtonModule } from 'devextreme-angular';
+import { ButtonModule } from 'primeng/button';
 import { AdminService } from '../../../../core/services/admin.service';
 import { TodaySessionDto } from '../../../../core/models/admin.model';
 
 @Component({
   selector: 'app-admin-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, DxButtonModule],
+  imports: [CommonModule, FormsModule, ButtonModule],
   templateUrl: './admin-attendance.component.html',
   styleUrl: './admin-attendance.component.css'
 })

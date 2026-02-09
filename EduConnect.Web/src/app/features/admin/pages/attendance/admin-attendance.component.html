@@ -1,6 +1,10 @@
 <div class="admin-attendance">
-  <h1>Attendance Oversight</h1>
-  <p class="page-desc">Today's sessions — override check-in/out, adjust hours (with reason).</p>
+  <div class="page-header-compact">
+    <div>
+      <h1>Attendance</h1>
+      <p class="page-desc-short">Today’s sessions. Override check-in/out or adjust hours.</p>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="!loading && sessions.length === 0" class="empty">No sessions today.</div>

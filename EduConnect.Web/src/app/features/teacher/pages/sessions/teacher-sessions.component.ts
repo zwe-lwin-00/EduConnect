@@ -2,14 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DxButtonModule } from 'devextreme-angular';
+import { ButtonModule } from 'primeng/button';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
 
 @Component({
   selector: 'app-teacher-sessions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DxButtonModule],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonModule],
   templateUrl: './teacher-sessions.component.html',
   styleUrl: './teacher-sessions.component.css'
 })

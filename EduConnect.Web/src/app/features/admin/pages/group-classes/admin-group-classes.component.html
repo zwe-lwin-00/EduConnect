@@ -1,14 +1,16 @@
 <div class="admin-group-classes">
-  <div class="page-header">
-    <h1>Group classes</h1>
-    <p class="page-desc">Create group classes and assign a teacher. Teachers see only classes assigned to them and can edit name/Zoom/active and manage enrollments.</p>
-    <button type="button" class="btn btn-primary" (click)="openCreate()">Create group class</button>
+  <div class="page-header-compact">
+    <div>
+      <h1>Group classes</h1>
+      <p class="page-desc-short">Create classes, assign teacher, add students. Teachers edit name/Zoom and enrollments.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">New class</button>
   </div>
 
   <div *ngIf="error" class="error">{{ error }}</div>
   <div *ngIf="loading" class="loading">Loading...</div>
 
-  <div *ngIf="!loading && groupClasses.length === 0" class="empty">No group classes. Create one to get started.</div>
+  <div *ngIf="!loading && groupClasses.length === 0" class="empty">No group classes. Click &quot;New class&quot; to add one.</div>
 
   <table *ngIf="!loading && groupClasses.length > 0" class="data-table">
     <thead>
@@ -106,12 +108,19 @@
   <div *ngIf="showEnrollments && selectedClass" class="modal-overlay" (click)="closeEnrollments()">
     <div class="modal modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Enrollments – {{ selectedClass.name }}</h3>
+        <h3>{{ selectedClass.name }} – Students</h3>
         <button type="button" class="btn-close" (click)="closeEnrollments()">&times;</button>
       </div>
       <div class="modal-body">
-        <button type="button" class="btn btn-primary add-enroll" (click)="openEnrollModal()">Add student (by contract)</button>
-        <p class="hint">Only contracts with the assigned teacher ({{ selectedClass.teacherName }}) and not already enrolled are listed.</p>
+        <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
+          <select [(ngModel)]="enrollContractId" class="form-control inline-select">
+            <option [ngValue]="null">Add student...</option>
+            <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
+          </select>
+          <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!enrollContractId || enrolling">{{ enrolling ? '...' : 'Add' }}</button>
+        </div>
+        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
+        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active contracts with {{ selectedClass.teacherName }}. Create a contract first.</p>
         <ul class="enrollment-list">
           <li *ngFor="let e of enrollments" class="enrollment-item">
             <span>{{ e.studentName }} – {{ e.contractIdDisplay }}</span>
@@ -119,26 +128,6 @@
           </li>
           <li *ngIf="enrollments.length === 0" class="empty">No enrollments.</li>
         </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add enrollment modal -->
-  <div *ngIf="showEnrollModal && selectedClass" class="modal-overlay" (click)="showEnrollModal = false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Add student to {{ selectedClass.name }}</h3>
-        <button type="button" class="btn-close" (click)="showEnrollModal = false">&times;</button>
-      </div>
-      <div class="modal-body">
-        <select [(ngModel)]="enrollContractId" class="form-control">
-          <option [ngValue]="null">-- Select student & contract --</option>
-          <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
-        </select>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="showEnrollModal = false">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!enrollContractId || enrolling">{{ enrolling ? 'Enrolling...' : 'Enroll' }}</button>
-        </div>
       </div>
     </div>
   </div>

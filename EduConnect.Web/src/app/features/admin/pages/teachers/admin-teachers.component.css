@@ -17,4 +17,3 @@
 .status-pending { color: #ff9800; font-weight: bold; }
 .status-verified { color: #4caf50; font-weight: bold; }
 .status-rejected { color: #f44336; font-weight: bold; }
-::ng-deep .dx-button { margin: 0 4px; }

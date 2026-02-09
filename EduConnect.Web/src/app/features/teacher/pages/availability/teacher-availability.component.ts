@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DxButtonModule } from 'devextreme-angular';
+import { ButtonModule } from 'primeng/button';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherAvailabilityDto } from '../../../../core/models/teacher.model';
 
@@ -18,7 +18,7 @@ const DAYS = [
 @Component({
   selector: 'app-teacher-availability',
   standalone: true,
-  imports: [CommonModule, FormsModule, DxButtonModule],
+  imports: [CommonModule, FormsModule, ButtonModule],
   templateUrl: './teacher-availability.component.html',
   styleUrl: './teacher-availability.component.css'
 })

@@ -1,4 +1,7 @@
 .teacher-dashboard { max-width: 1200px; margin: 0 auto; }
+.teacher-dashboard .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; text-decoration: none; font-weight: 500; }
+.teacher-dashboard .btn-primary { background: #2e7d32; color: #fff; border: none; }
+.teacher-dashboard .btn-primary:hover { background: #237026; color: #fff; }
 .page-title { margin: 0 0 4px 0; color: #2e7d32; font-size: 1.5rem; }
 .page-desc { margin: 0 0 20px 0; color: #666; font-size: 0.9rem; }
 .loading, .error { padding: 20px; text-align: center; }

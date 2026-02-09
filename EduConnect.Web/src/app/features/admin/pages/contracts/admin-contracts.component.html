@@ -1,83 +1,127 @@
 <div class="admin-contracts">
-  <div class="page-header">
-    <h1>Contract & Rental Control</h1>
-    <dx-button text="New Contract" type="success" (onClick)="openCreatePopup()" [icon]="'plus'"></dx-button>
-  </div>
-
-  <div class="filter-bar">
-    <select [(ngModel)]="filterTeacherId" class="filter-select">
-      <option [ngValue]="null">All teachers</option>
-      <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-    </select>
-    <select [(ngModel)]="filterStudentId" class="filter-select">
-      <option [ngValue]="null">All students</option>
-      <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
-    </select>
-    <select [(ngModel)]="filterStatus" class="filter-select">
-      <option [ngValue]="null">All statuses</option>
-      <option [ngValue]="1">Active</option>
-      <option [ngValue]="2">Completed</option>
-      <option [ngValue]="3">Cancelled</option>
-      <option [ngValue]="4">Expired</option>
-    </select>
-    <button type="button" class="btn-filter" (click)="applyContractFilters()">Apply</button>
-    <button type="button" class="btn-filter-outline" (click)="clearContractFilters()">Clear</button>
-  </div>
-
-  <dx-data-grid
-    [dataSource]="contracts"
-    [allowColumnReordering]="true"
-    [allowColumnResizing]="true"
-    [columnAutoWidth]="true"
-    [showBorders]="true">
-    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
-    <dxi-column dataField="contractId" caption="Contract ID"></dxi-column>
-    <dxi-column dataField="teacherName" caption="Teacher"></dxi-column>
-    <dxi-column dataField="studentName" caption="Student"></dxi-column>
-    <dxi-column dataField="packageHours" caption="Package" dataType="number"></dxi-column>
-    <dxi-column dataField="remainingHours" caption="Remaining" dataType="number"></dxi-column>
-    <dxi-column dataField="status" caption="Status" [cellTemplate]="'statusTemplate'"></dxi-column>
-    <dxi-column dataField="startDate" caption="Start" dataType="date" format="shortDate"></dxi-column>
-    <dxi-column dataField="endDate" caption="End" dataType="date" format="shortDate"></dxi-column>
-    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="100"></dxi-column>
-    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
-    <div *dxTemplate="let data of 'statusTemplate'">{{ statusName(data.data.status) }}</div>
-    <div *dxTemplate="let data of 'actionsTemplate'">
-      <dx-button *ngIf="data.data.status === 1" text="Cancel" type="danger" stylingMode="outlined" (onClick)="cancelContract(data.data)"></dx-button>
+  <div class="page-header-compact">
+    <div>
+      <h1>Contracts</h1>
+      <p class="page-desc-short">Create and manage teacher–student contracts. Filter by teacher, student, or status.</p>
     </div>
-  </dx-data-grid>
+    <p-button label="New contract" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
+  </div>
 
-  <dx-popup
+  <div class="card filter-card">
+    <div class="filter-bar">
+      <select [(ngModel)]="filterTeacherId" class="p-inputtext filter-select">
+        <option [ngValue]="null">All teachers</option>
+        <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+      </select>
+      <select [(ngModel)]="filterStudentId" class="p-inputtext filter-select">
+        <option [ngValue]="null">All students</option>
+        <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
+      </select>
+      <select [(ngModel)]="filterStatus" class="p-inputtext filter-select">
+        <option [ngValue]="null">All statuses</option>
+        <option *ngFor="let o of statusOptions" [ngValue]="o.value">{{ o.label }}</option>
+      </select>
+      <p-button label="Apply" icon="pi pi-filter" (onClick)="applyContractFilters()" [outlined]="true" />
+      <p-button label="Clear" severity="secondary" (onClick)="clearContractFilters()" [text]="true" />
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <p-table
+      [value]="contracts"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} contracts"
+      [showCurrentPageReport]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem">#</th>
+          <th>Contract ID</th>
+          <th>Teacher</th>
+          <th>Student</th>
+          <th pSortableColumn="packageHours">Package <p-sortIcon field="packageHours" /></th>
+          <th pSortableColumn="remainingHours">Remaining <p-sortIcon field="remainingHours" /></th>
+          <th>Status</th>
+          <th>Start</th>
+          <th>End</th>
+          <th style="width:6rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-c let-rowIndex="rowIndex">
+        <tr>
+          <td>{{ rowIndex + 1 }}</td>
+          <td>{{ c.contractId }}</td>
+          <td>{{ c.teacherName }}</td>
+          <td>{{ c.studentName }}</td>
+          <td>{{ c.packageHours }}</td>
+          <td>{{ c.remainingHours }}</td>
+          <td><p-tag [value]="statusName(c.status)" [severity]="statusSeverity(c.status)" /></td>
+          <td>{{ c.startDate | date:'shortDate' }}</td>
+          <td>{{ c.endDate | date:'shortDate' }}</td>
+          <td>
+            <p-button
+              *ngIf="c.status === 1"
+              icon="pi pi-times"
+              label="Cancel"
+              severity="danger"
+              [outlined]="true"
+              size="small"
+              (onClick)="cancelContract(c)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="10">No contracts found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    header="New contract"
     [(visible)]="showCreatePopup"
-    [showTitle]="true"
-    title="New Contract"
-    [width]="500"
-    [showCloseButton]="true"
-    (onHiding)="closeCreatePopup()">
-    <div *dxTemplate="let data of 'content'">
-      <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="form-panel">
-        <div class="form-group">
-          <label>Teacher *</label>
-          <select formControlName="teacherId" class="form-control">
-            <option [ngValue]="null">-- Select Teacher --</option>
-            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Student *</label>
-          <select formControlName="studentId" class="form-control">
-            <option [ngValue]="null">-- Select Student --</option>
-            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }} ({{ s.gradeLevelName }})</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Package Hours *</label><input type="number" formControlName="packageHours" class="form-control" min="1" /></div>
-        <div class="form-group"><label>Start Date *</label><input type="date" formControlName="startDate" class="form-control" /></div>
-        <div class="form-group"><label>End Date (optional)</label><input type="date" formControlName="endDate" class="form-control" /></div>
-        <div class="form-actions">
-          <dx-button text="Cancel" type="normal" (onClick)="closeCreatePopup()"></dx-button>
-          <dx-button text="Create Contract" type="success" (onClick)="onSubmitCreate()" [disabled]="!createForm.valid"></dx-button>
-        </div>
-      </form>
-    </div>
-  </dx-popup>
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="closeCreatePopup()">
+    <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
+      <div class="field">
+        <label for="teacherId">Teacher</label>
+        <select id="teacherId" formControlName="teacherId" class="p-inputtext w-full">
+          <option [ngValue]="null">Select teacher</option>
+          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+        </select>
+        <small class="p-error" *ngIf="createForm.get('teacherId')?.invalid && createForm.get('teacherId')?.touched">Required</small>
+      </div>
+      <div class="field">
+        <label for="studentId">Student</label>
+        <select id="studentId" formControlName="studentId" class="p-inputtext w-full">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }} ({{ s.gradeLevelName }})</option>
+        </select>
+        <small class="p-error" *ngIf="createForm.get('studentId')?.invalid && createForm.get('studentId')?.touched">Required</small>
+      </div>
+      <div class="field">
+        <label for="packageHours">Package hours</label>
+        <input pInputText id="packageHours" type="number" formControlName="packageHours" min="1" class="w-full" />
+      </div>
+      <div class="field">
+        <label for="startDate">Start date</label>
+        <input pInputText id="startDate" type="date" formControlName="startDate" class="w-full" />
+      </div>
+      <div class="field">
+        <label for="endDate">End date (optional)</label>
+        <input pInputText id="endDate" type="date" formControlName="endDate" class="w-full" />
+      </div>
+    </form>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeCreatePopup()" />
+      <p-button label="Create" icon="pi pi-check" (onClick)="onSubmitCreate()" [disabled]="!createForm.valid" />
+    </ng-template>
+  </p-dialog>
 </div>

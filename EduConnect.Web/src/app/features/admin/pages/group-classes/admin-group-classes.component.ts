@@ -173,7 +173,7 @@ export class AdminGroupClassesComponent implements OnInit {
     this.adminService.enrollInGroupClass(this.selectedClass.id, { studentId: contract.studentId, contractId: contract.id }).subscribe({
       next: () => {
         this.enrolling = false;
-        this.showEnrollModal = false;
+        this.enrollContractId = null;
         this.openEnrollments(this.selectedClass!);
         this.load();
       },

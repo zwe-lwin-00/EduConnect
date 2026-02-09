@@ -1,61 +1,91 @@
 <div class="admin-students">
-  <div class="page-header">
-    <h1>Students (P1–P4)</h1>
-    <dx-button text="Add Student" type="success" (onClick)="openCreatePopup()" [icon]="'plus'"></dx-button>
+  <div class="page-header-compact">
+    <div>
+      <h1>Students (P1–P4)</h1>
+      <p class="page-desc-short">Add students and link to a parent. Freeze/activate from the table.</p>
+    </div>
+    <p-button label="Add student" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
   </div>
 
-  <dx-data-grid
-    [dataSource]="students"
-    [allowColumnReordering]="true"
-    [allowColumnResizing]="true"
-    [columnAutoWidth]="true"
-    [showBorders]="true">
-    <dxi-column caption="#" [cellTemplate]="'rowNumberTemplate'" [allowSorting]="false" [allowFiltering]="false" [width]="56"></dxi-column>
-    <dxi-column dataField="firstName" caption="First Name"></dxi-column>
-    <dxi-column dataField="lastName" caption="Last Name"></dxi-column>
-    <dxi-column dataField="parentName" caption="Parent"></dxi-column>
-    <dxi-column dataField="gradeLevelName" caption="Grade"></dxi-column>
-    <dxi-column dataField="walletBalance" caption="Wallet (hrs)" dataType="number"></dxi-column>
-    <dxi-column dataField="dateOfBirth" caption="DOB" dataType="date" format="shortDate"></dxi-column>
-    <dxi-column dataField="isActive" caption="Active" dataType="boolean"></dxi-column>
-    <dxi-column caption="Actions" [cellTemplate]="'actionsTemplate'" [allowSorting]="false" [width]="120"></dxi-column>
-    <div *dxTemplate="let data of 'rowNumberTemplate'">{{ (data.rowIndex ?? data.displayIndex ?? 0) + 1 }}</div>
-    <div *dxTemplate="let data of 'actionsTemplate'">
-      <dx-button [text]="data.data.isActive ? 'Freeze' : 'Activate'" [type]="data.data.isActive ? 'danger' : 'success'" stylingMode="outlined" (onClick)="setStudentActive(data.data, !data.data.isActive)"></dx-button>
-    </div>
-  </dx-data-grid>
+  <div class="card table-card">
+    <p-table
+      [value]="students"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem">#</th>
+          <th>First name</th>
+          <th>Last name</th>
+          <th>Parent</th>
+          <th>Grade</th>
+          <th>Wallet (hrs)</th>
+          <th>DOB</th>
+          <th>Active</th>
+          <th style="width:6rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
+        <tr>
+          <td>{{ rowIndex + 1 }}</td>
+          <td>{{ s.firstName }}</td>
+          <td>{{ s.lastName }}</td>
+          <td>{{ s.parentName }}</td>
+          <td>{{ s.gradeLevelName }}</td>
+          <td>{{ s.walletBalance }}</td>
+          <td>{{ s.dateOfBirth | date:'shortDate' }}</td>
+          <td>{{ s.isActive ? 'Yes' : 'No' }}</td>
+          <td>
+            <p-button
+              [label]="s.isActive ? 'Freeze' : 'Activate'"
+              [severity]="s.isActive ? 'danger' : 'success'"
+              [outlined]="true"
+              size="small"
+              (onClick)="setStudentActive(s, !s.isActive)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9">No students.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 
-  <dx-popup
+  <p-dialog
+    header="Add student"
     [(visible)]="showCreatePopup"
-    [showTitle]="true"
-    title="Add Student"
-    [width]="500"
-    [showCloseButton]="true"
-    (onHiding)="closeCreatePopup()">
-    <div *dxTemplate="let data of 'content'">
-      <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="form-panel">
-        <div class="form-group">
-          <label>Parent *</label>
-          <select formControlName="parentId" class="form-control">
-            <option value="">-- Select Parent --</option>
-            <option *ngFor="let p of parents" [value]="p.id">{{ p.firstName }} {{ p.lastName }} ({{ p.email }})</option>
-          </select>
-        </div>
-        <div class="form-group"><label>First Name *</label><input type="text" formControlName="firstName" class="form-control" /></div>
-        <div class="form-group"><label>Last Name *</label><input type="text" formControlName="lastName" class="form-control" /></div>
-        <div class="form-group">
-          <label>Grade (P1–P4) *</label>
-          <select formControlName="gradeLevel" class="form-control">
-            <option *ngFor="let g of gradeOptions" [value]="g.value">{{ g.label }}</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Date of Birth *</label><input type="date" formControlName="dateOfBirth" class="form-control" /></div>
-        <div class="form-group"><label>Special Needs</label><input type="text" formControlName="specialNeeds" class="form-control" /></div>
-        <div class="form-actions">
-          <dx-button text="Cancel" type="normal" (onClick)="closeCreatePopup()"></dx-button>
-          <dx-button text="Add Student" type="success" (onClick)="onSubmitCreate()" [disabled]="!createForm.valid"></dx-button>
-        </div>
-      </form>
-    </div>
-  </dx-popup>
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    (onHide)="closeCreatePopup()">
+    <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
+      <div class="field">
+        <label>Parent</label>
+        <select formControlName="parentId" class="p-inputtext w-full">
+          <option value="">Select parent</option>
+          <option *ngFor="let p of parents" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
+        </select>
+      </div>
+      <div class="field"><label>First name</label><input pInputText type="text" formControlName="firstName" class="w-full" /></div>
+      <div class="field"><label>Last name</label><input pInputText type="text" formControlName="lastName" class="w-full" /></div>
+      <div class="field">
+        <label>Grade</label>
+        <select formControlName="gradeLevel" class="p-inputtext w-full">
+          <option *ngFor="let g of gradeOptions" [value]="g.value">{{ g.label }}</option>
+        </select>
+      </div>
+      <div class="field"><label>Date of birth</label><input pInputText type="date" formControlName="dateOfBirth" class="w-full" /></div>
+      <div class="field"><label>Special needs</label><input pInputText type="text" formControlName="specialNeeds" class="w-full" /></div>
+    </form>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeCreatePopup()" />
+      <p-button label="Add student" icon="pi pi-check" (onClick)="onSubmitCreate()" [disabled]="!createForm.valid" />
+    </ng-template>
+  </p-dialog>
 </div>

@@ -25,7 +25,9 @@
 .btn-secondary { background: #fff; }
 .btn-danger { background: #c62828; color: #fff; border-color: #c62828; }
 .btn-sm { font-size: 0.85rem; padding: 0.25rem 0.5rem; }
-.add-enroll { margin-bottom: 0.75rem; }
+.add-enroll-inline { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.add-enroll-inline .inline-select { max-width: 280px; min-width: 180px; }
 .hint { font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; }
+.hint.small { margin-top: 4px; }
 .enrollment-list { list-style: none; padding: 0; margin: 0; }
 .enrollment-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }

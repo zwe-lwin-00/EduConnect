@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DxDataGridModule, DxButtonModule, DxPopupModule } from 'devextreme-angular';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Student, ContractDto, WalletAdjustRequest } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,7 +11,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 @Component({
   selector: 'app-admin-payments',
   standalone: true,
-  imports: [CommonModule, DxDataGridModule, DxButtonModule, DxPopupModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, DialogModule, InputTextModule],
   templateUrl: './admin-payments.component.html',
   styleUrl: './admin-payments.component.css'
 })
