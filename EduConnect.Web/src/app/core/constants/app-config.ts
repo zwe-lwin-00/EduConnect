@@ -4,12 +4,12 @@ import { environment } from '../../../environments/environment';
  * Central app config. All runtime config comes from environment (set per build/deploy).
  * Add more keys here as needed; keep environment.ts / environment.prod.ts as the source of URLs and flags.
  */
-/** Myanmar timezone (UTC+6:30) for all date/time display and business "today". */
-export const MYANMAR_TIMEZONE = '+0630';
-
 export const appConfig = {
   production: environment.production,
   apiUrl: environment.apiUrl,
   appName: 'EduConnect',
-  timezone: MYANMAR_TIMEZONE,
+  /** Timezone for date pipe (e.g. +0630). From environment.timeZoneOffset. */
+  timezone: (environment as { timeZoneOffset?: string }).timeZoneOffset ?? '+0630',
+  /** IANA timezone for toLocaleDateString etc. From environment.timeZone. */
+  timeZone: (environment as { timeZone?: string }).timeZone ?? 'Asia/Yangon',
 } as const;

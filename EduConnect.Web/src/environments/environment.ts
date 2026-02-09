@@ -5,4 +5,8 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:5049/api',
+  /** IANA timezone for date display (e.g. Asia/Yangon). */
+  timeZone: 'Asia/Yangon',
+  /** Offset for Angular date pipe (e.g. +0630). */
+  timeZoneOffset: '+0630',
 };

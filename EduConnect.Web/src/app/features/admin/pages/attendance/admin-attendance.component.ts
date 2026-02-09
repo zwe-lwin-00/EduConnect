@@ -5,11 +5,12 @@ import { ButtonModule } from 'primeng/button';
 import { AdminService } from '../../../../core/services/admin.service';
 import { TodaySessionDto } from '../../../../core/models/admin.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 
 @Component({
   selector: 'app-admin-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule],
+  imports: [CommonModule, FormsModule, ButtonModule, DisplayDatePipe],
   templateUrl: './admin-attendance.component.html',
   styleUrl: './admin-attendance.component.css'
 })

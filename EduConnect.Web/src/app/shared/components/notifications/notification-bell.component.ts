@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Notification } from '../../../core/models/notification.model';
+import { DisplayDatePipe } from '../../pipes/display-date.pipe';
 
 @Component({
   selector: 'app-notification-bell',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DisplayDatePipe],
   templateUrl: './notification-bell.component.html',
   styleUrl: './notification-bell.component.css'
 })

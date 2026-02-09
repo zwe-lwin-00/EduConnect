@@ -18,8 +18,8 @@
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
           <span class="status">Status: {{ s.status }}</span>
         </div>
-        <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short':'+0630' }}</div>
-        <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</div>
+        <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | displayDate:'short' }}</div>
+        <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | displayDate:'short' }}</div>
         <div class="session-actions">
           <a *ngIf="s.zoomJoinUrl" [href]="s.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>
           <button *ngIf="s.canCheckOut" type="button" class="btn btn-primary" (click)="openCheckOut(s)">Check-out (add notes)</button>
@@ -47,7 +47,7 @@
       <div *ngIf="inProgressGroupSession" class="session-card group-session">
         <div class="session-info">
           <strong>{{ inProgressGroupSession.groupClassName }}</strong> – In progress
-          <span class="status">Started {{ inProgressGroupSession.checkInTime | date:'short':'+0630' }}</span>
+          <span class="status">Started {{ inProgressGroupSession.checkInTime | displayDate:'short' }}</span>
         </div>
         <div class="session-actions">
           <a *ngIf="inProgressGroupSession.zoomJoinUrl" [href]="inProgressGroupSession.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>

@@ -15,8 +15,8 @@
         <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
         <span class="status">Status: {{ s.status }}</span>
       </div>
-      <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short':'+0630' }}</div>
-      <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</div>
+      <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | displayDate:'short' }}</div>
+      <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | displayDate:'short' }}</div>
       <div class="session-actions">
         <button type="button" class="btn btn-outline" (click)="overrideCheckIn(s)">Override Check-In</button>
         <button type="button" class="btn btn-outline" (click)="overrideCheckOut(s)">Override Check-Out</button>

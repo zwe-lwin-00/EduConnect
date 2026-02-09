@@ -4,13 +4,14 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ParentService } from '../../../../core/services/parent.service';
 import { StudentLearningOverviewDto } from '../../../../core/models/parent.model';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
+import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 @Component({
   selector: 'app-parent-student-learning',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, DisplayDatePipe],
   templateUrl: './parent-student-learning.component.html',
   styleUrl: './parent-student-learning.component.css'
 })

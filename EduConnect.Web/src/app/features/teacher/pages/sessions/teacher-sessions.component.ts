@@ -6,11 +6,12 @@ import { ButtonModule } from 'primeng/button';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
 import { ConfirmationService } from 'primeng/api';
+import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 
 @Component({
   selector: 'app-teacher-sessions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonModule],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, DisplayDatePipe],
   templateUrl: './teacher-sessions.component.html',
   styleUrl: './teacher-sessions.component.css'
 })

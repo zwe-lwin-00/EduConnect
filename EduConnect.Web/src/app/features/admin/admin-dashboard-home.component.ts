@@ -8,11 +8,12 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
 import { AdminService } from '../../core/services/admin.service';
 import { DashboardDto } from '../../core/models/admin.model';
+import { DisplayDatePipe } from '../../shared/pipes/display-date.pipe';
 
 @Component({
   selector: 'app-admin-dashboard-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, TagModule, ButtonModule, SkeletonModule, MessageModule],
+  imports: [CommonModule, RouterModule, CardModule, TagModule, ButtonModule, SkeletonModule, MessageModule, DisplayDatePipe],
   templateUrl: './admin-dashboard-home.component.html',
   styleUrl: './admin-dashboard-home.component.css'
 })

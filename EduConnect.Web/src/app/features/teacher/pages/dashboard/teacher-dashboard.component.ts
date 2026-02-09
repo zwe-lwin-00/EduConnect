@@ -8,11 +8,12 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { MessageModule } from 'primeng/message';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherDashboardDto } from '../../../../core/models/teacher.model';
+import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, TagModule, ButtonModule, SkeletonModule, MessageModule],
+  imports: [CommonModule, RouterModule, CardModule, TagModule, ButtonModule, SkeletonModule, MessageModule, DisplayDatePipe],
   templateUrl: './teacher-dashboard.component.html',
   styleUrl: './teacher-dashboard.component.css'
 })

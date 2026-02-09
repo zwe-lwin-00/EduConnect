@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../../core/services/admin.service';
 import { DailyReportDto, MonthlyReportDto } from '../../../../core/models/admin.model';
+import { appConfig } from '../../../../core/constants/app-config';
 
 @Component({
   selector: 'app-admin-reports',
@@ -14,8 +15,8 @@ import { DailyReportDto, MonthlyReportDto } from '../../../../core/models/admin.
 export class AdminReportsComponent implements OnInit {
   dailyReport: DailyReportDto | null = null;
   monthlyReport: MonthlyReportDto | null = null;
-  /** Today in Myanmar (Asia/Yangon) as YYYY-MM-DD */
-  dailyDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Yangon' });
+  /** Today in app timezone as YYYY-MM-DD (from environment.timeZone) */
+  dailyDate = new Date().toLocaleDateString('en-CA', { timeZone: appConfig.timeZone });
   reportYear = new Date().getFullYear();
   reportMonth = new Date().getMonth() + 1;
   loadingDaily = false;

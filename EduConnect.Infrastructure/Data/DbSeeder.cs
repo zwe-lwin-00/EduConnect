@@ -8,8 +8,6 @@ namespace EduConnect.Infrastructure.Data;
 
 public static class DbSeeder
 {
-    private static readonly string[] DefaultRoles = { "Admin", "Teacher", "Parent" };
-
     public static async Task SeedAsync(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
@@ -18,7 +16,10 @@ public static class DbSeeder
     {
         await context.Database.EnsureCreatedAsync();
 
-        var roles = configuration.GetSection("SeedData:Roles").Get<string[]>() ?? DefaultRoles;
+        var rolesSection = configuration.GetSection("SeedData:Roles");
+        var roles = rolesSection.Get<string[]>();
+        if (roles == null || roles.Length == 0)
+            throw new InvalidOperationException("SeedData:Roles is required in config (e.g. [\"Admin\", \"Teacher\", \"Parent\"]).");
         foreach (var role in roles)
         {
             if (string.IsNullOrWhiteSpace(role)) continue;
@@ -29,11 +30,14 @@ public static class DbSeeder
         }
 
         var seedAdmin = configuration.GetSection("SeedData:DefaultAdmin");
-        var adminEmail = seedAdmin["Email"] ?? "admin@educonnect.com";
-        var adminPassword = seedAdmin["Password"] ?? "1qaz!QAZ";
-        var adminFirstName = seedAdmin["FirstName"] ?? "Admin";
-        var adminLastName = seedAdmin["LastName"] ?? "User";
-        var adminPhone = seedAdmin["PhoneNumber"] ?? "+959123456789";
+        var adminEmail = seedAdmin["Email"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:Email is required.");
+        var adminPassword = seedAdmin["Password"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:Password is required.");
+        var adminFirstName = seedAdmin["FirstName"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:FirstName is required.");
+        var adminLastName = seedAdmin["LastName"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:LastName is required.");
+        var adminPhone = seedAdmin["PhoneNumber"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:PhoneNumber is required.");
+        var defaultAdminRole = seedAdmin["Role"]?.Trim();
+        if (string.IsNullOrEmpty(defaultAdminRole))
+            defaultAdminRole = roles[0];
 
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -55,7 +59,7 @@ public static class DbSeeder
             var result = await userManager.CreateAsync(adminUser, adminPassword);
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
+                await userManager.AddToRoleAsync(adminUser, defaultAdminRole);
                 Console.WriteLine("Default admin account created (from config SeedData:DefaultAdmin):");
                 Console.WriteLine($"Email: {adminEmail}");
                 Console.WriteLine("Please change the password after first login!");

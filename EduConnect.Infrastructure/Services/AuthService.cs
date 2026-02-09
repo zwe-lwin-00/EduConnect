@@ -176,9 +176,9 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(ApplicationUser user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
-        var issuer = jwtSettings["Issuer"] ?? "EduConnect";
-        var audience = jwtSettings["Audience"] ?? "EduConnectUsers";
+        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey is required in config.");
+        var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JwtSettings:Issuer is required in config.");
+        var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JwtSettings:Audience is required in config.");
 
         var claims = new List<Claim>
         {
@@ -221,12 +221,16 @@ public class AuthService : IAuthService
     private int GetJwtExpirationMinutes()
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        return int.TryParse(jwtSettings["ExpirationInMinutes"], out var minutes) ? minutes : 60;
+        if (!int.TryParse(jwtSettings["ExpirationInMinutes"], out var minutes) || minutes < 1)
+            throw new InvalidOperationException("JwtSettings:ExpirationInMinutes is required and must be a positive integer.");
+        return minutes;
     }
 
     private int GetRefreshTokenExpirationDays()
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        return int.TryParse(jwtSettings["RefreshTokenExpirationInDays"], out var days) ? days : 7;
+        if (!int.TryParse(jwtSettings["RefreshTokenExpirationInDays"], out var days) || days < 1)
+            throw new InvalidOperationException("JwtSettings:RefreshTokenExpirationInDays is required and must be a positive integer.");
+        return days;
     }
 }

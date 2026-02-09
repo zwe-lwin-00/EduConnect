@@ -17,7 +17,7 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog (console + file; do not log credentials — use LoggerExtensions which redact)
-var logPath = builder.Configuration["Serilog:File:Path"] ?? "Logs/educonnect-.txt";
+var logPath = builder.Configuration["Serilog:File:Path"] ?? throw new InvalidOperationException("Serilog:File:Path is required in config.");
 var logRetainedDays = builder.Configuration.GetValue<int?>("Serilog:File:RetainedFileCountDays");
 var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -131,11 +131,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// CORS Configuration (origins from appsettings Cors:AllowedOrigins, semicolon-separated)
-// Frontend runs on port 5480 (see EduConnect.Web/angular.json). API runs on 5049 (see Properties/launchSettings.json).
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string>()?
-    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-    ?? new[] { "http://localhost:5480", "https://localhost:5480" };
+// CORS (required in appsettings Cors:AllowedOrigins, semicolon-separated)
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string>();
+var allowedOrigins = string.IsNullOrWhiteSpace(corsOrigins)
+    ? throw new InvalidOperationException("Cors:AllowedOrigins is required in appsettings.")
+    : corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
@@ -157,21 +157,28 @@ builder.Services.AddApplicationServices();
 var encryptionKey = builder.Configuration["Encryption:Key"] ?? throw new InvalidOperationException("Encryption key not configured");
 builder.Services.AddSingleton<IEncryptionService>(sp => new EncryptionService(encryptionKey));
 
-// Rate limiting (e.g. brute-force protection on login)
+// Rate limiting (from appsettings RateLimiting)
+var rateLimit = builder.Configuration.GetSection("RateLimiting");
+var globalPermit = rateLimit.GetValue("GlobalPermitLimit", 100);
+var globalWindowMin = rateLimit.GetValue("GlobalWindowMinutes", 1);
+var authPermit = rateLimit.GetValue("AuthPermitLimit", 10);
+var authWindowMin = rateLimit.GetValue("AuthWindowMinutes", 1);
+var rejectedMsg = rateLimit["RejectedMessage"] ?? "Too many requests. Try again later.";
+var rejectedCode = rateLimit["RejectedCode"] ?? "RATE_LIMITED";
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = 100, Window = TimeSpan.FromMinutes(1) }));
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = globalPermit, Window = TimeSpan.FromMinutes(globalWindowMin) }));
     options.AddPolicy("auth", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = authPermit, Window = TimeSpan.FromMinutes(authWindowMin) }));
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Too many requests. Try again later.", code = "RATE_LIMITED" }, token);
+        await context.HttpContext.Response.WriteAsJsonAsync(new { error = rejectedMsg, code = rejectedCode }, token);
     };
 });
 
@@ -203,8 +210,13 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("live") });
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
+var healthLive = builder.Configuration["HealthChecks:LivePath"] ?? "/health/live";
+var healthReady = builder.Configuration["HealthChecks:ReadyPath"] ?? "/health/ready";
+app.MapHealthChecks(healthLive, new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("live") });
+app.MapHealthChecks(healthReady, new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions { Predicate = c => c.Tags.Contains("ready") });
+
+// Timezone for "today" and reports (from appsettings TimeZone)
+EduConnect.Infrastructure.MyanmarTimeHelper.Initialize(builder.Configuration);
 
 // Ensure database is created and seed data (SeedData from appsettings)
 using (var scope = app.Services.CreateScope())

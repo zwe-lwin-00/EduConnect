@@ -49,7 +49,7 @@
         <ul *ngIf="dashboard.todaySessions.length > 0" class="session-list">
           <li *ngFor="let s of dashboard.todaySessions" class="session-item">
             <strong>{{ s.teacherName }}</strong> – {{ s.studentName }}
-            <span class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | date:'short':'+0630' }}</span></span>
+            <span class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | displayDate:'short' }}</span></span>
           </li>
         </ul>
         <p-button routerLink="/admin/attendance" label="Attendance" icon="pi pi-arrow-right" iconPos="right" [link]="true" styleClass="p-0 mt-2" />

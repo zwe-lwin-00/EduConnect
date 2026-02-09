@@ -76,8 +76,8 @@
       <div *ngIf="overview.completedSessions.length === 0" class="empty">No completed sessions yet.</div>
       <div *ngFor="let c of overview.completedSessions" class="session-card">
         <div class="session-header">
-          {{ c.teacherName }} · {{ c.checkInTime | date:'short':'+0630' }}
-          <span *ngIf="c.checkOutTime"> – {{ c.checkOutTime | date:'short':'+0630' }}</span>
+          {{ c.teacherName }} · {{ c.checkInTime | displayDate:'short' }}
+          <span *ngIf="c.checkOutTime"> – {{ c.checkOutTime | displayDate:'short' }}</span>
           · {{ c.hoursUsed | number:'1.1-1' }} hrs
         </div>
         <div class="session-notes" *ngIf="c.lessonNotes">
@@ -94,7 +94,7 @@
       <p class="hint">Assignments from teachers (read-only).</p>
       <div *ngIf="!overview.homeworks?.length" class="empty">No homework yet.</div>
       <div *ngFor="let h of overview.homeworks || []" class="session-card">
-        <div class="session-header">{{ h.title }} · {{ h.teacherName }} · Due {{ h.dueDate | date:'shortDate':'+0630' }} · {{ h.statusText }}</div>
+        <div class="session-header">{{ h.title }} · {{ h.teacherName }} · Due {{ h.dueDate | displayDate:'shortDate' }} · {{ h.statusText }}</div>
         <div class="session-notes" *ngIf="h.description">{{ h.description }}</div>
         <div class="session-notes" *ngIf="h.teacherFeedback"><strong>Teacher feedback:</strong> {{ h.teacherFeedback }}</div>
       </div>
@@ -105,7 +105,7 @@
       <p class="hint">Grades and assessments from teachers (read-only).</p>
       <div *ngIf="!overview.grades?.length" class="empty">No grades yet.</div>
       <div *ngFor="let g of overview.grades || []" class="session-card">
-        <div class="session-header">{{ g.title }} · {{ g.teacherName }} · {{ g.gradeValue }}{{ g.maxValue != null ? ' / ' + g.maxValue : '' }} · {{ g.gradeDate | date:'shortDate':'+0630' }}</div>
+        <div class="session-header">{{ g.title }} · {{ g.teacherName }} · {{ g.gradeValue }}{{ g.maxValue != null ? ' / ' + g.maxValue : '' }} · {{ g.gradeDate | displayDate:'shortDate' }}</div>
         <div class="session-notes" *ngIf="g.notes">{{ g.notes }}</div>
       </div>
     </section>

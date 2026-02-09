@@ -48,7 +48,7 @@
         <div *ngIf="dashboard.todaySessions.length > 0" class="session-list">
           <div *ngFor="let s of dashboard.todaySessions" class="session-item">
             <div class="session-row"><strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}</div>
-            <div class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | date:'short':'+0630' }}</span></div>
+            <div class="session-meta">{{ s.status }}<span *ngIf="s.checkInTime"> · {{ s.checkInTime | displayDate:'short' }}</span></div>
           </div>
         </div>
         <p-button label="Sessions" icon="pi pi-arrow-right" iconPos="right" [link]="true" routerLink="/teacher/sessions" styleClass="p-0 mt-2" />

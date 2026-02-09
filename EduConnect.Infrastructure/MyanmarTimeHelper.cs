@@ -1,28 +1,53 @@
+using Microsoft.Extensions.Configuration;
+
 namespace EduConnect.Infrastructure;
 
 /// <summary>
-/// Provides Myanmar timezone (Asia/Yangon, UTC+6:30) for "today" and date-range logic.
-/// All app times are interpreted in Myanmar time.
+/// Provides app timezone (default Myanmar/Asia/Yangon) for "today" and date-range logic.
+/// Configure via appsettings TimeZone:Id and TimeZone:IdFallback. Call Initialize at startup.
 /// </summary>
 public static class MyanmarTimeHelper
 {
     private static TimeZoneInfo? _myanmarTz;
+    private static readonly object _lock = new();
+
+    /// <summary>Call at startup so timezone is read from config (TimeZone:Id, TimeZone:IdFallback).</summary>
+    public static void Initialize(IConfiguration configuration)
+    {
+        var section = configuration?.GetSection("TimeZone");
+        var id = section?["Id"] ?? "Asia/Yangon";
+        var idFallback = section?["IdFallback"] ?? "Myanmar Standard Time";
+        lock (_lock)
+        {
+            try
+            {
+                _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById(id);
+            }
+            catch
+            {
+                _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById(idFallback);
+            }
+        }
+    }
 
     public static TimeZoneInfo MyanmarTimeZone
     {
         get
         {
             if (_myanmarTz != null) return _myanmarTz;
-            // IANA ID works on Linux/macOS and .NET 6+ on Windows; fallback for older Windows
-            try
+            lock (_lock)
             {
-                _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Yangon");
+                if (_myanmarTz != null) return _myanmarTz;
+                try
+                {
+                    _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Yangon");
+                }
+                catch
+                {
+                    _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById("Myanmar Standard Time");
+                }
+                return _myanmarTz;
             }
-            catch
-            {
-                _myanmarTz = TimeZoneInfo.FindSystemTimeZoneById("Myanmar Standard Time");
-            }
-            return _myanmarTz;
         }
     }
 

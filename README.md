@@ -346,6 +346,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 
 ## ⚙️ Configuration (all dynamic – no hardcoding)
 
+Backend and frontend use **dynamic config only**: no fallback literals in code for URLs, timezones, rate limits, or secrets. Backend requires the keys below (throws at startup if missing); frontend uses `environment.ts` / `environment.prod.ts` for API URL and timezone.
+
 ### Backend (appsettings.json / appsettings.Development.json)
 
 All backend config is driven by `appsettings.json`. Override per environment with `appsettings.Development.json` or `appsettings.Production.json`.
@@ -357,8 +359,11 @@ All backend config is driven by `appsettings.json`. Override per environment wit
 | **JwtSettings** | SecretKey, Issuer, Audience, ExpirationInMinutes | JWT auth |
 | **Encryption** | Key | AES key for sensitive data |
 | **SeedData** | **Roles** | Array of role names to seed (default: Admin, Teacher, Parent) |
-| **SeedData:DefaultAdmin** | Email, Password, FirstName, LastName, PhoneNumber | Default admin account (created on first run) |
+| **SeedData:DefaultAdmin** | Email, Password, FirstName, LastName, PhoneNumber, Role (optional; defaults to first in Roles) | Default admin account (created on first run) |
 | **Gemini** | ApiKey | Optional Gemini API key |
+| **RateLimiting** | GlobalPermitLimit, GlobalWindowMinutes, AuthPermitLimit, AuthWindowMinutes, RejectedMessage, RejectedCode | Rate limit and 429 response text |
+| **TimeZone** | Id (e.g. Asia/Yangon), IdFallback (e.g. Myanmar Standard Time) | App timezone for "today" and reports |
+| **HealthChecks** | LivePath, ReadyPath | Paths for liveness/readiness (default /health/live, /health/ready) |
 
 Example override in `appsettings.Development.json`:
 
