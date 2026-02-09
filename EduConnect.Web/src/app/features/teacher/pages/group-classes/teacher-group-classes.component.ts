@@ -7,7 +7,6 @@ import {
   GroupClassDto,
   GroupClassEnrollmentDto,
   TeacherAssignedStudentDto,
-  CreateGroupClassRequest,
   UpdateGroupClassRequest,
   EnrollInGroupClassRequest
 } from '../../../../core/models/teacher.model';
@@ -25,9 +24,6 @@ export class TeacherGroupClassesComponent implements OnInit {
   enrollments: GroupClassEnrollmentDto[] = [];
   loading = true;
   error = '';
-  newClassName = '';
-  newClassZoomUrl = '';
-  creating = false;
   selectedGroupClass: GroupClassDto | null = null;
   showEnrollModal = false;
   /** Selected contract (one row from assignedStudents = one contract). */
@@ -71,24 +67,6 @@ export class TeacherGroupClassesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
-      }
-    });
-  }
-
-  createGroupClass(): void {
-    const name = this.newClassName?.trim();
-    if (!name) { this.error = 'Enter a name for the group class.'; return; }
-    this.creating = true;
-    this.teacherService.createGroupClass({ name, zoomJoinUrl: this.newClassZoomUrl?.trim() || null }).subscribe({
-      next: () => {
-        this.newClassName = '';
-        this.newClassZoomUrl = '';
-        this.creating = false;
-        this.load();
-      },
-      error: (err) => {
-        this.error = err.error?.error || err.message || 'Failed to create';
-        this.creating = false;
       }
     });
   }

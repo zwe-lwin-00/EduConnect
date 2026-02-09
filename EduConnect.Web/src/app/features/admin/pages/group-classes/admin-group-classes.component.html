@@ -1,0 +1,145 @@
+<div class="admin-group-classes">
+  <div class="page-header">
+    <h1>Group classes</h1>
+    <p class="page-desc">Create group classes and assign a teacher. Teachers see only classes assigned to them and can edit name/Zoom/active and manage enrollments.</p>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">Create group class</button>
+  </div>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="loading" class="loading">Loading...</div>
+
+  <div *ngIf="!loading && groupClasses.length === 0" class="empty">No group classes. Create one to get started.</div>
+
+  <table *ngIf="!loading && groupClasses.length > 0" class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Teacher</th>
+        <th>Zoom</th>
+        <th>Active</th>
+        <th>Enrolled</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let gc of groupClasses; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ gc.name }}</td>
+        <td>{{ gc.teacherName || '—' }}</td>
+        <td>{{ gc.zoomJoinUrl ? 'Yes' : '—' }}</td>
+        <td>{{ gc.isActive ? 'Yes' : 'No' }}</td>
+        <td>{{ gc.enrolledCount }}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="openEdit(gc)">Edit</button>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="openEnrollments(gc)">Enrollments</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Create modal -->
+  <div *ngIf="showCreate" class="modal-overlay" (click)="showCreate = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Create group class</h3>
+        <button type="button" class="btn-close" (click)="showCreate = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="newName" class="form-control" placeholder="e.g. Grade 2 Math" />
+        </div>
+        <div class="form-group">
+          <label>Assign teacher *</label>
+          <select [(ngModel)]="newTeacherId" class="form-control">
+            <option [ngValue]="null">-- Select teacher --</option>
+            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Zoom join URL (optional)</label>
+          <input type="url" [(ngModel)]="newZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" (click)="showCreate = false">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="create()" [disabled]="creating || !(newName || '').trim() || newTeacherId == null">{{ creating ? 'Creating...' : 'Create' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit modal -->
+  <div *ngIf="showEdit && selectedClass" class="modal-overlay" (click)="showEdit = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Edit group class</h3>
+        <button type="button" class="btn-close" (click)="showEdit = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="editName" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Assign teacher *</label>
+          <select [(ngModel)]="editTeacherId" class="form-control">
+            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Zoom join URL</label>
+          <input type="url" [(ngModel)]="editZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" (click)="showEdit = false">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="update()" [disabled]="updating">{{ updating ? 'Saving...' : 'Save' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enrollments modal -->
+  <div *ngIf="showEnrollments && selectedClass" class="modal-overlay" (click)="closeEnrollments()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Enrollments – {{ selectedClass.name }}</h3>
+        <button type="button" class="btn-close" (click)="closeEnrollments()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <button type="button" class="btn btn-primary add-enroll" (click)="openEnrollModal()">Add student (by contract)</button>
+        <p class="hint">Only contracts with the assigned teacher ({{ selectedClass.teacherName }}) and not already enrolled are listed.</p>
+        <ul class="enrollment-list">
+          <li *ngFor="let e of enrollments" class="enrollment-item">
+            <span>{{ e.studentName }} – {{ e.contractIdDisplay }}</span>
+            <button type="button" class="btn btn-sm btn-danger" (click)="unenroll(e.id)">Remove</button>
+          </li>
+          <li *ngIf="enrollments.length === 0" class="empty">No enrollments.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add enrollment modal -->
+  <div *ngIf="showEnrollModal && selectedClass" class="modal-overlay" (click)="showEnrollModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add student to {{ selectedClass.name }}</h3>
+        <button type="button" class="btn-close" (click)="showEnrollModal = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <select [(ngModel)]="enrollContractId" class="form-control">
+          <option [ngValue]="null">-- Select student & contract --</option>
+          <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
+        </select>
+        <div class="form-actions">
+          <button type="button" class="btn" (click)="showEnrollModal = false">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!enrollContractId || enrolling">{{ enrolling ? 'Enrolling...' : 'Enroll' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

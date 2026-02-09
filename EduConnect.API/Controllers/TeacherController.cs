@@ -273,21 +273,6 @@ public class TeacherController : BaseController
         }
     }
 
-    [HttpPost("group-classes")]
-    public async Task<IActionResult> CreateGroupClass([FromBody] CreateGroupClassRequest request)
-    {
-        try
-        {
-            var teacherId = await GetTeacherIdAsync();
-            var result = await _groupClassService.CreateAsync(teacherId, request.Name ?? "", request.ZoomJoinUrl);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-    }
-
     [HttpGet("group-classes/{id}")]
     public async Task<IActionResult> GetGroupClassById(int id)
     {

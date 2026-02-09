@@ -1,19 +1,8 @@
 <div class="teacher-group-classes">
   <h1>Group classes</h1>
-  <p class="page-desc">Create group classes and enroll students (by contract). Each teacher uses their own Zoom account: set up a meeting for each group class and paste the join link below. Enrolled students join via that link when you start a group session.</p>
+  <p class="page-desc">Group classes are created by Admin and assigned to you. Here you can edit name/Zoom/active and manage enrollments. Use your own Zoom account: set up a meeting for each class and paste the join link. Enrolled students join via that link when you start a group session.</p>
 
   <div *ngIf="error" class="error">{{ error }}</div>
-
-  <section class="section create-section">
-    <h2>Create group class</h2>
-    <div class="create-row">
-      <input type="text" [(ngModel)]="newClassName" class="form-control" placeholder="Group class name" />
-      <input type="url" [(ngModel)]="newClassZoomUrl" class="form-control zoom-url" placeholder="Your Zoom meeting join URL for this class" />
-      <button type="button" class="btn btn-primary" (click)="createGroupClass()" [disabled]="creating || !(newClassName || '').trim()">
-        {{ creating ? 'Creating...' : 'Create' }}
-      </button>
-    </div>
-  </section>
 
   <section class="section list-section">
     <h2>Your group classes</h2>

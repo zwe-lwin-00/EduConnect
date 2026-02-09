@@ -4,6 +4,8 @@ public class GroupClassDto
 {
     public int Id { get; set; }
     public int TeacherId { get; set; }
+    /// <summary>Set when returned for admin (list/detail).</summary>
+    public string? TeacherName { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     /// <summary>Zoom meeting join URL for this group class.</summary>

@@ -16,7 +16,6 @@ import {
   GroupSessionDto,
   GroupCheckInRequest,
   GroupCheckOutRequest,
-  CreateGroupClassRequest,
   UpdateGroupClassRequest,
   UpdateZoomJoinUrlRequest,
   EnrollInGroupClassRequest,
@@ -97,10 +96,6 @@ export class TeacherService {
 
   getGroupClasses(): Observable<GroupClassDto[]> {
     return this.apiService.get<GroupClassDto[]>(API_ENDPOINTS.TEACHER.GROUP_CLASSES);
-  }
-
-  createGroupClass(request: CreateGroupClassRequest): Observable<GroupClassDto> {
-    return this.apiService.post<GroupClassDto>(API_ENDPOINTS.TEACHER.GROUP_CLASSES, request);
   }
 
   getGroupClassById(id: number): Observable<GroupClassDto> {

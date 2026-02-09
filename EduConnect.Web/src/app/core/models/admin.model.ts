@@ -196,3 +196,42 @@ export interface PagedResult<T> {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
 }
+
+// Admin: Group classes (admin prepares; assigns teacher)
+export interface AdminGroupClassDto {
+  id: number;
+  teacherId: number;
+  teacherName?: string;
+  name: string;
+  isActive: boolean;
+  zoomJoinUrl?: string | null;
+  createdAt: string;
+  enrolledCount: number;
+}
+
+export interface AdminGroupClassEnrollmentDto {
+  id: number;
+  groupClassId: number;
+  studentId: number;
+  studentName: string;
+  contractId: number;
+  contractIdDisplay: string;
+}
+
+export interface AdminCreateGroupClassRequest {
+  name: string;
+  teacherId: number;
+  zoomJoinUrl?: string | null;
+}
+
+export interface AdminUpdateGroupClassRequest {
+  name?: string;
+  teacherId: number;
+  isActive: boolean;
+  zoomJoinUrl?: string | null;
+}
+
+export interface EnrollInGroupClassRequest {
+  studentId: number;
+  contractId: number;
+}

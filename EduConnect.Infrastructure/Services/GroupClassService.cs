@@ -21,6 +21,9 @@ public class GroupClassService : IGroupClassService
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new BusinessException("Group class name is required.", "NAME_REQUIRED");
+        var teacherExists = await _context.TeacherProfiles.AnyAsync(t => t.Id == teacherId);
+        if (!teacherExists)
+            throw new NotFoundException("Teacher", teacherId);
         var group = new GroupClass
         {
             TeacherId = teacherId,
@@ -121,12 +124,78 @@ public class GroupClassService : IGroupClassService
         }).ToList();
     }
 
-    private static GroupClassDto MapToDto(GroupClass g, int enrolledCount)
+    public async Task<List<GroupClassDto>> GetAllForAdminAsync()
+    {
+        var list = await _context.GroupClasses
+            .AsNoTracking()
+            .Include(g => g.Enrollments)
+            .Include(g => g.Teacher).ThenInclude(t => t.User)
+            .OrderBy(g => g.Name)
+            .ToListAsync();
+        return list.Select(g => MapToDto(g, g.Enrollments.Count, g.Teacher?.User != null ? $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}" : null)).ToList();
+    }
+
+    public async Task<GroupClassDto?> GetByIdForAdminAsync(int groupClassId)
+    {
+        var g = await _context.GroupClasses
+            .AsNoTracking()
+            .Include(x => x.Teacher).ThenInclude(t => t!.User)
+            .FirstOrDefaultAsync(x => x.Id == groupClassId);
+        if (g == null) return null;
+        var count = await _context.GroupClassEnrollments.CountAsync(e => e.GroupClassId == groupClassId);
+        return MapToDto(g, count, g.Teacher?.User != null ? $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}" : null);
+    }
+
+    public async Task<bool> UpdateByAdminAsync(int groupClassId, int teacherId, string name, bool isActive, string? zoomJoinUrl = null)
+    {
+        var g = await _context.GroupClasses.Include(x => x.Enrollments).FirstOrDefaultAsync(x => x.Id == groupClassId);
+        if (g == null) return false;
+        if (g.TeacherId != teacherId && g.Enrollments.Count > 0)
+            throw new BusinessException("Cannot change assigned teacher when there are enrollments. Remove enrollments first or create a new group class.", "HAS_ENROLLMENTS");
+        g.TeacherId = teacherId;
+        if (!string.IsNullOrWhiteSpace(name)) g.Name = name.Trim();
+        g.IsActive = isActive;
+        g.ZoomJoinUrl = string.IsNullOrWhiteSpace(zoomJoinUrl) ? null : zoomJoinUrl.Trim();
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<GroupClassEnrollmentDto>> GetEnrollmentsForAdminAsync(int groupClassId)
+    {
+        var list = await _context.GroupClassEnrollments
+            .AsNoTracking()
+            .Include(e => e.Student)
+            .Include(e => e.ContractSession)
+            .Where(e => e.GroupClassId == groupClassId)
+            .OrderBy(e => e.Student!.FirstName)
+            .ToListAsync();
+        return list.Select(e => new GroupClassEnrollmentDto
+        {
+            Id = e.Id,
+            GroupClassId = e.GroupClassId,
+            StudentId = e.StudentId,
+            StudentName = $"{e.Student!.FirstName} {e.Student.LastName}",
+            ContractId = e.ContractId,
+            ContractIdDisplay = e.ContractSession?.ContractId ?? ""
+        }).ToList();
+    }
+
+    public async Task<bool> UnenrollByAdminAsync(int enrollmentId)
+    {
+        var e = await _context.GroupClassEnrollments.FirstOrDefaultAsync(x => x.Id == enrollmentId);
+        if (e == null) return false;
+        _context.GroupClassEnrollments.Remove(e);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    private static GroupClassDto MapToDto(GroupClass g, int enrolledCount, string? teacherName = null)
     {
         return new GroupClassDto
         {
             Id = g.Id,
             TeacherId = g.TeacherId,
+            TeacherName = teacherName,
             Name = g.Name,
             IsActive = g.IsActive,
             ZoomJoinUrl = g.ZoomJoinUrl,

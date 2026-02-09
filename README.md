@@ -166,7 +166,7 @@ EduConnect.Web/
 | Role   | Access |
 |--------|--------|
 | **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, contracts, attendance, payments, reports. All users created by Admin. |
-| **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **group classes** (create, enroll students, set Zoom link per class), **Profile** (read-only core data; can set **Zoom join URL** for 1:1 teaching). Each teacher uses their own Zoom account. No pricing or parent contact. |
+| **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **group classes** (view/edit name, Zoom, active; manage enrollments—**admin creates** group classes and assigns teacher), **Profile** (read-only core data; can set **Zoom join URL** for 1:1 teaching). Each teacher uses their own Zoom account. No pricing or parent contact. |
 | **Parent** | **Has account** (created by Admin via "Create Parent"). Logs in with email/password; sees My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
 
 **Students (P1–P4)** do not have login accounts in Phase 1. They are linked to a parent; the parent views all student data (contracts, sessions, progress) under their own account. Optionally, student accounts could be added later (e.g. so students can log in to view their own schedule).
@@ -214,15 +214,20 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - Contract moves to Active; remaining hours drive session usage.  
    - **Cancel** contract when needed.
 
-5. **Attendance** (`/admin/attendance`)  
+5. **Group classes** (`/admin/group-classes`)  
+   - **Create** group classes (name, assign teacher, optional Zoom join URL). Teacher must exist.  
+   - **Edit** name, assigned teacher, Zoom URL, and active status. **Cannot change assigned teacher** when the class has enrollments (remove enrollments first or create a new group class).  
+   - **Enroll** students (by contract for that teacher; one enrollment per student per group). Remove enrollments as needed.
+
+6. **Attendance** (`/admin/attendance`)  
    - View **today’s sessions**; override check-in/check-out if needed.  
    - **Adjust hours** (deduct from contract remaining hours).
 
-6. **Payments** (`/admin/payments`)  
+7. **Payments** (`/admin/payments`)  
    - **Credit** or **Deduct** hours on a contract (with reason).  
    - Student wallet balance reflects available hours.
 
-7. **Reports** (`/admin/reports`)  
+8. **Reports** (`/admin/reports`)  
    - **Daily** and **monthly** reports (e.g. sessions, revenue) powered by Dapper.
 
 ### Teacher Flow
@@ -243,8 +248,8 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - Admin can override or adjust in Attendance.
 
 5. **Group classes** (`/teacher/group-classes`)  
-   - **Create** group classes (name, optional Zoom join URL). Each teacher uses their own Zoom account: create a meeting for the class and paste the join link.  
-   - **Edit** name, Zoom URL, and active status; **enroll** students (by contract—one enrollment per student per group; requires an active 1:1 contract with that teacher).  
+   - **Admin creates** group classes and assigns the teacher; teachers only see classes assigned to them.  
+   - **Edit** name, Zoom URL, and active status; **enroll** students (by contract—one enrollment per student per group; requires an active 1:1 contract with that teacher). Each teacher uses their own Zoom account: create a meeting and paste the join link per class.  
    - Enrolled students are included when the teacher starts a group session from Sessions; the group’s Zoom link is shown for the in-progress session.
 
 6. **Homework & Grades** (`/teacher/homework-grades`)  
@@ -270,7 +275,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 
 - **Users & roles**: Admin creates all users (teachers, parents). Teachers are verified by admin.  
 - **Contracts** link Teacher ↔ Student (package hours, remaining hours, status).  
-- **Sessions**: **One-to-one**—attendance (check-in/out, lesson notes) per contract; **group**—teacher has group classes, enrolls students (by contract), starts a group session and checks out with notes; hours are deducted from each enrolled student’s contract.  
+- **Sessions**: **One-to-one**—attendance (check-in/out, lesson notes) per contract; **group**—admin creates group classes and assigns teacher; teacher edits and enrolls students (by contract), starts a group session and checks out with notes; hours are deducted from each enrolled student’s contract.  
 - **Zoom**: Each teacher uses their own Zoom account. They set a default Zoom join URL in Profile (for 1:1) and per group class; the app stores and shows “Join Zoom meeting” when a session is in progress. No Zoom API—teachers paste links from their Zoom account.  
 - **Wallet** (student) and **transactions** track credit/deduct and balance.  
 - **Reports** aggregate sessions and revenue for admin.
@@ -283,8 +288,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **ContractSession** - Rental agreement tracking (PackageHours, RemainingHours)
 - **AttendanceLog** - One-to-one session tracking (check-in/out, lesson notes); optional **ZoomJoinUrl** per session
 - **TeacherAvailability** - Weekly availability schedule
-- **GroupClass** - Group class (teacher, name, active); optional **ZoomJoinUrl** for that class
-- **GroupClassEnrollment** - Student enrolled in a group class (one per student per class; links to contract for hour deduction)
+- **GroupClass** - Group class (teacher, name, active); optional **ZoomJoinUrl** for that class. Created by admin; teacher validated on create; assigned teacher cannot be changed when enrollments exist.
+- **GroupClassEnrollment** - Student enrolled in a group class (one per student per class; links to that teacher’s contract for hour deduction)
 - **GroupSession** - One delivered group session (check-in/out, lesson notes, duration); optional **ZoomJoinUrl** per session
 - **GroupSessionAttendance** - Per-student attendance and hours deducted for a group session
 - **StudentWallet** - Hours balance management
@@ -300,8 +305,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Feature-based organization (backend & frontend)
 - [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
-- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), Attendance (today, override check-in/out, adjust hours), Payments (wallet credit/deduct), Reports (daily/monthly)
-- [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **Group classes** (create, edit, enroll students by contract, set Zoom link per class), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), profile (read-only core data; **Zoom join URL** for 1:1 teaching)
+- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), **Group classes** (create, assign teacher, optional Zoom; edit name/teacher/Zoom/active; enroll students by contract; cannot change teacher when enrollments exist), Attendance (today, override check-in/out, adjust hours), Payments (wallet credit/deduct), Reports (daily/monthly)
+- [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **Group classes** (edit name/Zoom/active, enroll students by contract—admin creates and assigns; set Zoom link per class), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), profile (read-only core data; **Zoom join URL** for 1:1 teaching)
 - [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
 - [x] Teacher management: onboard, **edit** (name, phone, education, hourly rate, bio, specializations), verify, reject, activate/suspend
 - [x] Check-in/check-out system (teacher + admin override)

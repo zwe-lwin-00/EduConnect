@@ -20,7 +20,12 @@ import {
   ContractDto,
   DailyReportDto,
   MonthlyReportDto,
-  TodaySessionDto
+  TodaySessionDto,
+  AdminGroupClassDto,
+  AdminGroupClassEnrollmentDto,
+  AdminCreateGroupClassRequest,
+  AdminUpdateGroupClassRequest,
+  EnrollInGroupClassRequest
 } from '../models/admin.model';
 
 @Injectable({
@@ -173,5 +178,33 @@ export class AdminService {
     return this.apiService.get<MonthlyReportDto>(
       `${API_ENDPOINTS.ADMIN.REPORTS_MONTHLY}?year=${year}&month=${month}`
     );
+  }
+
+  getGroupClasses(): Observable<AdminGroupClassDto[]> {
+    return this.apiService.get<AdminGroupClassDto[]>(API_ENDPOINTS.ADMIN.GROUP_CLASSES);
+  }
+
+  createGroupClass(request: AdminCreateGroupClassRequest): Observable<AdminGroupClassDto> {
+    return this.apiService.post<AdminGroupClassDto>(API_ENDPOINTS.ADMIN.GROUP_CLASSES, request);
+  }
+
+  getGroupClassById(id: number): Observable<AdminGroupClassDto> {
+    return this.apiService.get<AdminGroupClassDto>(API_ENDPOINTS.ADMIN.GROUP_CLASS_BY_ID(id));
+  }
+
+  updateGroupClass(id: number, request: AdminUpdateGroupClassRequest): Observable<{ success: boolean }> {
+    return this.apiService.put(API_ENDPOINTS.ADMIN.GROUP_CLASS_BY_ID(id), request);
+  }
+
+  getGroupClassEnrollments(id: number): Observable<AdminGroupClassEnrollmentDto[]> {
+    return this.apiService.get<AdminGroupClassEnrollmentDto[]>(API_ENDPOINTS.ADMIN.GROUP_CLASS_ENROLLMENTS(id));
+  }
+
+  enrollInGroupClass(groupClassId: number, request: EnrollInGroupClassRequest): Observable<{ success: boolean }> {
+    return this.apiService.post(API_ENDPOINTS.ADMIN.GROUP_CLASS_ENROLL(groupClassId), request);
+  }
+
+  unenrollFromGroupClass(enrollmentId: number): Observable<{ success: boolean }> {
+    return this.apiService.delete(API_ENDPOINTS.ADMIN.GROUP_CLASS_UNENROLL(enrollmentId));
   }
 }

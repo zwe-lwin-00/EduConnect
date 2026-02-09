@@ -1,6 +1,9 @@
+using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.Common.Models;
 using EduConnect.Application.DTOs.Admin;
+using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Admin.Interfaces;
+using EduConnect.Application.Features.GroupClass.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +13,12 @@ namespace EduConnect.API.Controllers;
 public class AdminController : BaseController
 {
     private readonly IAdminService _adminService;
+    private readonly IGroupClassService _groupClassService;
 
-    public AdminController(IAdminService adminService)
+    public AdminController(IAdminService adminService, IGroupClassService groupClassService)
     {
         _adminService = adminService;
+        _groupClassService = groupClassService;
     }
 
     // ——— Dashboard — Master Doc B1 ———
@@ -308,6 +313,114 @@ public class AdminController : BaseController
         {
             await _adminService.CancelContractAsync(id);
             return Ok(new { success = true, message = "Contract cancelled" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    // ——— Group classes (admin prepares; assigns teacher) ———
+    [HttpGet("group-classes")]
+    public async Task<IActionResult> GetGroupClasses()
+    {
+        try
+        {
+            var list = await _groupClassService.GetAllForAdminAsync();
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("group-classes")]
+    public async Task<IActionResult> CreateGroupClass([FromBody] AdminCreateGroupClassRequest request)
+    {
+        try
+        {
+            var result = await _groupClassService.CreateAsync(request.TeacherId, request.Name ?? "", request.ZoomJoinUrl);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("group-classes/{id}")]
+    public async Task<IActionResult> GetGroupClassById(int id)
+    {
+        try
+        {
+            var result = await _groupClassService.GetByIdForAdminAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("group-classes/{id}")]
+    public async Task<IActionResult> UpdateGroupClass(int id, [FromBody] AdminUpdateGroupClassRequest request)
+    {
+        try
+        {
+            var ok = await _groupClassService.UpdateByAdminAsync(id, request.TeacherId, request.Name ?? "", request.IsActive, request.ZoomJoinUrl);
+            if (!ok) return NotFound();
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("group-classes/{id}/enrollments")]
+    public async Task<IActionResult> GetGroupClassEnrollments(int id)
+    {
+        try
+        {
+            var result = await _groupClassService.GetEnrollmentsForAdminAsync(id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("group-classes/{id}/enroll")]
+    public async Task<IActionResult> EnrollInGroupClass(int id, [FromBody] EnrollInGroupClassRequest request)
+    {
+        try
+        {
+            var group = await _groupClassService.GetByIdForAdminAsync(id);
+            if (group == null) return NotFound();
+            await _groupClassService.EnrollStudentAsync(id, group.TeacherId, request.StudentId, request.ContractId);
+            return Ok(new { success = true });
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("group-classes/enrollments/{enrollmentId}")]
+    public async Task<IActionResult> UnenrollFromGroupClass(int enrollmentId)
+    {
+        try
+        {
+            var ok = await _groupClassService.UnenrollByAdminAsync(enrollmentId);
+            if (!ok) return NotFound();
+            return Ok(new { success = true });
         }
         catch (Exception ex)
         {
