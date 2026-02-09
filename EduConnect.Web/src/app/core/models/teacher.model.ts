@@ -18,6 +18,8 @@ export interface TeacherSessionItemDto {
   lessonNotes?: string;
   canCheckIn: boolean;
   canCheckOut: boolean;
+  /** Zoom meeting join URL for this session. */
+  zoomJoinUrl?: string | null;
 }
 
 /** Week calendar session (teacher "My sessions this week" / parent "Upcoming sessions"). */
@@ -60,6 +62,8 @@ export interface TeacherProfileDto {
   educationLevel: string;
   bio?: string;
   specializations?: string;
+  /** Default Zoom meeting join URL for 1:1 teaching. */
+  zoomJoinUrl?: string | null;
   verificationStatus: string;
 }
 
@@ -146,6 +150,8 @@ export interface GroupClassDto {
   teacherId: number;
   name: string;
   isActive: boolean;
+  /** Zoom meeting join URL for this group class. */
+  zoomJoinUrl?: string | null;
   createdAt: string;
   enrolledCount: number;
 }
@@ -167,6 +173,8 @@ export interface GroupSessionDto {
   checkOutTime?: string;
   totalDurationHours: number;
   lessonNotes?: string;
+  /** Zoom meeting join URL for this session. */
+  zoomJoinUrl?: string | null;
   status: number;
   attendeeCount: number;
 }
@@ -182,11 +190,17 @@ export interface GroupCheckOutRequest {
 
 export interface CreateGroupClassRequest {
   name: string;
+  zoomJoinUrl?: string | null;
 }
 
 export interface UpdateGroupClassRequest {
   name?: string;
   isActive: boolean;
+  zoomJoinUrl?: string | null;
+}
+
+export interface UpdateZoomJoinUrlRequest {
+  zoomJoinUrl?: string | null;
 }
 
 export interface EnrollInGroupClassRequest {

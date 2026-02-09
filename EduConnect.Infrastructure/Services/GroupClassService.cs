@@ -17,7 +17,7 @@ public class GroupClassService : IGroupClassService
         _context = context;
     }
 
-    public async Task<GroupClassDto> CreateAsync(int teacherId, string name)
+    public async Task<GroupClassDto> CreateAsync(int teacherId, string name, string? zoomJoinUrl = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new BusinessException("Group class name is required.", "NAME_REQUIRED");
@@ -26,6 +26,7 @@ public class GroupClassService : IGroupClassService
             TeacherId = teacherId,
             Name = name.Trim(),
             IsActive = true,
+            ZoomJoinUrl = string.IsNullOrWhiteSpace(zoomJoinUrl) ? null : zoomJoinUrl.Trim(),
             CreatedAt = DateTime.UtcNow
         };
         _context.GroupClasses.Add(group);
@@ -54,12 +55,13 @@ public class GroupClassService : IGroupClassService
         return MapToDto(g, count);
     }
 
-    public async Task<bool> UpdateAsync(int groupClassId, int teacherId, string name, bool isActive)
+    public async Task<bool> UpdateAsync(int groupClassId, int teacherId, string name, bool isActive, string? zoomJoinUrl = null)
     {
         var g = await _context.GroupClasses.FirstOrDefaultAsync(x => x.Id == groupClassId && x.TeacherId == teacherId);
         if (g == null) return false;
         if (!string.IsNullOrWhiteSpace(name)) g.Name = name.Trim();
         g.IsActive = isActive;
+        g.ZoomJoinUrl = string.IsNullOrWhiteSpace(zoomJoinUrl) ? null : zoomJoinUrl.Trim();
         await _context.SaveChangesAsync();
         return true;
     }
@@ -127,6 +129,7 @@ public class GroupClassService : IGroupClassService
             TeacherId = g.TeacherId,
             Name = g.Name,
             IsActive = g.IsActive,
+            ZoomJoinUrl = g.ZoomJoinUrl,
             CreatedAt = g.CreatedAt,
             EnrolledCount = enrolledCount
         };

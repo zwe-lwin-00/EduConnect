@@ -24,6 +24,8 @@ public class TeacherSessionItemDto
     public string? LessonNotes { get; set; }
     public bool CanCheckIn { get; set; }
     public bool CanCheckOut { get; set; }
+    /// <summary>Zoom meeting join URL for this session (teacher's default or session override).</summary>
+    public string? ZoomJoinUrl { get; set; }
 }
 
 public class TeacherAlertDto

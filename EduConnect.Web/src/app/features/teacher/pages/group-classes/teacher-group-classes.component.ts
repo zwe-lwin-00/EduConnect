@@ -26,6 +26,7 @@ export class TeacherGroupClassesComponent implements OnInit {
   loading = true;
   error = '';
   newClassName = '';
+  newClassZoomUrl = '';
   creating = false;
   selectedGroupClass: GroupClassDto | null = null;
   showEnrollModal = false;
@@ -33,6 +34,7 @@ export class TeacherGroupClassesComponent implements OnInit {
   selectedEnrollContract: TeacherAssignedStudentDto | null = null;
   enrolling = false;
   editName = '';
+  editZoomUrl = '';
   editIsActive = true;
   updating = false;
 
@@ -61,6 +63,7 @@ export class TeacherGroupClassesComponent implements OnInit {
           if (updated) {
             this.selectedGroupClass = updated;
             this.editName = updated.name;
+            this.editZoomUrl = updated.zoomJoinUrl ?? '';
             this.editIsActive = updated.isActive;
           }
         }
@@ -76,9 +79,10 @@ export class TeacherGroupClassesComponent implements OnInit {
     const name = this.newClassName?.trim();
     if (!name) { this.error = 'Enter a name for the group class.'; return; }
     this.creating = true;
-    this.teacherService.createGroupClass({ name }).subscribe({
+    this.teacherService.createGroupClass({ name, zoomJoinUrl: this.newClassZoomUrl?.trim() || null }).subscribe({
       next: () => {
         this.newClassName = '';
+        this.newClassZoomUrl = '';
         this.creating = false;
         this.load();
       },
@@ -92,6 +96,7 @@ export class TeacherGroupClassesComponent implements OnInit {
   viewEnrollments(gc: GroupClassDto): void {
     this.selectedGroupClass = gc;
     this.editName = gc.name;
+    this.editZoomUrl = gc.zoomJoinUrl ?? '';
     this.editIsActive = gc.isActive;
     this.enrollments = [];
     this.teacherService.getGroupClassEnrollments(gc.id).subscribe({
@@ -103,7 +108,7 @@ export class TeacherGroupClassesComponent implements OnInit {
   updateGroupClass(): void {
     if (!this.selectedGroupClass) return;
     this.updating = true;
-    const request: UpdateGroupClassRequest = { name: this.editName?.trim() || this.selectedGroupClass.name, isActive: this.editIsActive };
+    const request: UpdateGroupClassRequest = { name: this.editName?.trim() || this.selectedGroupClass.name, isActive: this.editIsActive, zoomJoinUrl: this.editZoomUrl?.trim() || null };
     this.teacherService.updateGroupClass(this.selectedGroupClass.id, request).subscribe({
       next: () => {
         this.updating = false;

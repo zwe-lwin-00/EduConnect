@@ -14,12 +14,14 @@ public class GroupCheckOutRequest
 public class CreateGroupClassRequest
 {
     public string Name { get; set; } = string.Empty;
+    public string? ZoomJoinUrl { get; set; }
 }
 
 public class UpdateGroupClassRequest
 {
     public string? Name { get; set; }
     public bool IsActive { get; set; }
+    public string? ZoomJoinUrl { get; set; }
 }
 
 public class EnrollInGroupClassRequest

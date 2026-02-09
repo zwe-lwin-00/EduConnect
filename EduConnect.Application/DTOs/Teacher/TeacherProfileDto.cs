@@ -12,5 +12,7 @@ public class TeacherProfileDto
     public string EducationLevel { get; set; } = string.Empty;
     public string? Bio { get; set; }
     public string? Specializations { get; set; }
+    /// <summary>Default Zoom meeting join URL for 1:1 teaching.</summary>
+    public string? ZoomJoinUrl { get; set; }
     public string VerificationStatus { get; set; } = string.Empty;
 }

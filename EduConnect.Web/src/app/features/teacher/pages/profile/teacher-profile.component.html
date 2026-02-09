@@ -13,5 +13,12 @@
     <div class="detail-row"><strong>Verification:</strong> {{ profile.verificationStatus }}</div>
     <div class="detail-row" *ngIf="profile.bio"><strong>Bio:</strong><p>{{ profile.bio }}</p></div>
     <div class="detail-row" *ngIf="profile.specializations"><strong>Specializations:</strong> {{ profile.specializations }}</div>
+
+    <div class="zoom-section">
+      <h3>Zoom meeting (1:1 teaching)</h3>
+      <p class="hint">Use your own Zoom account to create a meeting (e.g. your Personal Meeting Room or a scheduled meeting), then paste the join link here. This will be the default link for your one-to-one sessions.</p>
+      <input type="url" [(ngModel)]="zoomJoinUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+      <button type="button" class="btn btn-primary" (click)="saveZoomUrl()" [disabled]="savingZoom">{{ savingZoom ? 'Saving...' : 'Save Zoom link' }}</button>
+    </div>
   </div>
 </div>

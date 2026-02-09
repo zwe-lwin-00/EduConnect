@@ -1,3 +1,4 @@
+using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Teacher;
 using EduConnect.Application.Features.Attendance.Interfaces;
 using EduConnect.Application.Features.GroupClass.Interfaces;
@@ -62,6 +63,21 @@ public class TeacherController : BaseController
         catch (Exception ex)
         {
             return ex is UnauthorizedAccessException ? Unauthorized() : BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPatch("profile/zoom")]
+    public async Task<IActionResult> UpdateZoomJoinUrl([FromBody] UpdateZoomJoinUrlRequest request)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            await _teacherService.UpdateZoomJoinUrlAsync(teacherId, request.ZoomJoinUrl);
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return ex is NotFoundException ? NotFound() : BadRequest(new { error = ex.Message });
         }
     }
 
@@ -263,7 +279,7 @@ public class TeacherController : BaseController
         try
         {
             var teacherId = await GetTeacherIdAsync();
-            var result = await _groupClassService.CreateAsync(teacherId, request.Name ?? "");
+            var result = await _groupClassService.CreateAsync(teacherId, request.Name ?? "", request.ZoomJoinUrl);
             return Ok(result);
         }
         catch (Exception ex)
@@ -294,7 +310,7 @@ public class TeacherController : BaseController
         try
         {
             var teacherId = await GetTeacherIdAsync();
-            var ok = await _groupClassService.UpdateAsync(id, teacherId, request.Name ?? "", request.IsActive);
+            var ok = await _groupClassService.UpdateAsync(id, teacherId, request.Name ?? "", request.IsActive, request.ZoomJoinUrl);
             if (!ok) return NotFound();
             return Ok(new { success = true });
         }

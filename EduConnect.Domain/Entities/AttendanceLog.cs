@@ -11,6 +11,8 @@ public class AttendanceLog
     public DateTime? CheckOutTime { get; set; }
     public decimal HoursUsed { get; set; }
     public string? LessonNotes { get; set; }
+    /// <summary>Zoom join URL for this session (if null, use teacher's default ZoomJoinUrl).</summary>
+    public string? ZoomJoinUrl { get; set; }
     public SessionStatus Status { get; set; } = SessionStatus.Scheduled;
     public string? ProgressReport { get; set; } // AI-generated summary
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

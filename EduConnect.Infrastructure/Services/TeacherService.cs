@@ -92,8 +92,17 @@ public class TeacherService : ITeacherService
             EducationLevel = t.EducationLevel,
             Bio = t.Bio,
             Specializations = t.Specializations,
+            ZoomJoinUrl = t.ZoomJoinUrl,
             VerificationStatus = t.VerificationStatus.ToString()
         };
+    }
+
+    public async Task UpdateZoomJoinUrlAsync(int teacherId, string? zoomJoinUrl)
+    {
+        var t = await _context.TeacherProfiles.FirstOrDefaultAsync(x => x.Id == teacherId);
+        if (t == null) throw new EduConnect.Application.Common.Exceptions.NotFoundException("Teacher", teacherId);
+        t.ZoomJoinUrl = string.IsNullOrWhiteSpace(zoomJoinUrl) ? null : zoomJoinUrl.Trim();
+        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<List<TeacherAssignedStudentDto>> GetAssignedStudentsAsync(int teacherId)
@@ -121,6 +130,7 @@ public class TeacherService : ITeacherService
         var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var logs = await _context.AttendanceLogs
             .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Teacher)
             .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc)
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
@@ -131,6 +141,7 @@ public class TeacherService : ITeacherService
     {
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
+            .Include(c => c.Teacher)
             .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active && c.RemainingHours > 0)
             .ToListAsync();
         var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
@@ -150,7 +161,8 @@ public class TeacherService : ITeacherService
                 StudentName = $"{c.Student!.FirstName} {c.Student.LastName}",
                 Status = "Available",
                 CanCheckIn = true,
-                CanCheckOut = false
+                CanCheckOut = false,
+                ZoomJoinUrl = c.Teacher?.ZoomJoinUrl
             }).ToList();
     }
 
@@ -253,7 +265,8 @@ public class TeacherService : ITeacherService
             CheckOutTime = a.CheckOutTime,
             LessonNotes = a.LessonNotes,
             CanCheckIn = false,
-            CanCheckOut = a.CheckOutTime == null
+            CanCheckOut = a.CheckOutTime == null,
+            ZoomJoinUrl = a.ZoomJoinUrl ?? a.ContractSession?.Teacher?.ZoomJoinUrl
         };
     }
 }

@@ -16,6 +16,23 @@ public static class SchemaEnsurer
         await EnsureGroupClassEnrollmentsTableAsync(context, cancellationToken);
         await EnsureGroupSessionsTableAsync(context, cancellationToken);
         await EnsureGroupSessionAttendancesTableAsync(context, cancellationToken);
+        await EnsureZoomColumnsAsync(context, cancellationToken);
+    }
+
+    /// <summary>Add Zoom join URL columns to existing tables (for teaching via Zoom).</summary>
+    private static async Task EnsureZoomColumnsAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        var alterSql = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('TeacherProfiles') AND name = 'ZoomJoinUrl')
+                ALTER TABLE [TeacherProfiles] ADD [ZoomJoinUrl] nvarchar(max) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'ZoomJoinUrl')
+                ALTER TABLE [GroupClasses] ADD [ZoomJoinUrl] nvarchar(max) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AttendanceLogs') AND name = 'ZoomJoinUrl')
+                ALTER TABLE [AttendanceLogs] ADD [ZoomJoinUrl] nvarchar(max) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupSessions') AND name = 'ZoomJoinUrl')
+                ALTER TABLE [GroupSessions] ADD [ZoomJoinUrl] nvarchar(max) NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
     }
 
     private static async Task EnsureNotificationsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
@@ -73,6 +90,7 @@ public static class SchemaEnsurer
                     [TeacherId] int NOT NULL,
                     [Name] nvarchar(200) NOT NULL,
                     [IsActive] bit NOT NULL,
+                    [ZoomJoinUrl] nvarchar(max) NULL,
                     [CreatedAt] datetime2 NOT NULL,
                     CONSTRAINT [PK_GroupClasses] PRIMARY KEY ([Id]),
                     CONSTRAINT [FK_GroupClasses_TeacherProfiles_TeacherId] FOREIGN KEY ([TeacherId]) REFERENCES [TeacherProfiles] ([Id]) ON DELETE CASCADE
@@ -117,6 +135,7 @@ public static class SchemaEnsurer
                     [CheckOutTime] datetime2 NULL,
                     [TotalDurationHours] decimal(18,2) NOT NULL,
                     [LessonNotes] nvarchar(max) NULL,
+                    [ZoomJoinUrl] nvarchar(max) NULL,
                     [Status] int NOT NULL,
                     [CreatedAt] datetime2 NOT NULL,
                     CONSTRAINT [PK_GroupSessions] PRIMARY KEY ([Id]),

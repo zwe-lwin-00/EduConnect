@@ -1,6 +1,6 @@
 <div class="teacher-group-classes">
   <h1>Group classes</h1>
-  <p class="page-desc">Create group classes and enroll students (by contract). Enrolled students can attend group sessions from the Sessions page.</p>
+  <p class="page-desc">Create group classes and enroll students (by contract). Each teacher uses their own Zoom account: set up a meeting for each group class and paste the join link below. Enrolled students join via that link when you start a group session.</p>
 
   <div *ngIf="error" class="error">{{ error }}</div>
 
@@ -8,6 +8,7 @@
     <h2>Create group class</h2>
     <div class="create-row">
       <input type="text" [(ngModel)]="newClassName" class="form-control" placeholder="Group class name" />
+      <input type="url" [(ngModel)]="newClassZoomUrl" class="form-control zoom-url" placeholder="Your Zoom meeting join URL for this class" />
       <button type="button" class="btn btn-primary" (click)="createGroupClass()" [disabled]="creating || !(newClassName || '').trim()">
         {{ creating ? 'Creating...' : 'Create' }}
       </button>
@@ -42,6 +43,8 @@
         <div class="edit-section">
           <label>Name</label>
           <input type="text" [(ngModel)]="editName" class="form-control" />
+          <label>Zoom join URL (your meeting for this class)</label>
+          <input type="url" [(ngModel)]="editZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
           <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
           <button type="button" class="btn btn-secondary btn-sm" (click)="updateGroupClass()" [disabled]="updating">{{ updating ? 'Saving...' : 'Save' }}</button>
         </div>

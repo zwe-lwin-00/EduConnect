@@ -182,6 +182,7 @@ public class AttendanceService : IAttendanceService
                 CheckOutTime = s.CheckOutTime,
                 TotalDurationHours = s.TotalDurationHours,
                 LessonNotes = s.LessonNotes,
+                ZoomJoinUrl = s.ZoomJoinUrl ?? s.GroupClass?.ZoomJoinUrl,
                 Status = (int)s.Status,
                 AttendeeCount = attendeeCount
             });

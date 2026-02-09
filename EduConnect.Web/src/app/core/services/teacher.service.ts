@@ -18,6 +18,7 @@ import {
   GroupCheckOutRequest,
   CreateGroupClassRequest,
   UpdateGroupClassRequest,
+  UpdateZoomJoinUrlRequest,
   EnrollInGroupClassRequest,
   HomeworkDto,
   CreateHomeworkRequest,
@@ -38,6 +39,10 @@ export class TeacherService {
 
   getProfile(): Observable<TeacherProfileDto> {
     return this.apiService.get<TeacherProfileDto>(API_ENDPOINTS.TEACHER.PROFILE);
+  }
+
+  updateZoomJoinUrl(request: UpdateZoomJoinUrlRequest): Observable<{ success: boolean }> {
+    return this.apiService.patch<{ success: boolean }>(API_ENDPOINTS.TEACHER.PROFILE_ZOOM, request);
   }
 
   getAssignedStudents(): Observable<TeacherAssignedStudentDto[]> {

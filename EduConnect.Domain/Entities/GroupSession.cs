@@ -13,6 +13,8 @@ public class GroupSession
     public DateTime? CheckOutTime { get; set; }
     public decimal TotalDurationHours { get; set; }
     public string? LessonNotes { get; set; }
+    /// <summary>Zoom join URL for this session (if null, use group class ZoomJoinUrl).</summary>
+    public string? ZoomJoinUrl { get; set; }
     public SessionStatus Status { get; set; } = SessionStatus.InProgress;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

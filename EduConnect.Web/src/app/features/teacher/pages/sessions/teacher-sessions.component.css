@@ -27,3 +27,5 @@
 .session-card.group-session { background: #f0f7ff; }
 .hint { font-size: 0.85rem; color: #666; margin-top: 8px; }
 .hint a { color: #1976d2; }
+.btn-zoom { display: inline-block; margin-right: 8px; padding: 8px 16px; border-radius: 4px; background: #2D8CFF; color: #fff; text-decoration: none; font-size: 0.9rem; }
+.btn-zoom:hover { background: #1a6fd4; color: #fff; }

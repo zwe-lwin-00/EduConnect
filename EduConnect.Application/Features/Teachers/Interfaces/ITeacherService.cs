@@ -8,6 +8,7 @@ public interface ITeacherService : IService
     Task<int?> GetTeacherIdByUserIdAsync(string userId);
     Task<TeacherDashboardDto> GetDashboardAsync(int teacherId);
     Task<TeacherProfileDto> GetProfileAsync(int teacherId);
+    Task UpdateZoomJoinUrlAsync(int teacherId, string? zoomJoinUrl);
     Task<List<TeacherAssignedStudentDto>> GetAssignedStudentsAsync(int teacherId);
     Task<List<TeacherSessionItemDto>> GetTodaySessionsAsync(int teacherId);
     Task<List<TeacherSessionItemDto>> GetUpcomingSessionsAsync(int teacherId);

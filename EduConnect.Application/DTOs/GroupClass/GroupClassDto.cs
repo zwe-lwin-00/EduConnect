@@ -6,6 +6,8 @@ public class GroupClassDto
     public int TeacherId { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    /// <summary>Zoom meeting join URL for this group class.</summary>
+    public string? ZoomJoinUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public int EnrolledCount { get; set; }
 }
@@ -29,6 +31,8 @@ public class GroupSessionDto
     public DateTime? CheckOutTime { get; set; }
     public decimal TotalDurationHours { get; set; }
     public string? LessonNotes { get; set; }
+    /// <summary>Zoom meeting join URL for this session (group class default or session override).</summary>
+    public string? ZoomJoinUrl { get; set; }
     public int Status { get; set; }
     public int AttendeeCount { get; set; }
 }

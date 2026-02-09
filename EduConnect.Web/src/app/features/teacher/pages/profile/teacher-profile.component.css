@@ -7,3 +7,8 @@
 .detail-row:last-child { border-bottom: none; }
 .detail-row strong { display: inline-block; min-width: 120px; color: #555; }
 .detail-row p { margin: 8px 0 0 0; color: #333; }
+.zoom-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; }
+.zoom-section h3 { margin: 0 0 8px 0; font-size: 1rem; }
+.zoom-section .hint { font-size: 0.85rem; color: #666; margin-bottom: 12px; }
+.zoom-section .form-control { max-width: 400px; margin-bottom: 8px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+.zoom-section .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; background: #1976d2; color: #fff; }

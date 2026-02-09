@@ -31,6 +31,9 @@
   flex: 1;
   max-width: 300px;
 }
+.create-row .form-control.zoom-url {
+  max-width: 320px;
+}
 
 .class-list {
   display: flex;

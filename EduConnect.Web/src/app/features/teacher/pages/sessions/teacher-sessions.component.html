@@ -1,6 +1,6 @@
 <div class="teacher-sessions">
   <h1>Session Delivery</h1>
-  <p class="page-desc">One-to-one: check-in per contract. Group: start a group class session (all enrolled students). Check-out with lesson notes (required).</p>
+  <p class="page-desc">One-to-one: check-in per contract. Group: start a group class session (all enrolled students). Use your own Zoom links (set in Profile and Group classes) to teach; join via &quot;Join Zoom meeting&quot; when a session is in progress. Check-out with lesson notes (required).</p>
 
   <div *ngIf="loading" class="loading">Loading...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
@@ -17,6 +17,7 @@
         <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | date:'short':'+0630' }}</div>
         <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | date:'short':'+0630' }}</div>
         <div class="session-actions">
+          <a *ngIf="s.zoomJoinUrl" [href]="s.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>
           <button *ngIf="s.canCheckOut" type="button" class="btn btn-primary" (click)="openCheckOut(s)">Check-out (add notes)</button>
         </div>
       </div>
@@ -45,6 +46,7 @@
           <span class="status">Started {{ inProgressGroupSession.checkInTime | date:'short':'+0630' }}</span>
         </div>
         <div class="session-actions">
+          <a *ngIf="inProgressGroupSession.zoomJoinUrl" [href]="inProgressGroupSession.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>
           <button type="button" class="btn btn-primary" (click)="openGroupCheckOut(inProgressGroupSession)">Check-out group (add notes)</button>
         </div>
       </div>

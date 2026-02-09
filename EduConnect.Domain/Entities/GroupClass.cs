@@ -9,6 +9,8 @@ public class GroupClass
     public int TeacherId { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
+    /// <summary>Zoom meeting join URL for this group class (same room for all sessions).</summary>
+    public string? ZoomJoinUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public TeacherProfile Teacher { get; set; } = null!;

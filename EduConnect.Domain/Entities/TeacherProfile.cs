@@ -14,6 +14,8 @@ public class TeacherProfile
     public string? NrcDocumentUrl { get; set; }
     public string? Bio { get; set; }
     public string? Specializations { get; set; } // Comma-separated subjects
+    /// <summary>Default Zoom meeting join URL for 1:1 sessions (e.g. teacher's personal meeting room).</summary>
+    public string? ZoomJoinUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? VerifiedAt { get; set; }
     
