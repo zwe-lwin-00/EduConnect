@@ -1,0 +1,145 @@
+<div class="admin-settings">
+  <div class="page-header-compact">
+    <div>
+      <h1>Settings</h1>
+      <p class="page-desc-short">Manage holidays and other system settings (e.g. school name, notices).</p>
+    </div>
+  </div>
+
+  <p-card header="Holidays" styleClass="mb-4">
+    <p class="text-color-secondary mb-3">Add dates when the school is closed (no classes). Filter by year.</p>
+    <p-toolbar styleClass="mb-2">
+      <ng-template pTemplate="start">
+        <p-button label="Add holiday" icon="pi pi-plus" severity="success" (onClick)="openAddHoliday()" />
+        <span class="ml-3 align-middle">
+          <label class="mr-2">Year</label>
+          <select [(ngModel)]="holidayYear" (ngModelChange)="onYearChange()" class="p-inputtext p-inputtext-sm w-auto">
+            <option [ngValue]="null">All</option>
+            <option *ngFor="let y of holidayYears" [ngValue]="y">{{ y }}</option>
+          </select>
+        </span>
+      </ng-template>
+    </p-toolbar>
+    <p-table
+      [value]="holidays"
+      [loading]="loadingHolidays"
+      [tableStyle]="{ 'min-width': '30rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Date</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th style="width: 10rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-h>
+        <tr>
+          <td>{{ formatDate(h.date) }}</td>
+          <td>{{ h.name }}</td>
+          <td>{{ h.description || '—' }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" (onClick)="openEditHoliday(h)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteHoliday(h)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No holidays for this year. Click "Add holiday" to add one.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Other settings">
+    <p class="text-color-secondary mb-3">Key-value settings (e.g. SchoolName, AcademicYearStart, Notice). Keys are unique; saving updates if the key exists.</p>
+    <p-toolbar styleClass="mb-2">
+      <ng-template pTemplate="start">
+        <p-button label="Add setting" icon="pi pi-plus" severity="success" (onClick)="openAddSetting()" />
+      </ng-template>
+    </p-toolbar>
+    <p-table
+      [value]="systemSettings"
+      [loading]="loadingSettings"
+      [tableStyle]="{ 'min-width': '30rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Key</th>
+          <th>Value</th>
+          <th>Description</th>
+          <th style="width: 8rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-s>
+        <tr>
+          <td><code>{{ s.key }}</code></td>
+          <td>{{ s.value }}</td>
+          <td>{{ s.description || '—' }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" (onClick)="openEditSetting(s)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4">No settings yet. Click "Add setting" to add one.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-dialog
+    header="{{ holidayId == null ? 'Add holiday' : 'Edit holiday' }}"
+    [(visible)]="showHolidayDialog"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="showHolidayDialog = false">
+    <div class="field mb-3">
+      <label for="holidayDate">Date</label>
+      <input pInputText id="holidayDate" type="date" [(ngModel)]="holidayDate" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="holidayName">Name *</label>
+      <input pInputText id="holidayName" [(ngModel)]="holidayName" class="w-full" placeholder="e.g. National Day" />
+    </div>
+    <div class="field mb-3">
+      <label for="holidayDesc">Description</label>
+      <input pInputText id="holidayDesc" [(ngModel)]="holidayDescription" class="w-full" placeholder="Optional" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="showHolidayDialog = false" />
+      <p-button label="Save" icon="pi pi-check" (onClick)="saveHoliday()" [loading]="savingHoliday" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    header="{{ editingSettingKey ? 'Edit setting' : 'Add setting' }}"
+    [(visible)]="showSettingDialog"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="showSettingDialog = false">
+    <div class="field mb-3">
+      <label for="settingKey">Key *</label>
+      <input pInputText id="settingKey" [(ngModel)]="settingKey" class="w-full" placeholder="e.g. SchoolName" [readonly]="!!editingSettingKey" />
+      <small class="text-color-secondary" *ngIf="!editingSettingKey">Unique key (letters and numbers).</small>
+    </div>
+    <div class="field mb-3">
+      <label for="settingValue">Value</label>
+      <input pInputText id="settingValue" [(ngModel)]="settingValue" class="w-full" placeholder="Value" />
+    </div>
+    <div class="field mb-3">
+      <label for="settingDesc">Description</label>
+      <input pInputText id="settingDesc" [(ngModel)]="settingDescription" class="w-full" placeholder="Optional" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="showSettingDialog = false" />
+      <p-button label="Save" icon="pi pi-check" (onClick)="saveSetting()" [loading]="savingSetting" />
+    </ng-template>
+  </p-dialog>
+</div>

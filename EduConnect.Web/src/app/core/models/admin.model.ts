@@ -255,3 +255,38 @@ export interface EnrollInGroupClassRequest {
   contractId?: number | null;
   subscriptionId?: number | null;
 }
+
+// Settings (holidays, system settings)
+export interface HolidayDto {
+  id: number;
+  date: string;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface CreateHolidayRequest {
+  date: string;
+  name: string;
+  description?: string | null;
+}
+
+export interface UpdateHolidayRequest {
+  date: string;
+  name: string;
+  description?: string | null;
+}
+
+export interface SystemSettingDto {
+  id: number;
+  key: string;
+  value: string;
+  description?: string | null;
+  updatedAt: string;
+}
+
+export interface UpsertSystemSettingRequest {
+  key: string;
+  value: string;
+  description?: string | null;
+}

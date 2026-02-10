@@ -15,11 +15,13 @@ public class AdminController : BaseController
 {
     private readonly IAdminService _adminService;
     private readonly IGroupClassService _groupClassService;
+    private readonly ISettingsService _settingsService;
 
-    public AdminController(IAdminService adminService, IGroupClassService groupClassService, ILogger<AdminController> logger) : base(logger)
+    public AdminController(IAdminService adminService, IGroupClassService groupClassService, ISettingsService settingsService, ILogger<AdminController> logger) : base(logger)
     {
         _adminService = adminService;
         _groupClassService = groupClassService;
+        _settingsService = settingsService;
     }
 
     // ——— Dashboard — Master Doc B1 ———
@@ -693,6 +695,127 @@ public class AdminController : BaseController
         catch (Exception ex)
         {
             Logger.ErrorLog(ex, "GetMonthlyReport failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    // ——— Settings (holidays, system settings) ———
+    [HttpGet("settings/holidays")]
+    public async Task<IActionResult> GetHolidays([FromQuery] int? year)
+    {
+        try
+        {
+            var list = await _settingsService.GetHolidaysAsync(year);
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetHolidays failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("settings/holidays/{id}")]
+    public async Task<IActionResult> GetHolidayById(int id)
+    {
+        try
+        {
+            var h = await _settingsService.GetHolidayByIdAsync(id);
+            if (h == null) return NotFound();
+            return Ok(h);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetHolidayById failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("settings/holidays")]
+    public async Task<IActionResult> CreateHoliday([FromBody] CreateHolidayRequest request)
+    {
+        try
+        {
+            var result = await _settingsService.CreateHolidayAsync(request);
+            return Ok(result);
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { error = ex.Message, code = ex.Code });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "CreateHoliday failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("settings/holidays/{id}")]
+    public async Task<IActionResult> UpdateHoliday(int id, [FromBody] UpdateHolidayRequest request)
+    {
+        try
+        {
+            var ok = await _settingsService.UpdateHolidayAsync(id, request);
+            if (!ok) return NotFound();
+            return Ok(new { success = true });
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { error = ex.Message, code = ex.Code });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "UpdateHoliday failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("settings/holidays/{id}")]
+    public async Task<IActionResult> DeleteHoliday(int id)
+    {
+        try
+        {
+            var ok = await _settingsService.DeleteHolidayAsync(id);
+            if (!ok) return NotFound();
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "DeleteHoliday failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("settings/system")]
+    public async Task<IActionResult> GetSystemSettings()
+    {
+        try
+        {
+            var list = await _settingsService.GetSystemSettingsAsync();
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetSystemSettings failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("settings/system")]
+    public async Task<IActionResult> UpsertSystemSetting([FromBody] UpsertSystemSettingRequest request)
+    {
+        try
+        {
+            var result = await _settingsService.UpsertSystemSettingAsync(request);
+            return Ok(result);
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { error = ex.Message, code = ex.Code });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "UpsertSystemSetting failed");
             return BadRequest(new { error = ex.Message });
         }
     }

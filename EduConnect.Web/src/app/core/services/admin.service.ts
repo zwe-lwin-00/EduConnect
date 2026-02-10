@@ -24,7 +24,12 @@ import {
   AdminGroupClassEnrollmentDto,
   AdminCreateGroupClassRequest,
   AdminUpdateGroupClassRequest,
-  EnrollInGroupClassRequest
+  EnrollInGroupClassRequest,
+  HolidayDto,
+  CreateHolidayRequest,
+  UpdateHolidayRequest,
+  SystemSettingDto,
+  UpsertSystemSettingRequest
 } from '../models/admin.model';
 
 @Injectable({
@@ -201,5 +206,31 @@ export class AdminService {
 
   unenrollFromGroupClass(enrollmentId: number): Observable<{ success: boolean }> {
     return this.apiService.delete(API_ENDPOINTS.ADMIN.GROUP_CLASS_UNENROLL(enrollmentId));
+  }
+
+  // Settings (holidays, system settings)
+  getHolidays(year?: number): Observable<HolidayDto[]> {
+    const params = year != null ? `?year=${year}` : '';
+    return this.apiService.get<HolidayDto[]>(API_ENDPOINTS.ADMIN.SETTINGS_HOLIDAYS + params);
+  }
+
+  createHoliday(request: CreateHolidayRequest): Observable<HolidayDto> {
+    return this.apiService.post<HolidayDto>(API_ENDPOINTS.ADMIN.SETTINGS_HOLIDAYS, request);
+  }
+
+  updateHoliday(id: number, request: UpdateHolidayRequest): Observable<{ success: boolean }> {
+    return this.apiService.put(API_ENDPOINTS.ADMIN.SETTINGS_HOLIDAY_BY_ID(id), request);
+  }
+
+  deleteHoliday(id: number): Observable<{ success: boolean }> {
+    return this.apiService.delete(API_ENDPOINTS.ADMIN.SETTINGS_HOLIDAY_BY_ID(id));
+  }
+
+  getSystemSettings(): Observable<SystemSettingDto[]> {
+    return this.apiService.get<SystemSettingDto[]>(API_ENDPOINTS.ADMIN.SETTINGS_SYSTEM);
+  }
+
+  upsertSystemSetting(request: UpsertSystemSettingRequest): Observable<SystemSettingDto> {
+    return this.apiService.post<SystemSettingDto>(API_ENDPOINTS.ADMIN.SETTINGS_SYSTEM, request);
   }
 }

@@ -29,6 +29,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GroupClassEnrollment> GroupClassEnrollments { get; set; }
     public DbSet<GroupSession> GroupSessions { get; set; }
     public DbSet<GroupSessionAttendance> GroupSessionAttendances { get; set; }
+    public DbSet<Holiday> Holidays { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -288,6 +290,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(e => e.SubscriptionId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Holiday
+        builder.Entity<Holiday>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Date);
+        });
+
+        // Configure SystemSetting
+        builder.Entity<SystemSetting>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Key).IsUnique();
         });
     }
 }

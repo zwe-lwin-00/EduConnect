@@ -209,7 +209,7 @@ EduConnect.Web/
 
 | Role   | Access |
 |--------|--------|
-| **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, **One-To-One** classes, **Group** classes, attendance, payments, reports. All users created by Admin. |
+| **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, **One-To-One** classes, **Group** classes, attendance, payments, reports, **Settings** (holidays, other key-value settings). All users created by Admin. |
 | **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, **sessions** (One-To-One and **Group** check-in/check-out with lesson notes), **Group** (view/edit name, **Zoom link**, active; schedule set by admin; manage enrollments), **Profile** (read-only core data; Zoom join URL for One-To-One). Each teacher uses their own Zoom account. No pricing or parent contact. |
 | **Parent** | **Has account** (created by Admin via "Create Parent"). Logs in with email/password; sees My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
 
@@ -276,6 +276,10 @@ So: **parent account = parent + their students**. Admin creates the parent first
 
 9. **Reports** (`/admin/reports`)  
    - **Daily** and **monthly** reports (e.g. sessions, revenue) powered by Dapper.
+
+10. **Settings** (`/admin/settings`)  
+   - **Holidays**: Add, edit, delete holiday dates (school closed / no classes). List filtered by calendar year (or all).  
+   - **Other settings**: Key-value store (e.g. SchoolName, AcademicYearStart, Notice). Add or update by key; use for custom data and notices.
 
 ### Teacher Flow
 
@@ -344,6 +348,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **Homework** - Teacher–student assignments (title, description, due date, status: Assigned / Submitted / Graded / Overdue, teacher feedback)
 - **StudentGrade** - Grades and assessments (title, grade value, optional max value, date, notes) linked to teacher and student
 - **RefreshToken** - Stored hashed refresh tokens per user; used to issue new access tokens without re-login; revoked on logout or after rotation
+- **Holiday** - Admin-defined holiday date (name, optional description); used for scheduling and reporting (e.g. no classes).
+- **SystemSetting** - Key-value store for admin-configurable data (e.g. SchoolName, Notice); unique key, value, optional description.
 
 ## ✨ Key Features
 
@@ -352,7 +358,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Feature-based organization (backend & frontend)
 - [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
-- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), **One-To-One** (create with optional schedule—activate, cancel), **Group** (create with schedule, assign teacher—Zoom set by teacher; enroll students by One-To-One or Group subscription), Attendance, Subscriptions (renew monthly), Reports (daily/monthly)
+- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), **One-To-One** (create with optional schedule—activate, cancel), **Group** (create with schedule, assign teacher—Zoom set by teacher; enroll students by One-To-One or Group subscription), Attendance, Subscriptions (renew monthly), Reports (daily/monthly), **Settings** (holidays, other key-value settings)
 - [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (One-To-One and **Group** check-in/check-out with lesson notes), **Group** (edit name/Zoom/active; enroll students by One-To-One contract; set Zoom per class), **Homework & Grades** (assign homework, mark submitted/graded, add grades), profile (read-only; **Zoom join URL** for One-To-One)
 - [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
 - [x] Teacher management: onboard, **edit** (name, phone, education, bio, specializations), verify, reject, activate/suspend

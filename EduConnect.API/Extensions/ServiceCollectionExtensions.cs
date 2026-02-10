@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAttendanceService, EduConnect.Infrastructure.Services.AttendanceService>();
         services.AddScoped<IParentService, EduConnect.Infrastructure.Services.ParentService>();
         services.AddScoped<IGroupClassService, EduConnect.Infrastructure.Services.GroupClassService>();
+        services.AddScoped<ISettingsService, EduConnect.Infrastructure.Services.SettingsService>();
         services.AddScoped<IHomeworkService, EduConnect.Infrastructure.Services.HomeworkService>();
         services.AddScoped<INotificationService, EduConnect.Infrastructure.Services.NotificationService>();
         return services;

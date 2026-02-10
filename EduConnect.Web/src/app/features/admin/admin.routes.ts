@@ -18,7 +18,8 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'group-classes', loadComponent: () => import('./pages/group-classes/admin-group-classes.component').then(m => m.AdminGroupClassesComponent) },
       { path: 'attendance', loadComponent: () => import('./pages/attendance/admin-attendance.component').then(m => m.AdminAttendanceComponent) },
       { path: 'payments', loadComponent: () => import('./pages/payments/admin-payments.component').then(m => m.AdminPaymentsComponent) },
-      { path: 'reports', loadComponent: () => import('./pages/reports/admin-reports.component').then(m => m.AdminReportsComponent) }
+      { path: 'reports', loadComponent: () => import('./pages/reports/admin-reports.component').then(m => m.AdminReportsComponent) },
+      { path: 'settings', loadComponent: () => import('./pages/settings/admin-settings.component').then(m => m.AdminSettingsComponent) }
     ]
   }
 ];

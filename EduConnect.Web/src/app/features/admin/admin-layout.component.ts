@@ -25,7 +25,8 @@ export class AdminLayoutComponent {
     'group-classes': 'Group',
     attendance: 'Attendance',
     payments: 'Subscriptions',
-    reports: 'Reports'
+    reports: 'Reports',
+    settings: 'Settings'
   };
 
   constructor(

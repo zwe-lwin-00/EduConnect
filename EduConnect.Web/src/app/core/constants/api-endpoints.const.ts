@@ -39,6 +39,9 @@ export const API_ENDPOINTS = {
     ATTENDANCE_ADJUST_HOURS: (id: number) => `/admin/attendance/${id}/adjust-hours`,
     REPORTS_DAILY: '/admin/reports/daily',
     REPORTS_MONTHLY: '/admin/reports/monthly',
+    SETTINGS_HOLIDAYS: '/admin/settings/holidays',
+    SETTINGS_HOLIDAY_BY_ID: (id: number) => `/admin/settings/holidays/${id}`,
+    SETTINGS_SYSTEM: '/admin/settings/system',
     RESET_TEACHER_PASSWORD: (id: number) => `/admin/teachers/${id}/reset-password`,
     VERIFY_TEACHER: (id: number) => `/admin/teachers/${id}/verify`,
     REJECT_TEACHER: (id: number) => `/admin/teachers/${id}/reject`

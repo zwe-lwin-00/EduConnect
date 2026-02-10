@@ -22,6 +22,8 @@ public static class SchemaEnsurer
         await EnsureBillingTypeColumnsAsync(context, cancellationToken);
         await EnsureZoomColumnsAsync(context, cancellationToken);
         await EnsureClassScheduleColumnsAsync(context, cancellationToken);
+        await EnsureHolidaysTableAsync(context, cancellationToken);
+        await EnsureSystemSettingsTableAsync(context, cancellationToken);
     }
 
     /// <summary>Add schedule columns: DaysOfWeek, StartTime, EndTime to GroupClasses and ContractSessions.</summary>
@@ -290,6 +292,44 @@ public static class SchemaEnsurer
                     CONSTRAINT [FK_GroupSessionAttendances_ContractSessions_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [ContractSessions] ([Id]) ON DELETE NO ACTION
                 );
                 CREATE INDEX [IX_GroupSessionAttendances_GroupSessionId] ON [GroupSessionAttendances] ([GroupSessionId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureHolidaysTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Holidays')
+            BEGIN
+                CREATE TABLE [Holidays] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [Date] datetime2 NOT NULL,
+                    [Name] nvarchar(200) NOT NULL,
+                    [Description] nvarchar(500) NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_Holidays] PRIMARY KEY ([Id])
+                );
+                CREATE INDEX [IX_Holidays_Date] ON [Holidays] ([Date]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureSystemSettingsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SystemSettings')
+            BEGIN
+                CREATE TABLE [SystemSettings] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [Key] nvarchar(100) NOT NULL,
+                    [Value] nvarchar(max) NOT NULL,
+                    [Description] nvarchar(500) NULL,
+                    [UpdatedAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_SystemSettings] PRIMARY KEY ([Id])
+                );
+                CREATE UNIQUE INDEX [IX_SystemSettings_Key] ON [SystemSettings] ([Key]);
             END
             """;
         await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
