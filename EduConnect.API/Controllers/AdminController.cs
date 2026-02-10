@@ -444,7 +444,7 @@ public class AdminController : BaseController
     {
         try
         {
-            var result = await _groupClassService.CreateAsync(request.TeacherId, request.Name ?? "", request.ZoomJoinUrl);
+            var result = await _groupClassService.CreateByAdminAsync(request);
             Logger.InformationLog("Group class created");
             return Ok(result);
         }
@@ -480,7 +480,7 @@ public class AdminController : BaseController
     {
         try
         {
-            var ok = await _groupClassService.UpdateByAdminAsync(id, request.TeacherId, request.Name ?? "", request.IsActive, request.ZoomJoinUrl);
+            var ok = await _groupClassService.UpdateByAdminAsync(id, request);
             if (!ok)
             {
                 Logger.WarningLog("UpdateGroupClass: not found");

@@ -2,7 +2,7 @@
   <div class="page-header-compact">
     <div>
       <h1>Group classes</h1>
-      <p class="page-desc-short">Create classes, assign teacher, add students. Teachers edit name/Zoom and enrollments.</p>
+      <p class="page-desc-short">Set up class (name, teacher, days, start/end time), assign students. Zoom link is added by the assigned teacher.</p>
     </div>
     <button type="button" class="btn btn-primary" (click)="openCreate()">New class</button>
   </div>
@@ -18,6 +18,7 @@
         <th>#</th>
         <th>Name</th>
         <th>Teacher</th>
+        <th>Schedule</th>
         <th>Zoom</th>
         <th>Active</th>
         <th>Enrolled</th>
@@ -29,7 +30,8 @@
         <td>{{ i + 1 }}</td>
         <td>{{ gc.name }}</td>
         <td>{{ gc.teacherName || '—' }}</td>
-        <td>{{ gc.zoomJoinUrl ? 'Yes' : '—' }}</td>
+        <td>{{ formatSchedule(gc) }}</td>
+        <td>{{ gc.zoomJoinUrl ? 'Set' : '—' }}</td>
         <td>{{ gc.isActive ? 'Yes' : 'No' }}</td>
         <td>{{ gc.enrolledCount }}</td>
         <td>
@@ -60,8 +62,20 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Zoom join URL (optional)</label>
-          <input type="url" [(ngModel)]="newZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+          <label>Days of week</label>
+          <div class="days-checkboxes">
+            <label *ngFor="let d of dayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onNewDayChange()" /> {{ d.label }}</label>
+          </div>
+        </div>
+        <div class="form-group form-row">
+          <div>
+            <label>Start time</label>
+            <input type="time" [(ngModel)]="newStartTime" class="form-control" />
+          </div>
+          <div>
+            <label>End time</label>
+            <input type="time" [(ngModel)]="newEndTime" class="form-control" />
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn" (click)="showCreate = false">Cancel</button>
@@ -90,8 +104,20 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Zoom join URL</label>
-          <input type="url" [(ngModel)]="editZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+          <label>Days of week</label>
+          <div class="days-checkboxes">
+            <label *ngFor="let d of editDayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onEditDayChange()" /> {{ d.label }}</label>
+          </div>
+        </div>
+        <div class="form-group form-row">
+          <div>
+            <label>Start time</label>
+            <input type="time" [(ngModel)]="editStartTime" class="form-control" />
+          </div>
+          <div>
+            <label>End time</label>
+            <input type="time" [(ngModel)]="editEndTime" class="form-control" />
+          </div>
         </div>
         <div class="form-group">
           <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
@@ -123,7 +149,7 @@
         <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active contracts with {{ selectedClass.teacherName }}. Create a contract first.</p>
         <ul class="enrollment-list">
           <li *ngFor="let e of enrollments" class="enrollment-item">
-            <span>{{ e.studentName }} – {{ e.contractIdDisplay }}</span>
+            <span>{{ e.studentName }} – {{ e.contractIdDisplay || e.subscriptionIdDisplay || '—' }}</span>
             <button type="button" class="btn btn-sm btn-danger" (click)="unenroll(e.id)">Remove</button>
           </li>
           <li *ngIf="enrollments.length === 0" class="empty">No enrollments.</li>

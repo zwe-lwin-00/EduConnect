@@ -127,6 +127,16 @@ The account is created automatically when the API starts for the first time. Che
 
 Subscriptions have a **subscription period** (start to end date). Admin can **renew** in two ways: (1) from **Payments**: pick a contract and renew—if the contract is subscription-backed, the linked Subscription is extended by one month; otherwise the contract’s legacy period is extended. (2) By **subscription id** (`POST /admin/subscriptions/{id}/renew?additionalMonths=1`) to extend any subscription by N months. No hour credit/deduct; session duration (`HoursUsed`) is recorded for reporting only.
 
+### Configuration (appsettings)
+
+Business rules and thresholds are **driven by config** (no hardcoded magic numbers). In **appsettings.json** (or environment):
+
+- **App** – Dashboard and reporting: `SubscriptionExpiringAlertDays` (default 7), `ContractExpiringAlertDays` (default 14), `ContractEndingSoonNotificationDays` (default 14), `DefaultHourlyRateForRevenue` (default 0, used when teacher rate is not set), `GroupSessionMinHoursPerStudent` (default 0.25), `PasswordGenerationLength` (default 12).
+- **SeedData** – Default admin and roles.
+- **JwtSettings**, **Cors**, **TimeZone**, **RateLimiting**, **Encryption**, **HealthChecks** – as used by the API.
+
+Teacher **hourly rate** is not used in the subscription flow; it is optional (default 0) and only used for **revenue reporting** when set, or `App:DefaultHourlyRateForRevenue` when not.
+
 ## 📁 Project Structure
 
 ### Backend Structure
@@ -189,7 +199,7 @@ EduConnect.Web/
 | Role   | Access |
 |--------|--------|
 | **Admin**  | Full control: dashboard, teachers (onboard/edit/verify/reject/activate), parents & students, contracts, attendance, payments, reports. All users created by Admin. |
-| **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **group classes** (view/edit name, Zoom, active; manage enrollments—**admin creates** group classes and assigns teacher), **Profile** (read-only core data; can set **Zoom join URL** for 1:1 teaching). Each teacher uses their own Zoom account. No pricing or parent contact. |
+| **Teacher**| Has account (created by Admin). Dashboard, weekly availability, assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **group classes** (view/edit name, **Zoom link**, active; schedule is set by admin and read-only for teacher; manage enrollments—**admin creates** group classes and assigns teacher), **Profile** (read-only core data; can set **Zoom join URL** for 1:1 teaching). Each teacher uses their own Zoom account. No pricing or parent contact. |
 | **Parent** | **Has account** (created by Admin via "Create Parent"). Logs in with email/password; sees My Students list and student learning overview (assigned teacher, sessions, progress). Read-only; no self-registration. |
 
 **Students (P1–P4)** do not have login accounts in Phase 1. They are linked to a parent; the parent views all student data (contracts, sessions, progress) under their own account. Optionally, student accounts could be added later (e.g. so students can log in to view their own schedule).
@@ -224,7 +234,7 @@ So: **parent account = parent + their students**. Admin creates the parent first
    Overview: alerts, today’s sessions, pending teacher verifications, revenue. Quick links to Teachers, Parents, Students, Contracts, Attendance, Payments, Reports.
 
 2. **Teachers** (`/admin/teachers`)  
-   - **Onboard** new teacher (email, name, phone, NRC, education, hourly rate, bio, specializations). System creates account and can show temporary credentials.  
+   - **Onboard** new teacher (email, name, phone, NRC, education, bio, specializations). System creates account and can show temporary credentials.  
    - **Verify / Reject** pending teachers.  
    - **Edit** profile, **Reset password**, **Activate / Suspend**.
 
@@ -237,12 +247,12 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - List/filter by student, type, status. **Renew** a subscription to extend by one or more months.
 
 5. **Contracts** (`/admin/contracts`) — 1:1 classes  
-   - Create **contract** (teacher + student). Either link an active **One-to-one subscription** for that student, or use legacy (start/end date; period = calendar month of start date).  
+   - Create **contract** (teacher + student). Either link an active **One-to-one subscription** for that student, or use legacy (start/end date; period = calendar month of start date). Optional **schedule** (days of week, start/end time) for the 1:1 class.  
    - Contract moves to Active; access follows the linked subscription or legacy period. **Cancel** when needed.
 
 5. **Group classes** (`/admin/group-classes`)  
-   - **Create** group classes (name, assign teacher, optional Zoom join URL). Teacher must exist.  
-   - **Edit** name, assigned teacher, Zoom URL, and active status. **Cannot change assigned teacher** when the class has enrollments (remove enrollments first or create a new group class).  
+   - **Create** group classes: name, assign teacher, **schedule** (days of week, start/end time). **Zoom link is not set here**—the assigned teacher adds it later. Teacher must exist.  
+   - **Edit** name, assigned teacher, schedule (days, start/end time), and active status. **Cannot change assigned teacher** when the class has enrollments (remove enrollments first or create a new group class). Zoom is left unchanged (teacher-only).  
    - **Enroll** students: by that student’s active **Group subscription** (admin) or by 1:1 contract with that teacher (teacher/legacy). One enrollment per student per group. Remove enrollments as needed.
 
 6. **Attendance** (`/admin/attendance`)  
@@ -274,8 +284,8 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - Admin can override or adjust in Attendance.
 
 5. **Group classes** (`/teacher/group-classes`)  
-   - **Admin creates** group classes and assigns the teacher; teachers only see classes assigned to them.  
-   - **Edit** name, Zoom URL, and active status; **enroll** students (by contract—one enrollment per student per group; requires an active 1:1 contract with that teacher). Each teacher uses their own Zoom account: create a meeting and paste the join link per class.  
+   - **Admin creates** group classes (name, teacher, schedule: days and start/end time) and assigns the teacher; teachers only see classes assigned to them. **Schedule is read-only** for the teacher.  
+   - **Edit** name, **Zoom link**, and active status (teacher adds the Zoom meeting URL for the class); **enroll** students (by contract—one enrollment per student per group; requires an active 1:1 contract with that teacher). Each teacher uses their own Zoom account: create a meeting and paste the join link per class.  
    - Enrolled students are included when the teacher starts a group session from Sessions; the group’s Zoom link is shown for the in-progress session.
 
 6. **Homework & Grades** (`/teacher/homework-grades`)  
@@ -311,10 +321,10 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **TeacherProfile** - Teacher information, NRC (encrypted), verification status; optional **ZoomJoinUrl** (default for 1:1 teaching)
 - **Student** - Student information linked to parent
 - **Subscription** - Parent-paid: student, type (OneToOne/Group), start/end period. Funds 1:1 class or group enrollment.
-- **ContractSession** - 1:1 class: teacher–student; optional SubscriptionId (One-to-one) or legacy SubscriptionPeriodEnd.
+- **ContractSession** - 1:1 class: teacher–student; optional SubscriptionId (One-to-one) or legacy SubscriptionPeriodEnd; optional schedule (DaysOfWeek, StartTime, EndTime) set by admin.
 - **AttendanceLog** - One-to-one session tracking (check-in/out, lesson notes); optional **ZoomJoinUrl** per session
 - **TeacherAvailability** - Weekly availability schedule
-- **GroupClass** - Group class (teacher, name, active); optional **ZoomJoinUrl** for that class. Created by admin; teacher validated on create; assigned teacher cannot be changed when enrollments exist.
+- **GroupClass** - Group class (teacher, name, active); **schedule** (DaysOfWeek, StartTime, EndTime) set by admin; **ZoomJoinUrl** set by the assigned teacher (not admin). Created by admin; assigned teacher cannot be changed when enrollments exist.
 - **GroupClassEnrollment** - Student enrolled in a group class (one per student per class; links to that teacher’s contract subscription validity checked for access)
 - **GroupSession** - One delivered group session (check-in/out, lesson notes, duration); optional **ZoomJoinUrl** per session
 - **GroupSessionAttendance** - Per-student attendance and duration (HoursUsed) for a group session
@@ -331,10 +341,10 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Feature-based organization (backend & frontend)
 - [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
-- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), **Group classes** (create, assign teacher, optional Zoom; edit name/teacher/Zoom/active; enroll students by contract; cannot change teacher when enrollments exist), Attendance (today, override check-in/out, adjust session hours), Subscriptions (renew monthly), Reports (daily/monthly)
-- [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **Group classes** (edit name/Zoom/active, enroll students by contract—admin creates and assigns; set Zoom link per class), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), profile (read-only core data; **Zoom join URL** for 1:1 teaching)
+- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create with optional schedule—days, start/end time—activate, cancel), **Group classes** (create with schedule: days, start/end time, assign teacher—Zoom is set by teacher; edit name/teacher/schedule/active; enroll students by contract or Group subscription; cannot change teacher when enrollments exist), Attendance (today, override check-in/out, adjust session hours), Subscriptions (renew monthly), Reports (daily/monthly)
+- [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **Group classes** (edit name/Zoom/active only—schedule is set by admin; enroll students by contract; set Zoom link per class), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), profile (read-only core data; **Zoom join URL** for 1:1 teaching)
 - [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
-- [x] Teacher management: onboard, **edit** (name, phone, education, hourly rate, bio, specializations), verify, reject, activate/suspend
+- [x] Teacher management: onboard, **edit** (name, phone, education, bio, specializations), verify, reject, activate/suspend
 - [x] Check-in/check-out system (teacher + admin override)
 - [x] Subscription billing (monthly only; renew via Admin), student active/freeze
 - [x] Daily and monthly reports (Dapper-powered)

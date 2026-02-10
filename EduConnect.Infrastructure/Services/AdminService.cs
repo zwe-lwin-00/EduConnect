@@ -9,6 +9,7 @@ using EduConnect.Infrastructure.Repositories;
 using EduConnect.Shared.Enums;
 using EduConnect.Shared.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -23,6 +24,7 @@ public class AdminService : IAdminService
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
     private readonly ILogger<AdminService> _logger;
+    private readonly IConfiguration _configuration;
 
     public AdminService(
         ApplicationDbContext context,
@@ -30,7 +32,8 @@ public class AdminService : IAdminService
         IEncryptionService encryptionService,
         IUnitOfWork unitOfWork,
         INotificationService notificationService,
-        ILogger<AdminService> logger)
+        ILogger<AdminService> logger,
+        IConfiguration configuration)
     {
         _context = context;
         _userManager = userManager;
@@ -38,6 +41,7 @@ public class AdminService : IAdminService
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<OnboardTeacherResponse> OnboardTeacherAsync(OnboardTeacherRequest request, string adminUserId)
@@ -383,9 +387,10 @@ public class AdminService : IAdminService
         var startOfMonth = TimeZoneInfo.ConvertTimeToUtc(startOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
         var endOfMonth = TimeZoneInfo.ConvertTimeToUtc(endOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
 
-        // Alerts: subscription ending soon (within 7 days) — legacy contracts and subscription-backed contracts
+        // Alerts: subscription ending soon (configurable days) — legacy contracts and subscription-backed contracts
         var alerts = new List<DashboardAlertDto>();
-        var subscriptionEndThreshold = DateTime.UtcNow.AddDays(7);
+        var subscriptionExpiringDays = _configuration.GetValue("App:SubscriptionExpiringAlertDays", 7);
+        var subscriptionEndThreshold = DateTime.UtcNow.AddDays(subscriptionExpiringDays);
         var now = DateTime.UtcNow;
         var expiringContracts = await _context.ContractSessions
             .Include(c => c.Student)
@@ -409,8 +414,9 @@ public class AdminService : IAdminService
             });
         }
 
-        // Alerts: contracts ending in next 14 days
-        var expiringEnd = today.AddDays(14);
+        // Alerts: contracts ending in next N days (from config)
+        var contractExpiringDays = _configuration.GetValue("App:ContractExpiringAlertDays", 14);
+        var expiringEnd = today.AddDays(contractExpiringDays);
         var expiring = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher).ThenInclude(t => t!.User)
@@ -452,7 +458,8 @@ public class AdminService : IAdminService
         var pendingTeachers = await _context.TeacherProfiles.CountAsync(t => t.VerificationStatus == VerificationStatus.Pending);
         var pendingActions = pendingTeachers;
 
-        // Revenue snapshot (month): hours consumed * margin; for simplicity use sum of (HoursUsed * Teacher.HourlyRate) as proxy for revenue
+        // Revenue snapshot (month): HoursUsed * rate (teacher rate or config default for reporting)
+        var defaultRateForRevenue = _configuration.GetValue<decimal>("App:DefaultHourlyRateForRevenue", 0);
         var monthLogs = await _context.AttendanceLogs
             .Include(a => a.ContractSession!)
                 .ThenInclude(c => c.Teacher)
@@ -464,7 +471,8 @@ public class AdminService : IAdminService
         {
             if (log.ContractSession?.Teacher != null)
             {
-                revenue += log.HoursUsed * log.ContractSession.Teacher.HourlyRate;
+                var rate = log.ContractSession.Teacher.HourlyRate > 0 ? log.ContractSession.Teacher.HourlyRate : defaultRateForRevenue;
+                revenue += log.HoursUsed * rate;
                 hoursConsumed += log.HoursUsed;
             }
         }
@@ -696,6 +704,7 @@ public class AdminService : IAdminService
         }
 
         var contractId = "C-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        var (startTime, endTime) = (ParseTime(request.StartTime), ParseTime(request.EndTime));
         var contract = new ContractSession
         {
             ContractId = contractId,
@@ -709,6 +718,9 @@ public class AdminService : IAdminService
             Status = ContractStatus.Active,
             StartDate = startDate,
             EndDate = endDate,
+            DaysOfWeek = string.IsNullOrWhiteSpace(request.DaysOfWeek) ? null : request.DaysOfWeek.Trim(),
+            StartTime = startTime,
+            EndTime = endTime,
             CreatedBy = adminUserId,
             CreatedAt = DateTime.UtcNow
         };
@@ -721,8 +733,9 @@ public class AdminService : IAdminService
 
         if (endDate.HasValue)
         {
+            var contractEndingSoonDays = _configuration.GetValue("App:ContractEndingSoonNotificationDays", 14);
             var daysUntilEnd = (endDate.Value - DateTime.UtcNow.Date).TotalDays;
-            if (daysUntilEnd >= 0 && daysUntilEnd <= 14)
+            if (daysUntilEnd >= 0 && daysUntilEnd <= contractEndingSoonDays)
             {
                 var adminIds = await _context.Users.Where(u => u.Role == UserRole.Admin).Select(u => u.Id).ToListAsync();
                 foreach (var adminId in adminIds)
@@ -772,10 +785,19 @@ public class AdminService : IAdminService
             StatusName = c.Status.ToString(),
             StartDate = c.StartDate,
             EndDate = c.EndDate,
+            DaysOfWeek = c.DaysOfWeek,
+            StartTime = c.StartTime?.ToString("HH:mm"),
+            EndTime = c.EndTime?.ToString("HH:mm"),
             CreatedAt = c.CreatedAt,
             SubscriptionId = c.SubscriptionId,
             SubscriptionIdDisplay = c.Subscription?.SubscriptionId
         };
+    }
+
+    private static TimeOnly? ParseTime(string? timeStr)
+    {
+        if (string.IsNullOrWhiteSpace(timeStr)) return null;
+        return TimeOnly.TryParse(timeStr.Trim(), out var t) ? t : null;
     }
 
     // ——— Attendance oversight ———
@@ -889,8 +911,12 @@ public class AdminService : IAdminService
             .Where(a => a.CheckInTime >= start && a.CheckInTime < end && a.CheckOutTime != null)
             .ToListAsync();
         decimal revenue = 0;
+        var defaultRateForRevenue = _configuration.GetValue<decimal>("App:DefaultHourlyRateForRevenue", 0);
         foreach (var log in logs.Where(l => l.ContractSession?.Teacher != null))
-            revenue += log.HoursUsed * log.ContractSession!.Teacher!.HourlyRate;
+        {
+            var rate = log.ContractSession!.Teacher!.HourlyRate > 0 ? log.ContractSession.Teacher.HourlyRate : defaultRateForRevenue;
+            revenue += log.HoursUsed * rate;
+        }
 
         var byTeacher = logs
             .Where(l => l.ContractSession?.Teacher != null)
@@ -972,8 +998,9 @@ public class AdminService : IAdminService
         };
     }
 
-    private string GenerateRandomPassword(int length = 12)
+    private string GenerateRandomPassword()
     {
+        var length = _configuration.GetValue("App:PasswordGenerationLength", 12);
         const string lower = "abcdefghijklmnopqrstuvwxyz";
         const string upper = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
         const string digits = "0123456789";
@@ -986,7 +1013,7 @@ public class AdminService : IAdminService
         password[1] = upper[random.Next(upper.Length)];
         password[2] = digits[random.Next(digits.Length)];
         password[3] = special[random.Next(special.Length)];
-        for (int i = 4; i < length; i++)
+        for (var i = 4; i < length; i++)
             password[i] = all[random.Next(all.Length)];
         // Shuffle so required chars aren't always at the start
         for (int i = length - 1; i > 0; i--)

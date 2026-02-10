@@ -17,6 +17,12 @@ public class ContractDto
     public string StatusName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    /// <summary>Comma-separated ISO day numbers (1=Monday .. 7=Sunday).</summary>
+    public string? DaysOfWeek { get; set; }
+    /// <summary>Class start time (e.g. "09:00").</summary>
+    public string? StartTime { get; set; }
+    /// <summary>Class end time (e.g. "10:00").</summary>
+    public string? EndTime { get; set; }
     public DateTime CreatedAt { get; set; }
     public int? SubscriptionId { get; set; }
     public string? SubscriptionIdDisplay { get; set; }

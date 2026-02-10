@@ -4,16 +4,19 @@ using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace EduConnect.Infrastructure.Services;
 
 public class NotificationService : INotificationService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public NotificationService(ApplicationDbContext context)
+    public NotificationService(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     public async Task CreateForUserAsync(string userId, string title, string message, NotificationType type, string? relatedEntityType = null, int? relatedEntityId = null)
@@ -47,7 +50,8 @@ public class NotificationService : INotificationService
         if (user.Role == UserRole.Admin)
         {
             var now = DateTime.UtcNow.Date;
-            var endWindow = now.AddDays(14);
+            var contractExpiringDays = _configuration.GetValue("App:ContractExpiringAlertDays", 14);
+            var endWindow = now.AddDays(contractExpiringDays);
             var endingContracts = await _context.ContractSessions
                 .AsNoTracking()
                 .Include(c => c.Student)

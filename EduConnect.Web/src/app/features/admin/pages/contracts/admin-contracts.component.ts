@@ -60,7 +60,10 @@ export class AdminContractsComponent implements OnInit {
       teacherId: [null, Validators.required],
       studentId: [null, Validators.required],
       startDate: [new Date().toISOString().slice(0, 10), Validators.required],
-      endDate: ['']
+      endDate: [''],
+      daysOfWeek: [''],
+      startTime: [''],
+      endTime: ['']
     });
   }
 
@@ -114,8 +117,13 @@ export class AdminContractsComponent implements OnInit {
   openCreatePopup(): void {
     this.showCreatePopup = true;
     this.createForm.reset({
+      teacherId: null,
+      studentId: null,
       startDate: new Date().toISOString().slice(0, 10),
-      endDate: ''
+      endDate: '',
+      daysOfWeek: '',
+      startTime: '',
+      endTime: ''
     });
   }
 
@@ -129,8 +137,11 @@ export class AdminContractsComponent implements OnInit {
       const request: CreateContractRequest = {
         teacherId: +v.teacherId,
         studentId: +v.studentId,
-        startDate: v.startDate,
-        endDate: v.endDate || undefined
+        startDate: v.startDate || undefined,
+        endDate: v.endDate || undefined,
+        daysOfWeek: v.daysOfWeek?.trim() || undefined,
+        startTime: v.startTime?.trim() || undefined,
+        endTime: v.endTime?.trim() || undefined
       };
       this.adminService.createContract(request).subscribe({
         next: () => {

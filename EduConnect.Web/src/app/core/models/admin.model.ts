@@ -82,13 +82,27 @@ export interface ContractDto {
   teacherName: string;
   studentId: number;
   studentName: string;
-  /** Subscription valid until (end of month). */
   subscriptionPeriodEnd?: string | null;
   status: number;
   statusName: string;
   startDate: string;
   endDate?: string;
+  /** Comma-separated ISO day numbers (1=Mon .. 7=Sun). */
+  daysOfWeek?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
   createdAt: string;
+}
+
+export interface CreateContractRequest {
+  teacherId: number;
+  studentId: number;
+  subscriptionId?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  daysOfWeek?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
 }
 
 // Reports — Master Doc B8
@@ -159,13 +173,6 @@ export interface CreateStudentRequest {
   specialNeeds?: string;
 }
 
-export interface CreateContractRequest {
-  teacherId: number;
-  studentId: number;
-  startDate: string;
-  endDate?: string;
-}
-
 export interface WalletAdjustRequest {
   studentId: number;
   contractId: number;
@@ -202,6 +209,9 @@ export interface AdminGroupClassDto {
   teacherId: number;
   teacherName?: string;
   name: string;
+  daysOfWeek?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
   isActive: boolean;
   zoomJoinUrl?: string | null;
   createdAt: string;
@@ -213,24 +223,35 @@ export interface AdminGroupClassEnrollmentDto {
   groupClassId: number;
   studentId: number;
   studentName: string;
-  contractId: number;
-  contractIdDisplay: string;
+  contractId?: number | null;
+  contractIdDisplay?: string | null;
+  subscriptionId?: number | null;
+  subscriptionIdDisplay?: string | null;
 }
 
 export interface AdminCreateGroupClassRequest {
   name: string;
   teacherId: number;
-  zoomJoinUrl?: string | null;
+  /** Comma-separated ISO day numbers (1=Mon .. 7=Sun), e.g. "1,3,5". */
+  daysOfWeek?: string | null;
+  /** Class start time e.g. "09:00". */
+  startTime?: string | null;
+  /** Class end time e.g. "10:00". */
+  endTime?: string | null;
 }
 
 export interface AdminUpdateGroupClassRequest {
   name?: string;
   teacherId: number;
   isActive: boolean;
-  zoomJoinUrl?: string | null;
+  daysOfWeek?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
 }
 
+/** Backend expects either contractId or subscriptionId (admin can enroll by contract or by Group subscription). */
 export interface EnrollInGroupClassRequest {
   studentId: number;
-  contractId: number;
+  contractId?: number | null;
+  subscriptionId?: number | null;
 }

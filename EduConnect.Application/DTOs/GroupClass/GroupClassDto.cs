@@ -7,8 +7,14 @@ public class GroupClassDto
     /// <summary>Set when returned for admin (list/detail).</summary>
     public string? TeacherName { get; set; }
     public string Name { get; set; } = string.Empty;
+    /// <summary>Comma-separated ISO day numbers (1=Monday .. 7=Sunday).</summary>
+    public string? DaysOfWeek { get; set; }
+    /// <summary>Class start time (e.g. "09:00").</summary>
+    public string? StartTime { get; set; }
+    /// <summary>Class end time (e.g. "10:00").</summary>
+    public string? EndTime { get; set; }
     public bool IsActive { get; set; }
-    /// <summary>Zoom meeting join URL for this group class.</summary>
+    /// <summary>Zoom meeting join URL — set by teacher.</summary>
     public string? ZoomJoinUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public int EnrolledCount { get; set; }

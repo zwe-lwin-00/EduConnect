@@ -38,7 +38,6 @@
           <th>Email</th>
           <th>Phone</th>
           <th>Education</th>
-          <th>Rate</th>
           <th>Status</th>
           <th>Active</th>
           <th style="width:14rem">Actions</th>
@@ -52,7 +51,6 @@
           <td>{{ t.email }}</td>
           <td>{{ t.phoneNumber }}</td>
           <td>{{ t.educationLevel }}</td>
-          <td>{{ t.hourlyRate | currency }}</td>
           <td><p-tag [value]="getVerificationStatusText(t.verificationStatus)" [severity]="getVerificationSeverity(t.verificationStatus)" /></td>
           <td>{{ t.isActive ? 'Yes' : 'No' }}</td>
           <td>
@@ -68,7 +66,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="10">
+          <td colspan="9">
             <div class="empty-table-message">
               <i class="pi pi-users empty-icon"></i>
               <p>No teachers found.</p>
@@ -88,7 +86,6 @@
       <div class="field"><label>Phone</label><input pInputText type="text" formControlName="phoneNumber" class="w-full" /></div>
       <div class="field"><label>NRC</label><input pInputText type="text" formControlName="nrcNumber" class="w-full" /></div>
       <div class="field"><label>Education</label><input pInputText type="text" formControlName="educationLevel" class="w-full" /></div>
-      <div class="field"><label>Hourly rate</label><input pInputText type="number" formControlName="hourlyRate" class="w-full" min="0" /></div>
       <div class="field"><label>Bio</label><textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea></div>
       <div class="field"><label>Specializations</label><input pInputText type="text" formControlName="specializations" class="w-full" /></div>
     </form>
@@ -133,7 +130,6 @@
         <div class="detail-row"><strong>Email:</strong> {{ selectedTeacher.email }}</div>
         <div class="detail-row"><strong>Phone:</strong> {{ selectedTeacher.phoneNumber }}</div>
         <div class="detail-row"><strong>Education:</strong> {{ selectedTeacher.educationLevel }}</div>
-        <div class="detail-row"><strong>Rate:</strong> {{ selectedTeacher.hourlyRate | currency }}</div>
         <div class="detail-row"><strong>Status:</strong> <p-tag [value]="getVerificationStatusText(selectedTeacher.verificationStatus)" [severity]="getVerificationSeverity(selectedTeacher.verificationStatus)" /></div>
         <div class="detail-row"><strong>Active:</strong> {{ selectedTeacher.isActive ? 'Yes' : 'No' }}</div>
         <div class="detail-row" *ngIf="selectedTeacher.bio"><strong>Bio:</strong><p>{{ selectedTeacher.bio }}</p></div>

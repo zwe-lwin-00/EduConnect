@@ -18,6 +18,12 @@ public class ContractSession
     public ContractStatus Status { get; set; } = ContractStatus.Active;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    /// <summary>Comma-separated ISO day numbers (1=Monday .. 7=Sunday), e.g. "1,3,5".</summary>
+    public string? DaysOfWeek { get; set; }
+    /// <summary>Class start time (local/app timezone).</summary>
+    public TimeOnly? StartTime { get; set; }
+    /// <summary>Class end time (local/app timezone).</summary>
+    public TimeOnly? EndTime { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? CreatedBy { get; set; } // Admin UserId
 

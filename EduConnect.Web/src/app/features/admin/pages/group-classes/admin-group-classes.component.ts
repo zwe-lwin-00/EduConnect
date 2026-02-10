@@ -32,16 +32,24 @@ export class AdminGroupClassesComponent implements OnInit {
   showEnrollments = false;
   showEnrollModal = false;
 
+  readonly DAY_LABELS: { value: number; label: string }[] = [
+    { value: 1, label: 'Mon' }, { value: 2, label: 'Tue' }, { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' }, { value: 5, label: 'Fri' }, { value: 6, label: 'Sat' }, { value: 7, label: 'Sun' }
+  ];
   newName = '';
   newTeacherId: number | null = null;
-  newZoomUrl = '';
+  newStartTime = '';
+  newEndTime = '';
+  dayOptions: { value: number; label: string; checked: boolean }[] = [];
   creating = false;
 
   selectedClass: AdminGroupClassDto | null = null;
   editName = '';
   editTeacherId: number | null = null;
   editIsActive = true;
-  editZoomUrl = '';
+  editStartTime = '';
+  editEndTime = '';
+  editDayOptions: { value: number; label: string; checked: boolean }[] = [];
   updating = false;
 
   enrollContractId: number | null = null;
@@ -84,8 +92,31 @@ export class AdminGroupClassesComponent implements OnInit {
   openCreate(): void {
     this.newName = '';
     this.newTeacherId = null;
-    this.newZoomUrl = '';
+    this.newStartTime = '';
+    this.newEndTime = '';
+    this.dayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: false }));
     this.showCreate = true;
+  }
+
+  onNewDayChange(): void {}
+
+  onEditDayChange(): void {}
+
+  getNewDaysOfWeek(): string | null {
+    const checked = this.dayOptions.filter(d => d.checked).map(d => d.value).sort((a, b) => a - b);
+    return checked.length ? checked.join(',') : null;
+  }
+
+  getEditDaysOfWeek(): string | null {
+    const checked = this.editDayOptions.filter(d => d.checked).map(d => d.value).sort((a, b) => a - b);
+    return checked.length ? checked.join(',') : null;
+  }
+
+  formatSchedule(gc: AdminGroupClassDto): string {
+    if (!gc.daysOfWeek && !gc.startTime && !gc.endTime) return '—';
+    const days = gc.daysOfWeek ? gc.daysOfWeek.split(',').map(n => this.DAY_LABELS[+n - 1]?.label || n).join(', ') : '';
+    const time = (gc.startTime || gc.endTime) ? `${gc.startTime || '?'}–${gc.endTime || '?'}` : '';
+    return [days, time].filter(Boolean).join(' · ') || '—';
   }
 
   create(): void {
@@ -93,7 +124,13 @@ export class AdminGroupClassesComponent implements OnInit {
     if (!name) { this.error = 'Enter a name.'; return; }
     if (this.newTeacherId == null) { this.error = 'Select a teacher.'; return; }
     this.creating = true;
-    const request: AdminCreateGroupClassRequest = { name, teacherId: this.newTeacherId, zoomJoinUrl: this.newZoomUrl?.trim() || null };
+    const request: AdminCreateGroupClassRequest = {
+      name,
+      teacherId: this.newTeacherId,
+      daysOfWeek: this.getNewDaysOfWeek(),
+      startTime: this.newStartTime?.trim() || null,
+      endTime: this.newEndTime?.trim() || null
+    };
     this.adminService.createGroupClass(request).subscribe({
       next: () => {
         this.creating = false;
@@ -112,7 +149,10 @@ export class AdminGroupClassesComponent implements OnInit {
     this.editName = gc.name;
     this.editTeacherId = gc.teacherId;
     this.editIsActive = gc.isActive;
-    this.editZoomUrl = gc.zoomJoinUrl ?? '';
+    this.editStartTime = gc.startTime ?? '';
+    this.editEndTime = gc.endTime ?? '';
+    const daySet = new Set((gc.daysOfWeek ?? '').split(',').map(s => +s).filter(n => n >= 1 && n <= 7));
+    this.editDayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: daySet.has(d.value) }));
     this.showEdit = true;
   }
 
@@ -123,7 +163,9 @@ export class AdminGroupClassesComponent implements OnInit {
       name: this.editName?.trim() || this.selectedClass.name,
       teacherId: this.editTeacherId,
       isActive: this.editIsActive,
-      zoomJoinUrl: this.editZoomUrl?.trim() || null
+      daysOfWeek: this.getEditDaysOfWeek(),
+      startTime: this.editStartTime?.trim() || null,
+      endTime: this.editEndTime?.trim() || null
     };
     this.adminService.updateGroupClass(this.selectedClass.id, request).subscribe({
       next: () => {

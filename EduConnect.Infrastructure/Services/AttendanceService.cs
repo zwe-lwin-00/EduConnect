@@ -8,6 +8,7 @@ using EduConnect.Infrastructure.Repositories;
 using EduConnect.Shared.Enums;
 using EduConnect.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace EduConnect.Infrastructure.Services;
@@ -18,13 +19,15 @@ public class AttendanceService : IAttendanceService
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
     private readonly ILogger<AttendanceService> _logger;
+    private readonly IConfiguration _configuration;
 
-    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork, INotificationService notificationService, ILogger<AttendanceService> logger)
+    public AttendanceService(ApplicationDbContext context, IUnitOfWork unitOfWork, INotificationService notificationService, ILogger<AttendanceService> logger, IConfiguration configuration)
     {
         _context = context;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<int> CheckInAsync(int teacherId, int contractId)
@@ -136,7 +139,8 @@ public class AttendanceService : IAttendanceService
         var enrollments = session.GroupClass?.Enrollments?.ToList() ?? new List<GroupClassEnrollment>();
         var count = enrollments.Count;
         if (count == 0) { await _unitOfWork.SaveChangesAsync(); return true; }
-        var hoursPerStudent = Math.Max(0.25m, session.TotalDurationHours / count);
+        var minHoursPerStudent = _configuration.GetValue<decimal>("App:GroupSessionMinHoursPerStudent", 0.25m);
+        var hoursPerStudent = Math.Max(minHoursPerStudent, session.TotalDurationHours / count);
         foreach (var e in enrollments)
         {
             _context.GroupSessionAttendances.Add(new GroupSessionAttendance

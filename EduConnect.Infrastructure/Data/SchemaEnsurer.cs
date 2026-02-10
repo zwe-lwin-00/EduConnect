@@ -21,6 +21,27 @@ public static class SchemaEnsurer
         await EnsureGroupSessionAttendanceSubscriptionAsync(context, cancellationToken);
         await EnsureBillingTypeColumnsAsync(context, cancellationToken);
         await EnsureZoomColumnsAsync(context, cancellationToken);
+        await EnsureClassScheduleColumnsAsync(context, cancellationToken);
+    }
+
+    /// <summary>Add schedule columns: DaysOfWeek, StartTime, EndTime to GroupClasses and ContractSessions.</summary>
+    private static async Task EnsureClassScheduleColumnsAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        var alterSql = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'DaysOfWeek')
+                ALTER TABLE [GroupClasses] ADD [DaysOfWeek] nvarchar(50) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'StartTime')
+                ALTER TABLE [GroupClasses] ADD [StartTime] time NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'EndTime')
+                ALTER TABLE [GroupClasses] ADD [EndTime] time NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'DaysOfWeek')
+                ALTER TABLE [ContractSessions] ADD [DaysOfWeek] nvarchar(50) NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'StartTime')
+                ALTER TABLE [ContractSessions] ADD [StartTime] time NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'EndTime')
+                ALTER TABLE [ContractSessions] ADD [EndTime] time NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
     }
 
     /// <summary>Create Subscriptions table (parent-paid subscription: type + duration).</summary>

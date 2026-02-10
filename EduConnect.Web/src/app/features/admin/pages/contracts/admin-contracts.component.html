@@ -128,6 +128,18 @@
         <label for="endDate">End date (optional)</label>
         <input pInputText id="endDate" type="date" formControlName="endDate" class="w-full" />
       </div>
+      <div class="field">
+        <label>Class schedule (optional)</label>
+        <div class="flex gap-4 flex-wrap">
+          <input pInputText type="time" formControlName="startTime" placeholder="Start" class="w-auto" />
+          <input pInputText type="time" formControlName="endTime" placeholder="End" class="w-auto" />
+        </div>
+        <small class="text-color-secondary">Days of week and times for this 1:1 class.</small>
+      </div>
+      <div class="field">
+        <label>Days of week</label>
+        <input pInputText type="text" formControlName="daysOfWeek" class="w-full" placeholder="e.g. 1,3,5 (Mon,Wed,Fri)" />
+      </div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeCreatePopup()" />
