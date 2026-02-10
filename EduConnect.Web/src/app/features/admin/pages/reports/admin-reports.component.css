@@ -1,34 +1,19 @@
 .admin-reports { padding: 0; }
-.page-desc { color: #666; margin-bottom: 24px; }
-.report-section { margin-bottom: 32px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; }
-.report-section h2 { margin: 0 0 16px 0; font-size: 1.1rem; color: #1e3a5f; }
-.report-controls { margin-bottom: 16px; }
-.report-controls label { margin-right: 8px; }
-.report-controls input, .report-controls select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; }
-.loading { padding: 20px; text-align: center; color: #666; }
-.report-card { padding: 12px 0; }
-.report-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-.report-row .label { color: #666; }
-.report-row .value { font-weight: 600; color: #1e3a5f; }
-.report-section h3 { margin: 20px 0 12px 0; font-size: 1rem; }
-.util-table { width: 100%; border-collapse: collapse; min-width: 200px; }
-.util-table th, .util-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; }
-.util-table th { background: #f5f5f5; font-weight: 600; color: #555; }
+
+.admin-reports .report-card-block { margin-bottom: 1.5rem; }
+
+.report-controls { margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.report-controls label { margin-right: 0.25rem; font-weight: 500; }
+.report-input, .report-select { padding: 0.5rem 0.75rem; }
+.report-input.year-input { width: 5rem; }
+.report-summary { padding: 0.5rem 0; }
+.report-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-200, #eee); }
+.report-row .label { color: var(--p-text-color-secondary, #666); }
+.report-row .value { font-weight: 600; }
+.section-title { margin: 1.25rem 0 0.75rem 0; font-size: 1rem; font-weight: 600; }
+.mt-4 { margin-top: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
 
 @media (max-width: 768px) {
-  .admin-reports .report-section {
-    padding: 16px;
-    margin-bottom: 24px;
-  }
-  .report-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .report-controls label { margin-right: 0; }
-  .util-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  .report-controls { gap: 0.5rem; }
 }

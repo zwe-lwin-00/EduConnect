@@ -1,21 +1,17 @@
 .teacher-profile { max-width: 600px; }
-.page-desc { margin-bottom: 20px; color: #666; font-size: 0.9rem; }
-.loading, .error { padding: 20px; }
-.error { color: #c62828; background: #ffebee; border-radius: 4px; }
-.profile-card { background: #fff; border-radius: 8px; padding: 24px; border: 1px solid #e0e0e0; }
-.detail-row { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+
+.detail-row { margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--p-surface-200, #eee); }
 .detail-row:last-child { border-bottom: none; }
-.detail-row strong { display: inline-block; min-width: 120px; color: #555; }
-.detail-row p { margin: 8px 0 0 0; color: #333; }
-.zoom-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; }
-.zoom-section h3 { margin: 0 0 8px 0; font-size: 1rem; }
-.zoom-section .hint { font-size: 0.85rem; color: #666; margin-bottom: 12px; }
-.zoom-section .form-control { max-width: 400px; margin-bottom: 8px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
-.zoom-section .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; background: #1976d2; color: #fff; }
+.detail-row strong { display: inline-block; min-width: 120px; color: var(--p-text-color-secondary, #555); }
+.detail-row p { margin: 0.5rem 0 0 0; color: var(--p-text-color); }
+.field { margin-bottom: 1rem; }
+.field label { display: block; margin-bottom: 0.35rem; font-weight: 500; font-size: 0.9rem; }
+.hint { font-size: 0.85rem; color: var(--p-text-color-secondary, #666); }
+.mb-3 { margin-bottom: 1rem; }
+.mt-3 { margin-top: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
 
 @media (max-width: 768px) {
   .teacher-profile { max-width: 100%; }
-  .profile-card { padding: 16px; }
   .detail-row strong { min-width: 0; }
-  .zoom-section .form-control { max-width: 100%; }
 }

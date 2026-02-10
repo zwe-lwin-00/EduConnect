@@ -55,14 +55,7 @@
   background: #1565c0;
 }
 
-.loading, .error {
-  padding: 1rem;
-  text-align: center;
-}
-
-.error {
-  color: #c62828;
-}
+.mr-2 { margin-right: 0.5rem; }
 
 .week-grid {
   display: grid;

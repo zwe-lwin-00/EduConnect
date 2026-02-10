@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import {
   TeacherAssignedStudentDto,
@@ -11,11 +17,12 @@ import {
   CreateGradeRequest,
   HOMEWORK_STATUS
 } from '../../../../core/models/teacher.model';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-teacher-homework-grades',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule],
   templateUrl: './teacher-homework-grades.component.html',
   styleUrl: './teacher-homework-grades.component.css'
 })
@@ -56,7 +63,10 @@ export class TeacherHomeworkGradesComponent implements OnInit {
 
   readonly HOMEWORK_STATUS = HOMEWORK_STATUS;
 
-  constructor(private teacherService: TeacherService) {}
+  constructor(
+    private teacherService: TeacherService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     this.loadStudents();
@@ -89,12 +99,14 @@ export class TeacherHomeworkGradesComponent implements OnInit {
           error: (err) => {
             this.error = err.error?.error || err.message || 'Failed to load';
             this.loading = false;
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
           }
         });
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -111,6 +123,7 @@ export class TeacherHomeworkGradesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -153,6 +166,7 @@ export class TeacherHomeworkGradesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to create homework';
         this.homeworkSubmitting = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -185,6 +199,7 @@ export class TeacherHomeworkGradesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to add grade';
         this.gradeSubmitting = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -211,14 +226,15 @@ export class TeacherHomeworkGradesComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to update';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
 
   markSubmitted(hw: HomeworkDto): void {
     this.teacherService.updateHomeworkStatus(hw.id, { status: HOMEWORK_STATUS.Submitted }).subscribe({
-      next: () => this.load(),
-      error: (err) => { this.error = err.error?.error || err.message || 'Failed'; }
+      next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Marked as submitted.' }); this.load(); },
+      error: (err) => { this.error = err.error?.error || err.message || 'Failed'; this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error }); }
     });
   }
 }

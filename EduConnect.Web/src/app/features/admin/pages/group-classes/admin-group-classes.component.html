@@ -4,157 +4,167 @@
       <h1>Group classes</h1>
       <p class="page-desc-short">Set up Group class (name, teacher, days, start/end time), assign students. Zoom link is added by the assigned teacher. Two class types: One-To-One and Group.</p>
     </div>
-    <button type="button" class="btn btn-primary" (click)="openCreate()">New class</button>
+    <p-button label="New class" icon="pi pi-plus" severity="success" (onClick)="openCreate()" />
   </div>
 
-  <div *ngIf="error" class="error">{{ error }}</div>
-  <div *ngIf="loading" class="loading">Loading...</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="!loading && groupClasses.length === 0" class="empty">No group classes. Click &quot;New class&quot; to add one.</div>
+  <p-card>
+    <p-table
+      [value]="groupClasses"
+      [loading]="loading"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem">#</th>
+          <th>Name</th>
+          <th>Teacher</th>
+          <th>Schedule</th>
+          <th>Zoom</th>
+          <th>Active</th>
+          <th>Enrolled</th>
+          <th style="width:12rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-gc let-rowIndex="rowIndex">
+        <tr>
+          <td>{{ rowIndex + 1 }}</td>
+          <td>{{ gc.name }}</td>
+          <td>{{ gc.teacherName || '—' }}</td>
+          <td>{{ formatSchedule(gc) }}</td>
+          <td>{{ gc.zoomJoinUrl ? 'Set' : '—' }}</td>
+          <td>{{ gc.isActive ? 'Yes' : 'No' }}</td>
+          <td>{{ gc.enrolledCount }}</td>
+          <td>
+            <p-button label="Edit" icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="openEdit(gc)" class="mr-1" />
+            <p-button label="Enrollments" icon="pi pi-users" [outlined]="true" size="small" (onClick)="openEnrollments(gc)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8">
+            <div class="empty-table-message">
+              <i class="pi pi-book empty-icon"></i>
+              <p>No group classes.</p>
+              <p class="empty-hint">Click &quot;New class&quot; to add one.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
 
-  <table *ngIf="!loading && groupClasses.length > 0" class="data-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Teacher</th>
-        <th>Schedule</th>
-        <th>Zoom</th>
-        <th>Active</th>
-        <th>Enrolled</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let gc of groupClasses; let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ gc.name }}</td>
-        <td>{{ gc.teacherName || '—' }}</td>
-        <td>{{ formatSchedule(gc) }}</td>
-        <td>{{ gc.zoomJoinUrl ? 'Set' : '—' }}</td>
-        <td>{{ gc.isActive ? 'Yes' : 'No' }}</td>
-        <td>{{ gc.enrolledCount }}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-secondary" (click)="openEdit(gc)">Edit</button>
-          <button type="button" class="btn btn-sm btn-secondary" (click)="openEnrollments(gc)">Enrollments</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Create modal -->
-  <div *ngIf="showCreate" class="modal-overlay" (click)="showCreate = false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Create group class</h3>
-        <button type="button" class="btn-close" (click)="showCreate = false">&times;</button>
+  <p-dialog
+    header="Create group class"
+    [(visible)]="showCreate"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="showCreate = false">
+    <div class="dialog-form">
+      <div class="field">
+        <label>Name *</label>
+        <input pInputText type="text" [(ngModel)]="newName" class="w-full" placeholder="e.g. Grade 2 Math" />
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="newName" class="form-control" placeholder="e.g. Grade 2 Math" />
+      <div class="field">
+        <label>Assign teacher *</label>
+        <select [(ngModel)]="newTeacherId" class="p-inputtext w-full">
+          <option [ngValue]="null">-- Select teacher --</option>
+          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Days of week</label>
+        <div class="days-checkboxes">
+          <label *ngFor="let d of dayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onNewDayChange()" /> {{ d.label }}</label>
         </div>
-        <div class="form-group">
-          <label>Assign teacher *</label>
-          <select [(ngModel)]="newTeacherId" class="form-control">
-            <option [ngValue]="null">-- Select teacher --</option>
-            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Days of week</label>
-          <div class="days-checkboxes">
-            <label *ngFor="let d of dayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onNewDayChange()" /> {{ d.label }}</label>
-          </div>
-        </div>
-        <div class="form-group form-row">
-          <div>
-            <label>Start time</label>
-            <input type="time" [(ngModel)]="newStartTime" class="form-control" />
-          </div>
-          <div>
-            <label>End time</label>
-            <input type="time" [(ngModel)]="newEndTime" class="form-control" />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="showCreate = false">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="create()" [disabled]="creating || !(newName || '').trim() || newTeacherId == null">{{ creating ? 'Creating...' : 'Create' }}</button>
-        </div>
+      </div>
+      <div class="field form-row">
+        <div><label>Start time</label><input pInputText type="time" [(ngModel)]="newStartTime" class="w-full" /></div>
+        <div><label>End time</label><input pInputText type="time" [(ngModel)]="newEndTime" class="w-full" /></div>
       </div>
     </div>
-  </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="showCreate = false" />
+      <p-button label="Create" icon="pi pi-check" (onClick)="create()" [loading]="creating" [disabled]="!(newName || '').trim() || newTeacherId == null" />
+    </ng-template>
+  </p-dialog>
 
-  <!-- Edit modal -->
-  <div *ngIf="showEdit && selectedClass" class="modal-overlay" (click)="showEdit = false">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Edit group class</h3>
-        <button type="button" class="btn-close" (click)="showEdit = false">&times;</button>
+  <p-dialog
+    header="Edit group class"
+    [(visible)]="showEdit"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="showEdit = false"
+    *ngIf="selectedClass">
+    <div class="dialog-form">
+      <div class="field">
+        <label>Name *</label>
+        <input pInputText type="text" [(ngModel)]="editName" class="w-full" />
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" [(ngModel)]="editName" class="form-control" />
+      <div class="field">
+        <label>Assign teacher *</label>
+        <select [(ngModel)]="editTeacherId" class="p-inputtext w-full">
+          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Days of week</label>
+        <div class="days-checkboxes">
+          <label *ngFor="let d of editDayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onEditDayChange()" /> {{ d.label }}</label>
         </div>
-        <div class="form-group">
-          <label>Assign teacher *</label>
-          <select [(ngModel)]="editTeacherId" class="form-control">
-            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Days of week</label>
-          <div class="days-checkboxes">
-            <label *ngFor="let d of editDayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onEditDayChange()" /> {{ d.label }}</label>
-          </div>
-        </div>
-        <div class="form-group form-row">
-          <div>
-            <label>Start time</label>
-            <input type="time" [(ngModel)]="editStartTime" class="form-control" />
-          </div>
-          <div>
-            <label>End time</label>
-            <input type="time" [(ngModel)]="editEndTime" class="form-control" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="showEdit = false">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="update()" [disabled]="updating">{{ updating ? 'Saving...' : 'Save' }}</button>
-        </div>
+      </div>
+      <div class="field form-row">
+        <div><label>Start time</label><input pInputText type="time" [(ngModel)]="editStartTime" class="w-full" /></div>
+        <div><label>End time</label><input pInputText type="time" [(ngModel)]="editEndTime" class="w-full" /></div>
+      </div>
+      <div class="field">
+        <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
       </div>
     </div>
-  </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="showEdit = false" />
+      <p-button label="Save" icon="pi pi-check" (onClick)="update()" [loading]="updating" />
+    </ng-template>
+  </p-dialog>
 
-  <!-- Enrollments modal -->
-  <div *ngIf="showEnrollments && selectedClass" class="modal-overlay" (click)="closeEnrollments()">
-    <div class="modal modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ selectedClass.name }} – Students</h3>
-        <button type="button" class="btn-close" (click)="closeEnrollments()">&times;</button>
+  <p-dialog
+    [header]="selectedClass.name + ' – Students'"
+    [(visible)]="showEnrollments"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [draggable]="false"
+    (onHide)="closeEnrollments()"
+    *ngIf="selectedClass">
+    <div class="enrollments-content">
+      <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
+        <select [(ngModel)]="enrollContractId" class="p-inputtext inline-select">
+          <option [ngValue]="null">Add student...</option>
+          <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
+        </select>
+        <p-button label="Add" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollContractId" />
       </div>
-      <div class="modal-body">
-        <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
-          <select [(ngModel)]="enrollContractId" class="form-control inline-select">
-            <option [ngValue]="null">Add student...</option>
-            <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
-          </select>
-          <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!enrollContractId || enrolling">{{ enrolling ? '...' : 'Add' }}</button>
-        </div>
-        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
-        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active One-To-One classes with {{ selectedClass.teacherName }}. Create a One-To-One class first.</p>
-        <ul class="enrollment-list">
-          <li *ngFor="let e of enrollments" class="enrollment-item">
-            <span>{{ e.studentName }} – {{ e.contractIdDisplay || e.subscriptionIdDisplay || '—' }}</span>
-            <button type="button" class="btn btn-sm btn-danger" (click)="unenroll(e.id)">Remove</button>
-          </li>
-          <li *ngIf="enrollments.length === 0" class="empty">No enrollments.</li>
-        </ul>
-      </div>
+      <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
+      <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active One-To-One classes with {{ selectedClass.teacherName }}. Create a One-To-One class first.</p>
+      <ul class="enrollment-list">
+        <li *ngFor="let e of enrollments" class="enrollment-item">
+          <span>{{ e.studentName }} – {{ e.contractIdDisplay || e.subscriptionIdDisplay || '—' }}</span>
+          <p-button label="Remove" icon="pi pi-times" severity="danger" [outlined]="true" size="small" (onClick)="unenroll(e.id)" />
+        </li>
+        <li *ngIf="enrollments.length === 0" class="empty-enroll">No enrollments.</li>
+      </ul>
     </div>
-  </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Done" (onClick)="closeEnrollments()" />
+    </ng-template>
+  </p-dialog>
 </div>

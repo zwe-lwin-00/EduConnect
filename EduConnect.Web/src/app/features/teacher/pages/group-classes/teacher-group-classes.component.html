@@ -6,57 +6,69 @@
     </div>
   </div>
 
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <section class="section list-section">
-    <h2 class="section-title">Your classes</h2>
-    <div *ngIf="loading" class="loading">Loading...</div>
-    <div *ngIf="!loading && groupClasses.length === 0" class="empty">No group classes assigned to you.</div>
+  <p-card header="Your classes">
+    <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="!loading && groupClasses.length === 0" class="empty-state">
+      <i class="pi pi-book empty-icon"></i>
+      <p>No group classes assigned to you.</p>
+    </div>
     <div *ngIf="!loading && groupClasses.length > 0" class="class-list">
       <div *ngFor="let gc of groupClasses" class="class-card">
         <div class="class-info">
           <strong>{{ gc.name }}</strong>
-          <span class="badge" [class.inactive]="!gc.isActive">{{ gc.isActive ? 'Active' : 'Inactive' }}</span>
+          <p-tag [value]="gc.isActive ? 'Active' : 'Inactive'" [severity]="gc.isActive ? 'success' : 'secondary'" />
           <span class="enrolled">Enrolled: {{ gc.enrolledCount }}</span>
         </div>
         <div class="class-actions">
-          <button type="button" class="btn btn-secondary" (click)="viewEnrollments(gc)">Enrollments</button>
+          <p-button label="Enrollments" icon="pi pi-users" [outlined]="true" size="small" (onClick)="viewEnrollments(gc)" />
         </div>
       </div>
     </div>
-  </section>
+  </p-card>
 
-  <div *ngIf="selectedGroupClass" class="modal-overlay" (click)="closeEnrollments()">
-    <div class="modal modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ selectedGroupClass.name }}</h3>
-        <button type="button" class="btn-close" (click)="closeEnrollments()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="edit-section">
+  <p-dialog
+    [header]="selectedGroupClass.name + ' – Enrollments'"
+    [visible]="!!selectedGroupClass"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+    [draggable]="false"
+    (onHide)="closeEnrollments()"
+    *ngIf="selectedGroupClass">
+    <div class="dialog-form">
+      <div class="edit-section">
+        <div class="field">
           <label>Name</label>
-          <input type="text" [(ngModel)]="editName" class="form-control" />
+          <input pInputText type="text" [(ngModel)]="editName" class="w-full" />
+        </div>
+        <div class="field">
           <label>Zoom link</label>
-          <input type="url" [(ngModel)]="editZoomUrl" class="form-control" placeholder="https://zoom.us/j/..." />
+          <input pInputText type="url" [(ngModel)]="editZoomUrl" class="w-full" placeholder="https://zoom.us/j/..." />
+        </div>
+        <div class="field">
           <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="updateGroupClass()" [disabled]="updating">{{ updating ? 'Saving...' : 'Save' }}</button>
         </div>
-        <h4 class="subheading">Students</h4>
-        <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
-          <select [(ngModel)]="selectedEnrollContract" class="form-control inline-select">
-            <option [ngValue]="null">Add student...</option>
-            <option *ngFor="let s of assignableContracts" [ngValue]="s">{{ s.studentName }} – {{ s.contractIdDisplay }}</option>
-          </select>
-          <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!selectedEnrollContract || enrolling">{{ enrolling ? '...' : 'Add' }}</button>
-        </div>
-        <ul class="enrollment-list">
-          <li *ngFor="let e of enrollments" class="enrollment-item">
-            <span>{{ e.studentName }} – {{ e.contractIdDisplay }}</span>
-            <button type="button" class="btn btn-sm btn-danger" (click)="unenroll(e.id)">Remove</button>
-          </li>
-          <li *ngIf="enrollments.length === 0" class="empty">No students yet.</li>
-        </ul>
+        <p-button label="Save" icon="pi pi-check" (onClick)="updateGroupClass()" [loading]="updating" />
       </div>
+      <h4 class="subheading">Students</h4>
+      <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
+        <select [(ngModel)]="selectedEnrollContract" class="p-inputtext inline-select">
+          <option [ngValue]="null">Add student...</option>
+          <option *ngFor="let s of assignableContracts" [ngValue]="s">{{ s.studentName }} – {{ s.contractIdDisplay }}</option>
+        </select>
+        <p-button label="Add" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!selectedEnrollContract" />
+      </div>
+      <ul class="enrollment-list">
+        <li *ngFor="let e of enrollments" class="enrollment-item">
+          <span>{{ e.studentName }} – {{ e.contractIdDisplay }}</span>
+          <p-button label="Remove" icon="pi pi-times" severity="danger" [outlined]="true" size="small" (onClick)="unenroll(e.id)" />
+        </li>
+        <li *ngIf="enrollments.length === 0" class="empty-enroll">No students yet.</li>
+      </ul>
     </div>
-  </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Done" (onClick)="closeEnrollments()" />
+    </ng-template>
+  </p-dialog>
 </div>

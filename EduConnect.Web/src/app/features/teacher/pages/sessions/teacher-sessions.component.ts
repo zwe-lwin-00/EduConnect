@@ -3,15 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 
 @Component({
   selector: 'app-teacher-sessions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, DisplayDatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, CardModule, DialogModule, MessageModule, InputTextModule, DisplayDatePipe],
   templateUrl: './teacher-sessions.component.html',
   styleUrl: './teacher-sessions.component.css'
 })
@@ -32,7 +36,8 @@ export class TeacherSessionsComponent implements OnInit {
 
   constructor(
     private teacherService: TeacherService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -65,6 +70,7 @@ export class TeacherSessionsComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -97,10 +103,11 @@ export class TeacherSessionsComponent implements OnInit {
             this.checkingInContractId = null;
             this.load();
           },
-          error: (err) => {
-            this.error = err.error?.error || err.message || 'Check-in failed';
-            this.checkingInContractId = null;
-          }
+      error: (err) => {
+        this.error = err.error?.error || err.message || 'Check-in failed';
+        this.checkingInContractId = null;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
+      }
         });
       }
     });
@@ -119,7 +126,7 @@ export class TeacherSessionsComponent implements OnInit {
   submitCheckOut(): void {
     if (!this.checkingOutSession) return;
     if (!this.lessonNotes.trim()) {
-      alert('Lesson notes are required to check out.');
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Lesson notes are required to check out.' });
       return;
     }
     this.teacherService.checkOut({
@@ -128,19 +135,18 @@ export class TeacherSessionsComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.closeCheckOut();
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Session checked out.' });
         this.load();
       },
-      error: (err) => {
-        alert(err.error?.error || err.message || 'Check-out failed');
-      }
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Check-out failed' })
     });
   }
 
   startGroupSession(): void {
     const id = this.selectedGroupClassId ?? 0;
-    if (!id) { this.error = 'Select a group class.'; return; }
+    if (!id) { this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Select a group class.' }); return; }
     const gc = this.groupClasses.find(c => c.id === id);
-    if (gc?.enrolledCount === 0) { this.error = 'Group class has no enrolled students.'; return; }
+    if (gc?.enrolledCount === 0) { this.messageService.add({ severity: 'warn', summary: 'Cannot start', detail: 'Group class has no enrolled students.' }); return; }
     this.confirmationService.confirm({
       message: `Start group session for "${gc?.name}"?`,
       header: 'Start group session',
@@ -155,6 +161,7 @@ export class TeacherSessionsComponent implements OnInit {
           error: (err) => {
             this.error = err.error?.error || err.message || 'Failed to start group session';
             this.checkingInGroupClassId = null;
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
           }
         });
       }
@@ -174,7 +181,7 @@ export class TeacherSessionsComponent implements OnInit {
   submitGroupCheckOut(): void {
     if (!this.checkingOutGroupSession) return;
     if (!this.groupLessonNotes.trim()) {
-      alert('Lesson notes are required to check out.');
+      this.messageService.add({ severity: 'warn', summary: 'Required', detail: 'Lesson notes are required to check out.' });
       return;
     }
     this.teacherService.checkOutGroup({
@@ -183,9 +190,10 @@ export class TeacherSessionsComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.closeGroupCheckOut();
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Group session checked out.' });
         this.load();
       },
-      error: (err) => alert(err.error?.error || err.message || 'Check-out failed')
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Check-out failed' })
     });
   }
 }

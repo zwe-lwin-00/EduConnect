@@ -380,6 +380,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Notifications – Mark all as read**: Notification bell (Admin, Teacher, Parent) includes “Mark all as read”; API `POST /notifications/mark-all-read` marks all stored notifications for the current user (better UX when there are many notifications)
 - [x] **Sidebar UI/UX**: Professional sidebar (Admin/Teacher/Parent): PrimeIcons for nav items, two-line brand (EduConnect + role), dark gradients, section labels with borders, active state with left accent; parent layout uses same PrimeNG Toolbar as admin/teacher
 - [x] **Responsive UI**: Viewport meta and 768px breakpoint; sidebar off-canvas + overlay on mobile; main padding 16px on small screens; PrimeNG tables scroll horizontally; toolbars and filters wrap; dashboard grids single column on mobile; reports, attendance, forms, and page containers full width on mobile; breadcrumb and auth pages avoid overflow
+- [x] **UI/UX consistency (Admin, Teacher, Parent)**: All list/detail pages use PrimeNG (p-card, p-table, p-dialog, p-button, p-message). Consistent page headers (`page-header-compact` + short description), table loading states, empty states (icon + message + hint), and error handling (Toast/MessageService; no `alert()`). Group classes (admin & teacher), Attendance, Reports, Homework & Grades, Availability, Calendar, and Profile aligned with the same patterns. Parent dashboard and student learning overview use p-card, p-button, and consistent empty/error states.
+- [x] **Project flow validation**: Auth (login, change-password, returnUrl, guards), 401 refresh, and role-based routing verified. API ↔ frontend IDs (contract, student, teacher, parent) and payloads checked; invalid Parent student route param (e.g. `/parent/student/xyz`) now handled without calling the API (show "Invalid student" and do not load).
 
 ### 🚧 To Be Implemented
 - [ ] Teacher NRC/certificate document upload and verification workflow
@@ -596,7 +598,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.6.0
+**Version**: 1.7.0
 
 ---
 

@@ -1,8 +1,10 @@
 .teacher-students { max-width: 1000px; }
 
+.empty-table-message { padding: 2rem 1rem; text-align: center; color: var(--p-text-color-secondary, #666); }
+.empty-table-message .empty-icon { font-size: 2.5rem; opacity: 0.5; display: block; margin-bottom: 0.5rem; }
+.empty-table-message p { margin: 0.25rem 0; }
+.empty-table-message .empty-hint { font-size: 0.875rem; opacity: 0.9; }
+
 @media (max-width: 768px) {
   .teacher-students { max-width: 100%; }
 }
-.page-desc { margin-bottom: 20px; color: #666; font-size: 0.9rem; }
-.loading, .error { padding: 20px; }
-.error { color: #c62828; background: #ffebee; border-radius: 4px; }

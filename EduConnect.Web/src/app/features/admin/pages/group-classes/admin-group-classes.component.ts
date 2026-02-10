@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CardModule } from 'primeng/card';
+import { TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import {
   AdminGroupClassDto,
@@ -10,12 +16,12 @@ import {
   Teacher,
   ContractDto
 } from '../../../../core/models/admin.model';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-group-classes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CardModule, TableModule, DialogModule, ButtonModule, MessageModule, InputTextModule],
   templateUrl: './admin-group-classes.component.html',
   styleUrl: './admin-group-classes.component.css'
 })
@@ -57,7 +63,8 @@ export class AdminGroupClassesComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
@@ -76,6 +83,7 @@ export class AdminGroupClassesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -121,8 +129,8 @@ export class AdminGroupClassesComponent implements OnInit {
 
   create(): void {
     const name = this.newName?.trim();
-    if (!name) { this.error = 'Enter a name.'; return; }
-    if (this.newTeacherId == null) { this.error = 'Select a teacher.'; return; }
+    if (!name) { this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Enter a name.' }); return; }
+    if (this.newTeacherId == null) { this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Select a teacher.' }); return; }
     this.creating = true;
     const request: AdminCreateGroupClassRequest = {
       name,
@@ -135,11 +143,13 @@ export class AdminGroupClassesComponent implements OnInit {
       next: () => {
         this.creating = false;
         this.showCreate = false;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Group class created.' });
         this.load();
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Create failed';
         this.creating = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -171,11 +181,13 @@ export class AdminGroupClassesComponent implements OnInit {
       next: () => {
         this.updating = false;
         this.showEdit = false;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Group class updated.' });
         this.load();
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Update failed';
         this.updating = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -226,6 +238,7 @@ export class AdminGroupClassesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Enroll failed';
         this.enrolling = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -241,7 +254,7 @@ export class AdminGroupClassesComponent implements OnInit {
             if (this.selectedClass) this.openEnrollments(this.selectedClass);
             this.load();
           },
-          error: (err) => this.error = err.error?.error || err.message || 'Failed'
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed' })
         });
       }
     });

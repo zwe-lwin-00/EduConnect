@@ -1,13 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
+import { ButtonModule } from 'primeng/button';
 import { ParentService } from '../../../../core/services/parent.service';
 import { ParentStudentDto } from '../../../../core/models/parent.model';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-parent-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule],
   templateUrl: './parent-dashboard.component.html',
   styleUrl: './parent-dashboard.component.css'
 })
@@ -16,7 +20,10 @@ export class ParentDashboardComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(private parentService: ParentService) {}
+  constructor(
+    private parentService: ParentService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -33,6 +40,7 @@ export class ParentDashboardComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }

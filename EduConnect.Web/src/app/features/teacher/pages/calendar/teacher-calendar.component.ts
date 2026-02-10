@@ -1,14 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
+import { MessageService } from 'primeng/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 @Component({
   selector: 'app-teacher-calendar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonModule, CardModule, MessageModule],
   templateUrl: './teacher-calendar.component.html',
   styleUrl: './teacher-calendar.component.css'
 })
@@ -18,7 +22,10 @@ export class TeacherCalendarComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(private teacherService: TeacherService) {}
+  constructor(
+    private teacherService: TeacherService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -83,6 +90,7 @@ export class TeacherCalendarComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }

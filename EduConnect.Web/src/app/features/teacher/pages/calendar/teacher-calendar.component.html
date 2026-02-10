@@ -1,31 +1,36 @@
 <div class="teacher-calendar">
-  <h1>My sessions this week</h1>
-  <p class="page-desc">Week view of your session delivery (from availability and contracts).</p>
-
-  <div class="week-nav">
-    <button type="button" class="btn-nav" (click)="prevWeek()">← Previous</button>
-    <span class="week-label">{{ weekLabel }}</span>
-    <button type="button" class="btn-nav" (click)="nextWeek()">Next →</button>
-    <button type="button" class="btn-this-week" (click)="thisWeek()">This week</button>
-  </div>
-
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
-
-  <div *ngIf="!loading && !error" class="week-grid">
-    <div *ngFor="let col of dayColumns" class="day-column" [class.today]="col.isToday">
-      <div class="day-header">
-        <span class="day-name">{{ col.label }}</span>
-        <span class="day-date">{{ col.date | date:'d MMM' }}</span>
-      </div>
-      <div class="day-sessions">
-        <div *ngFor="let s of sessionsOnDay(col.date)" class="session-block">
-          <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
-          <div class="session-student">{{ s.studentName }}</div>
-          <div class="session-meta">{{ s.contractIdDisplay }} · {{ s.status }}</div>
-        </div>
-        <div *ngIf="sessionsOnDay(col.date).length === 0" class="no-sessions">—</div>
-      </div>
+  <div class="page-header-compact">
+    <div>
+      <h1>My sessions this week</h1>
+      <p class="page-desc-short">Week view of your session delivery (from availability and contracts).</p>
     </div>
   </div>
+
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
+
+  <p-card>
+    <div class="week-nav">
+      <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevWeek()" title="Previous week" />
+      <span class="week-label">{{ weekLabel }}</span>
+      <p-button icon="pi pi-chevron-right" [outlined]="true" (onClick)="nextWeek()" title="Next week" />
+      <p-button label="This week" [outlined]="true" severity="secondary" (onClick)="thisWeek()" />
+    </div>
+    <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="!loading && !error" class="week-grid">
+      <div *ngFor="let col of dayColumns" class="day-column" [class.today]="col.isToday">
+        <div class="day-header">
+          <span class="day-name">{{ col.label }}</span>
+          <span class="day-date">{{ col.date | date:'d MMM' }}</span>
+        </div>
+        <div class="day-sessions">
+          <div *ngFor="let s of sessionsOnDay(col.date)" class="session-block">
+            <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+            <div class="session-student">{{ s.studentName }}</div>
+            <div class="session-meta">{{ s.contractIdDisplay }} · {{ s.status }}</div>
+          </div>
+          <div *ngIf="sessionsOnDay(col.date).length === 0" class="no-sessions">—</div>
+        </div>
+      </div>
+    </div>
+  </p-card>
 </div>

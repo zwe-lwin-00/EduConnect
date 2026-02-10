@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Parent, CreateParentRequest, CreateParentResponse, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-parents',
@@ -17,6 +18,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 })
 export class AdminParentsComponent implements OnInit {
   parents: Parent[] = [];
+  loading = true;
   showCreatePopup = false;
   showCredentialsPopup = false;
   credentialsEmail = '';
@@ -26,7 +28,8 @@ export class AdminParentsComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService
   ) {
     this.createForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -41,11 +44,16 @@ export class AdminParentsComponent implements OnInit {
   }
 
   loadParents(): void {
+    this.loading = true;
     this.adminService.getParents().subscribe({
       next: (data) => {
         this.parents = Array.isArray(data) ? data : (data as PagedResult<Parent>).items;
+        this.loading = false;
       },
-      error: (err) => console.error('Error loading parents:', err)
+      error: (err) => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load parents.' });
+      }
     });
   }
 

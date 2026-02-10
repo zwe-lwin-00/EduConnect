@@ -1,21 +1,12 @@
 .teacher-availability { max-width: 800px; }
 
+.slots-actions { display: flex; align-items: center; }
+.mb-3 { margin-bottom: 1rem; }
+.mt-3 { margin-top: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
+
+::ng-deep .teacher-availability .p-datatable .p-inputtext { width: 100%; min-width: 0; }
+
 @media (max-width: 768px) {
   .teacher-availability { max-width: 100%; }
 }
-.page-desc { margin-bottom: 20px; color: #666; font-size: 0.9rem; }
-.loading, .error { padding: 20px; }
-.error { color: #c62828; background: #ffebee; border-radius: 4px; }
-.slots-panel { background: #fff; border-radius: 8px; padding: 20px; border: 1px solid #e0e0e0; }
-.slots-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.slots-header h2 { margin: 0; font-size: 1.1rem; }
-.btn-add { padding: 8px 16px; background: #2e7d32; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-.slots-table { width: 100%; border-collapse: collapse; }
-.slots-table th, .slots-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
-.slots-table th { background: #f5f5f5; font-weight: 600; }
-.form-control { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; }
-.btn-remove { padding: 4px 10px; background: #f44336; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-.form-actions { margin-top: 20px; }
-.btn { padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-.btn-primary { background: #2e7d32; color: #fff; border: none; }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }

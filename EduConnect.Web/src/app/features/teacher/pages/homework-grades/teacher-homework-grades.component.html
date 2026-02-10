@@ -1,137 +1,143 @@
 <div class="teacher-homework-grades">
-  <h1>Homework & Grades</h1>
-  <p class="page-desc">Assign homework to your students and record grades. Parents can view these in their student's learning overview.</p>
+  <div class="page-header-compact">
+    <div>
+      <h1>Homework &amp; Grades</h1>
+      <p class="page-desc-short">Assign homework to your students and record grades. Parents can view these in their student's learning overview.</p>
+    </div>
+  </div>
 
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
+
+  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
 
   <ng-container *ngIf="!loading && !error">
-    <div class="filter-bar">
-      <label>Student:</label>
-      <select [(ngModel)]="filterStudentId" (ngModelChange)="onFilterChange()" class="form-control filter-select">
-        <option [ngValue]="null">All students</option>
-        <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
-      </select>
-      <label class="filter-label">Homework due:</label>
-      <input type="date" [(ngModel)]="dueDateFrom" (ngModelChange)="onFilterChange()" class="form-control filter-date" title="Due from" />
-      <span class="filter-sep">–</span>
-      <input type="date" [(ngModel)]="dueDateTo" (ngModelChange)="onFilterChange()" class="form-control filter-date" title="Due to" />
-      <label class="filter-label">Grade date:</label>
-      <input type="date" [(ngModel)]="gradeDateFrom" (ngModelChange)="onFilterChange()" class="form-control filter-date" title="Grade date from" />
-      <span class="filter-sep">–</span>
-      <input type="date" [(ngModel)]="gradeDateTo" (ngModelChange)="onFilterChange()" class="form-control filter-date" title="Grade date to" />
-      <button type="button" class="btn btn-outline" (click)="clearDateFilters()">Clear dates</button>
-    </div>
+    <p-card styleClass="filter-card">
+      <div class="filter-bar">
+        <label>Student:</label>
+        <select [(ngModel)]="filterStudentId" (ngModelChange)="onFilterChange()" class="p-inputtext filter-select">
+          <option [ngValue]="null">All students</option>
+          <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
+        </select>
+        <label>Homework due:</label>
+        <input pInputText type="date" [(ngModel)]="dueDateFrom" (ngModelChange)="onFilterChange()" class="filter-date" title="Due from" />
+        <span class="filter-sep">–</span>
+        <input pInputText type="date" [(ngModel)]="dueDateTo" (ngModelChange)="onFilterChange()" class="filter-date" title="Due to" />
+        <label>Grade date:</label>
+        <input pInputText type="date" [(ngModel)]="gradeDateFrom" (ngModelChange)="onFilterChange()" class="filter-date" title="Grade date from" />
+        <span class="filter-sep">–</span>
+        <input pInputText type="date" [(ngModel)]="gradeDateTo" (ngModelChange)="onFilterChange()" class="filter-date" title="Grade date to" />
+        <p-button label="Clear dates" [outlined]="true" severity="secondary" (onClick)="clearDateFilters()" />
+      </div>
+    </p-card>
 
-    <section class="section">
-      <h2>Homework</h2>
-      <button type="button" class="btn btn-success" (click)="openHomeworkForm()">Assign homework</button>
-      <div *ngIf="homeworks.length === 0" class="empty">No homework yet.</div>
-      <div *ngFor="let h of homeworks" class="card">
-        <div class="card-header">
+    <p-card header="Homework">
+      <div class="card-actions-top">
+        <p-button label="Assign homework" icon="pi pi-plus" severity="success" (onClick)="openHomeworkForm()" />
+      </div>
+      <div *ngIf="homeworks.length === 0" class="empty-state">No homework yet.</div>
+      <div *ngFor="let h of homeworks" class="item-card">
+        <div class="item-header">
           <strong>{{ h.title }}</strong> · {{ h.studentName }}
           <span *ngIf="h.contractIdDisplay"> · {{ h.contractIdDisplay }}</span>
-          · Due {{ h.dueDate | date:'shortDate' }} · <span class="status-badge" [class]="'status-' + h.status">{{ h.statusText }}</span>
+          · Due {{ h.dueDate | date:'shortDate' }} · <p-tag [value]="h.statusText" [severity]="h.status === 2 ? 'success' : h.status === 1 ? 'info' : 'secondary'" />
         </div>
-        <div class="card-body" *ngIf="h.description">{{ h.description }}</div>
-        <div class="card-body" *ngIf="h.teacherFeedback"><strong>Your feedback:</strong> {{ h.teacherFeedback }}</div>
-        <div class="card-actions">
-          <button *ngIf="h.status === 1" type="button" class="btn btn-sm" (click)="markSubmitted(h)">Mark submitted</button>
-          <button *ngIf="h.status === 1 || h.status === 2" type="button" class="btn btn-sm btn-primary" (click)="openGrading(h)">Mark graded + feedback</button>
+        <div class="item-body" *ngIf="h.description">{{ h.description }}</div>
+        <div class="item-body" *ngIf="h.teacherFeedback"><strong>Your feedback:</strong> {{ h.teacherFeedback }}</div>
+        <div class="item-actions">
+          <p-button *ngIf="h.status === 1" label="Mark submitted" [outlined]="true" size="small" (onClick)="markSubmitted(h)" />
+          <p-button *ngIf="h.status === 1 || h.status === 2" label="Mark graded + feedback" icon="pi pi-check" [outlined]="true" size="small" (onClick)="openGrading(h)" />
         </div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Grades</h2>
-      <button type="button" class="btn btn-success" (click)="openGradeForm()">Add grade</button>
-      <div *ngIf="grades.length === 0" class="empty">No grades yet.</div>
-      <div *ngFor="let g of grades" class="card">
-        <div class="card-header">
+    <p-card header="Grades">
+      <div class="card-actions-top">
+        <p-button label="Add grade" icon="pi pi-plus" severity="success" (onClick)="openGradeForm()" />
+      </div>
+      <div *ngIf="grades.length === 0" class="empty-state">No grades yet.</div>
+      <div *ngFor="let g of grades" class="item-card">
+        <div class="item-header">
           <strong>{{ g.title }}</strong> · {{ g.studentName }}
           <span *ngIf="g.contractIdDisplay"> · {{ g.contractIdDisplay }}</span>
           · {{ g.gradeValue }}{{ g.maxValue != null ? ' / ' + g.maxValue : '' }} · {{ g.gradeDate | date:'shortDate' }}
         </div>
-        <div class="card-body" *ngIf="g.notes">{{ g.notes }}</div>
+        <div class="item-body" *ngIf="g.notes">{{ g.notes }}</div>
       </div>
-    </section>
+    </p-card>
 
-    <div *ngIf="showHomeworkForm" class="modal-overlay" (click)="closeHomeworkForm()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Assign homework</h3>
-        <div class="form-group">
+    <p-dialog header="Assign homework" [(visible)]="showHomeworkForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeHomeworkForm()">
+      <div class="dialog-form">
+        <div class="field">
           <label>Student *</label>
-          <select [(ngModel)]="homeworkForm.studentId" class="form-control">
-            <option *ngFor="let s of students" [value]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
+          <select [(ngModel)]="homeworkForm.studentId" class="p-inputtext w-full">
+            <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Title *</label>
-          <input type="text" [(ngModel)]="homeworkForm.title" class="form-control" placeholder="e.g. Math Ch.5 exercises" />
+          <input pInputText type="text" [(ngModel)]="homeworkForm.title" class="w-full" placeholder="e.g. Math Ch.5 exercises" />
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Description</label>
-          <textarea [(ngModel)]="homeworkForm.description" class="form-control" rows="3"></textarea>
+          <textarea pInputText [(ngModel)]="homeworkForm.description" class="w-full" rows="3"></textarea>
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Due date *</label>
-          <input type="date" [(ngModel)]="homeworkForm.dueDate" class="form-control" />
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="closeHomeworkForm()">Cancel</button>
-          <button type="button" class="btn btn-success" (click)="submitHomework()" [disabled]="!homeworkForm.title.trim() || homeworkSubmitting">{{ homeworkSubmitting ? 'Saving...' : 'Assign' }}</button>
+          <input pInputText type="date" [(ngModel)]="homeworkForm.dueDate" class="w-full" />
         </div>
       </div>
-    </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeHomeworkForm()" />
+        <p-button label="Assign" icon="pi pi-check" (onClick)="submitHomework()" [loading]="homeworkSubmitting" [disabled]="!homeworkForm.title.trim()" />
+      </ng-template>
+    </p-dialog>
 
-    <div *ngIf="showGradeForm" class="modal-overlay" (click)="closeGradeForm()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Add grade</h3>
-        <div class="form-group">
+    <p-dialog header="Add grade" [(visible)]="showGradeForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGradeForm()">
+      <div class="dialog-form">
+        <div class="field">
           <label>Student *</label>
-          <select [(ngModel)]="gradeForm.studentId" class="form-control">
-            <option *ngFor="let s of students" [value]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
+          <select [(ngModel)]="gradeForm.studentId" class="p-inputtext w-full">
+            <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Title *</label>
-          <input type="text" [(ngModel)]="gradeForm.title" class="form-control" placeholder="e.g. Quiz 1, Mid-term" />
+          <input pInputText type="text" [(ngModel)]="gradeForm.title" class="w-full" placeholder="e.g. Quiz 1, Mid-term" />
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Grade value *</label>
-          <input type="text" [(ngModel)]="gradeForm.gradeValue" class="form-control" placeholder="e.g. A, 85, Pass" />
+          <input pInputText type="text" [(ngModel)]="gradeForm.gradeValue" class="w-full" placeholder="e.g. A, 85, Pass" />
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Max value (optional)</label>
-          <input type="number" [(ngModel)]="gradeForm.maxValue" class="form-control" placeholder="e.g. 100" min="0" step="0.01" />
+          <input pInputText type="number" [(ngModel)]="gradeForm.maxValue" class="w-full" placeholder="e.g. 100" min="0" step="0.01" />
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Date *</label>
-          <input type="date" [(ngModel)]="gradeForm.gradeDate" class="form-control" />
+          <input pInputText type="date" [(ngModel)]="gradeForm.gradeDate" class="w-full" />
         </div>
-        <div class="form-group">
+        <div class="field">
           <label>Notes</label>
-          <textarea [(ngModel)]="gradeForm.notes" class="form-control" rows="2"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="closeGradeForm()">Cancel</button>
-          <button type="button" class="btn btn-success" (click)="submitGrade()" [disabled]="!gradeForm.title.trim() || !gradeForm.gradeValue.trim() || gradeSubmitting">{{ gradeSubmitting ? 'Saving...' : 'Add grade' }}</button>
+          <textarea pInputText [(ngModel)]="gradeForm.notes" class="w-full" rows="2"></textarea>
         </div>
       </div>
-    </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeGradeForm()" />
+        <p-button label="Add grade" icon="pi pi-check" (onClick)="submitGrade()" [loading]="gradeSubmitting" [disabled]="!gradeForm.title.trim() || !gradeForm.gradeValue.trim()" />
+      </ng-template>
+    </p-dialog>
 
-    <div *ngIf="gradingHomeworkId" class="modal-overlay" (click)="closeGrading()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Mark as graded – Add feedback</h3>
-        <div class="form-group">
+    <p-dialog header="Mark as graded – Add feedback" [visible]="gradingHomeworkId != null" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGrading()" *ngIf="gradingHomeworkId">
+      <div class="dialog-form">
+        <div class="field">
           <label>Teacher feedback (optional)</label>
-          <textarea [(ngModel)]="gradingFeedback" class="form-control" rows="4" placeholder="Feedback for the student/parent"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn" (click)="closeGrading()">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="submitGrading()">Mark graded</button>
+          <textarea pInputText [(ngModel)]="gradingFeedback" class="w-full" rows="4" placeholder="Feedback for the student/parent"></textarea>
         </div>
       </div>
-    </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeGrading()" />
+        <p-button label="Mark graded" icon="pi pi-check" (onClick)="submitGrading()" />
+      </ng-template>
+    </p-dialog>
   </ng-container>
 </div>

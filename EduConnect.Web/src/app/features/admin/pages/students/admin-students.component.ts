@@ -19,6 +19,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 export class AdminStudentsComponent implements OnInit {
   students: Student[] = [];
   parents: Parent[] = [];
+  loading = true;
   showCreatePopup = false;
   createForm: FormGroup;
   gradeOptions = [
@@ -50,9 +51,13 @@ export class AdminStudentsComponent implements OnInit {
   }
 
   loadStudents(): void {
+    this.loading = true;
     this.adminService.getStudents().subscribe({
-      next: (data) => this.students = data,
-      error: (err) => console.error('Error loading students:', err)
+      next: (data) => { this.students = data; this.loading = false; },
+      error: (err) => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load students.' });
+      }
     });
   }
 

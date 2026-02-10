@@ -1,46 +1,42 @@
 .parent-student-learning { max-width: 800px; margin: 0 auto; }
 
+.header-with-back { display: flex; align-items: flex-start; gap: 0.5rem; }
+.page-title-inline { margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 600; }
+.mb-3 { margin-bottom: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
+
+.subscription-banner { padding: 0.75rem 1rem; margin-bottom: 1.25rem; background: var(--p-primary-50, #e3f2fd); border-radius: 8px; border: 1px solid var(--p-primary-200, #90caf9); font-size: 1rem; }
+
+.section-card { margin-bottom: 1.25rem; }
+.hint { font-size: 0.85rem; color: var(--p-text-color-secondary, #666); margin: 0 0 0.75rem 0; }
+.value { margin: 0; font-size: 1rem; }
+.empty-state-inline { color: var(--p-text-color-secondary, #999); font-size: 0.9rem; margin: 0; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-200, #f0f0f0); }
+.list li:last-child { border-bottom: none; }
+
+.session-card { padding: 1rem; margin-bottom: 0.75rem; background: var(--p-surface-50, #f9f9f9); border-radius: 6px; border: 1px solid var(--p-surface-200, #eee); }
+.session-header { font-size: 0.9rem; color: var(--p-text-color-secondary, #555); margin-bottom: 0.5rem; }
+.session-notes, .session-progress { font-size: 0.9rem; margin-top: 0.5rem; color: var(--p-text-color); }
+
+.week-nav { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.week-label { font-weight: 600; min-width: 180px; text-align: center; }
+.loading-inline { padding: 0.5rem 0; color: var(--p-text-color-secondary, #666); }
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; border: 1px solid var(--p-surface-200, #e0e0e0); border-radius: 8px; overflow: hidden; background: var(--p-surface-50, #fafafa); margin-top: 0.5rem; }
+.day-column { min-height: 100px; background: var(--p-surface-0, #fff); border-right: 1px solid var(--p-surface-200, #eee); display: flex; flex-direction: column; }
+.day-column:last-child { border-right: none; }
+.day-column.today { background: var(--p-primary-50, #e3f2fd); }
+.day-header { padding: 0.5rem; border-bottom: 1px solid var(--p-surface-200, #eee); text-align: center; font-size: 0.85rem; }
+.day-name { display: block; font-weight: 600; color: var(--p-text-color); }
+.day-date { display: block; color: var(--p-text-color-secondary, #666); font-size: 0.8rem; }
+.day-sessions { padding: 0.5rem; flex: 1; }
+.session-block { padding: 0.4rem 0.5rem; margin-bottom: 0.35rem; background: var(--p-surface-0, #fff); border: 1px solid var(--p-surface-200, #e0e0e0); border-radius: 6px; font-size: 0.8rem; }
+.session-block .session-time { font-weight: 600; color: var(--p-primary-color); margin-bottom: 2px; }
+.session-block .session-meta { color: var(--p-text-color-secondary, #666); font-size: 0.75rem; }
+.no-sessions { color: var(--p-text-color-secondary, #999); font-size: 0.85rem; text-align: center; padding: 0.5rem; }
+
 @media (max-width: 768px) {
   .parent-student-learning { max-width: 100%; }
+  .week-grid { grid-template-columns: 1fr; }
+  .day-column { border-right: none; border-bottom: 1px solid var(--p-surface-200, #eee); }
 }
-.back-link { display: inline-block; margin-bottom: 20px; color: #1565c0; text-decoration: none; font-size: 0.9rem; }
-.back-link:hover { text-decoration: underline; }
-.loading, .error { padding: 20px; }
-.error { color: #c62828; background: #ffebee; border-radius: 4px; }
-.page-title { margin: 0 0 4px 0; color: #1565c0; font-size: 1.5rem; }
-.page-desc { margin: 0 0 24px 0; color: #666; font-size: 0.9rem; }
-.hours-left-block { padding: 12px 16px; margin-bottom: 20px; background: #e3f2fd; border-radius: 8px; border: 1px solid #90caf9; font-size: 1rem; }
-.hours-left-block.low-hours { background: #fff8e1; border-color: #ffb74d; }
-.hours-left-block .top-up-hint { font-style: italic; color: #e65100; margin-left: 4px; }
-.section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e0e0e0; }
-.section h2 { margin: 0 0 12px 0; font-size: 1.1rem; color: #333; }
-.hint { font-size: 0.85rem; color: #666; margin: 0 0 12px 0; }
-.value { margin: 0; font-size: 1rem; }
-.empty { color: #999; font-size: 0.9rem; margin: 0; }
-.list { list-style: none; margin: 0; padding: 0; }
-.list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-.list li:last-child { border-bottom: none; }
-.session-card { padding: 16px; margin-bottom: 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #eee; }
-.session-header { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
-.session-notes, .session-progress { font-size: 0.9rem; margin-top: 8px; color: #333; }
-
-.week-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.btn-nav { padding: 0.4rem 0.75rem; border: 1px solid #ccc; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-.btn-nav:hover { background: #f5f5f5; }
-.week-label { font-weight: 600; min-width: 180px; text-align: center; }
-.btn-this-week { padding: 0.4rem 0.75rem; border: 1px solid #1976d2; background: #1976d2; color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-.btn-this-week:hover { background: #1565c0; }
-.loading-inline { padding: 0.5rem 0; color: #666; }
-.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fafafa; margin-top: 0.5rem; }
-.day-column { min-height: 100px; background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; }
-.day-column:last-child { border-right: none; }
-.day-column.today { background: #e3f2fd; }
-.day-header { padding: 0.5rem; border-bottom: 1px solid #eee; text-align: center; font-size: 0.85rem; }
-.day-name { display: block; font-weight: 600; color: #333; }
-.day-date { display: block; color: #666; font-size: 0.8rem; }
-.day-sessions { padding: 0.5rem; flex: 1; }
-.session-block { padding: 0.4rem 0.5rem; margin-bottom: 0.35rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 0.8rem; }
-.session-block .session-time { font-weight: 600; color: #1565c0; margin-bottom: 2px; }
-.session-block .session-meta { color: #666; font-size: 0.75rem; }
-.no-sessions { color: #999; font-size: 0.85rem; text-align: center; padding: 0.5rem; }
-@media (max-width: 768px) { .week-grid { grid-template-columns: 1fr; } .day-column { border-right: none; border-bottom: 1px solid #eee; } }

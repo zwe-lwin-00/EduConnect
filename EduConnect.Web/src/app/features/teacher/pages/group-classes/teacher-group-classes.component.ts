@@ -2,6 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
+import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import {
   GroupClassDto,
@@ -10,12 +16,12 @@ import {
   UpdateGroupClassRequest,
   EnrollInGroupClassRequest
 } from '../../../../core/models/teacher.model';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-teacher-group-classes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule],
   templateUrl: './teacher-group-classes.component.html',
   styleUrl: './teacher-group-classes.component.css'
 })
@@ -37,7 +43,8 @@ export class TeacherGroupClassesComponent implements OnInit {
 
   constructor(
     private teacherService: TeacherService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
   ) {}
 
   /** Assigned contracts whose student is not already enrolled (backend allows one enrollment per student per group). */
@@ -71,6 +78,7 @@ export class TeacherGroupClassesComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -94,11 +102,13 @@ export class TeacherGroupClassesComponent implements OnInit {
     this.teacherService.updateGroupClass(this.selectedGroupClass.id, request).subscribe({
       next: () => {
         this.updating = false;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Group class updated.' });
         this.load();
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Update failed';
         this.updating = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -126,12 +136,14 @@ export class TeacherGroupClassesComponent implements OnInit {
       next: () => {
         this.enrolling = false;
         this.selectedEnrollContract = null;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Student enrolled.' });
         this.viewEnrollments(this.selectedGroupClass!);
         this.load();
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Enroll failed';
         this.enrolling = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -147,7 +159,7 @@ export class TeacherGroupClassesComponent implements OnInit {
             if (this.selectedGroupClass) this.viewEnrollments(this.selectedGroupClass);
             this.load();
           },
-          error: (err) => this.error = err.error?.error || err.message || 'Failed'
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed' })
         });
       }
     });

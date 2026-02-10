@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { TodaySessionDto } from '../../../../core/models/admin.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -10,7 +12,7 @@ import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 @Component({
   selector: 'app-admin-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DisplayDatePipe],
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule, DisplayDatePipe],
   templateUrl: './admin-attendance.component.html',
   styleUrl: './admin-attendance.component.css'
 })
@@ -38,7 +40,10 @@ export class AdminAttendanceComponent implements OnInit {
         this.sessions = data;
         this.loading = false;
       },
-      error: () => { this.loading = false; }
+      error: (err) => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load sessions.' });
+      }
     });
   }
 

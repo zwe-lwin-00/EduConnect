@@ -6,23 +6,28 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="profile && !loading" class="profile-card">
-    <div class="detail-row"><strong>Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</div>
-    <div class="detail-row"><strong>Email:</strong> {{ profile.email }}</div>
-    <div class="detail-row"><strong>Phone:</strong> {{ profile.phoneNumber }}</div>
-    <div class="detail-row"><strong>Education:</strong> {{ profile.educationLevel }}</div>
-    <div class="detail-row"><strong>Verification:</strong> {{ profile.verificationStatus }}</div>
-    <div class="detail-row" *ngIf="profile.bio"><strong>Bio:</strong><p>{{ profile.bio }}</p></div>
-    <div class="detail-row" *ngIf="profile.specializations"><strong>Specializations:</strong> {{ profile.specializations }}</div>
+  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
 
-    <div class="zoom-section">
-      <h3 class="section-title">Zoom (1:1 default)</h3>
-      <p class="hint">Paste your Zoom join link. Used when you start a 1:1 session.</p>
-      <input type="url" [(ngModel)]="zoomJoinUrl" class="form-control" placeholder="https://zoom.us/j/..." />
-      <button type="button" class="btn btn-primary" (click)="saveZoomUrl()" [disabled]="savingZoom">{{ savingZoom ? 'Saving...' : 'Save' }}</button>
-    </div>
+  <div *ngIf="profile && !loading">
+    <p-card header="Your details">
+      <div class="detail-row"><strong>Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</div>
+      <div class="detail-row"><strong>Email:</strong> {{ profile.email }}</div>
+      <div class="detail-row"><strong>Phone:</strong> {{ profile.phoneNumber }}</div>
+      <div class="detail-row"><strong>Education:</strong> {{ profile.educationLevel }}</div>
+      <div class="detail-row"><strong>Verification:</strong> {{ profile.verificationStatus }}</div>
+      <div class="detail-row" *ngIf="profile.bio"><strong>Bio:</strong><p>{{ profile.bio }}</p></div>
+      <div class="detail-row" *ngIf="profile.specializations"><strong>Specializations:</strong> {{ profile.specializations }}</div>
+    </p-card>
+
+    <p-card header="Zoom (1:1 default)" styleClass="mt-3">
+      <p class="hint mb-3">Paste your Zoom join link. Used when you start a 1:1 session.</p>
+      <div class="field">
+        <label>Zoom join URL</label>
+        <input pInputText type="url" [(ngModel)]="zoomJoinUrl" class="w-full" placeholder="https://zoom.us/j/..." />
+      </div>
+      <p-button label="Save" icon="pi pi-check" (onClick)="saveZoomUrl()" [loading]="savingZoom" />
+    </p-card>
   </div>
 </div>

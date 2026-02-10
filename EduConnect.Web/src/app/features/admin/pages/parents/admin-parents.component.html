@@ -10,6 +10,7 @@
   <div class="card table-card">
     <p-table
       [value]="parents"
+      [loading]="loading"
       [tableStyle]="{ 'min-width': '50rem' }"
       styleClass="p-datatable-gridlines p-datatable-striped"
       [paginator]="true"
@@ -42,7 +43,13 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="8">No parents.</td>
+          <td colspan="8">
+            <div class="empty-table-message">
+              <i class="pi pi-users empty-icon"></i>
+              <p>No parents.</p>
+              <p class="empty-hint">Create a parent account to link students and share login credentials.</p>
+            </div>
+          </td>
         </tr>
       </ng-template>
     </p-table>

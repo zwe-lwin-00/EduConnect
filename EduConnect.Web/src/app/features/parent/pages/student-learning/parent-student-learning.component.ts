@@ -1,17 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
+import { ButtonModule } from 'primeng/button';
 import { ParentService } from '../../../../core/services/parent.service';
 import { StudentLearningOverviewDto } from '../../../../core/models/parent.model';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
 import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
+import { MessageService } from 'primeng/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 @Component({
   selector: 'app-parent-student-learning',
   standalone: true,
-  imports: [CommonModule, RouterModule, DisplayDatePipe],
+  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule, DisplayDatePipe],
   templateUrl: './parent-student-learning.component.html',
   styleUrl: './parent-student-learning.component.css'
 })
@@ -27,16 +31,19 @@ export class ParentStudentLearningComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private parentService: ParentService
+    private parentService: ParentService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('studentId');
-    this.studentId = id ? +id : null;
-    if (this.studentId != null) {
+    const parsed = id ? +id : NaN;
+    if (typeof parsed === 'number' && !Number.isNaN(parsed) && parsed >= 1 && Number.isInteger(parsed)) {
+      this.studentId = parsed;
       this.load();
       this.loadWeek();
     } else {
+      this.studentId = null;
       this.error = 'Invalid student';
       this.loading = false;
     }
@@ -54,6 +61,7 @@ export class ParentStudentLearningComponent implements OnInit {
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -111,7 +119,10 @@ export class ParentStudentLearningComponent implements OnInit {
         this.weekSessions = list;
         this.weekLoading = false;
       },
-      error: () => { this.weekLoading = false; }
+      error: (err) => {
+        this.weekLoading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load week sessions.' });
+      }
     });
   }
 

@@ -1,46 +1,52 @@
 <div class="parent-student-learning">
-  <a routerLink="/parent" class="back-link">← Back to My Students</a>
+  <div class="page-header-compact mb-3">
+    <div class="header-with-back">
+      <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" routerLink="/parent" title="Back to My Students" styleClass="mr-2" />
+      <div *ngIf="overview">
+        <h1 class="page-title-inline">{{ overview.studentName }}</h1>
+        <p class="page-desc-short">Learning overview (read-only). Grade {{ overview.gradeLevel }}. Master Doc 11C C1.</p>
+      </div>
+      <div *ngIf="!overview">
+        <h1 class="page-title-inline">{{ loading ? 'Loading...' : 'Learning overview' }}</h1>
+      </div>
+    </div>
+  </div>
 
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
+
+  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
 
   <ng-container *ngIf="overview && !loading && !error">
-    <h1 class="page-title">{{ overview.studentName }}</h1>
-    <p class="page-desc">Learning overview (read-only). Grade {{ overview.gradeLevel }}. Master Doc 11C C1.</p>
-    <div class="hours-left-block" *ngIf="overview.subscriptionValidUntil">
+    <div class="subscription-banner" *ngIf="overview.subscriptionValidUntil">
       <strong>Subscription until {{ overview.subscriptionValidUntil | date:'shortDate' }}</strong> for {{ overview.studentName }}.
     </div>
 
-    <section class="section">
-      <h2>Assigned teacher(s)</h2>
-      <div *ngIf="overview.assignedTeachers.length === 0" class="empty">No active One-To-One class.</div>
+    <p-card header="Assigned teacher(s)" styleClass="section-card">
+      <div *ngIf="overview.assignedTeachers.length === 0" class="empty-state-inline">No active One-To-One class.</div>
       <ul class="list" *ngIf="overview.assignedTeachers.length > 0">
         <li *ngFor="let t of overview.assignedTeachers">
           {{ t.teacherName }} – {{ t.contractIdDisplay }}<span *ngIf="t.subscriptionPeriodEnd"> until {{ t.subscriptionPeriodEnd | date:'shortDate' }}</span>
         </li>
       </ul>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Subjects</h2>
+    <p-card header="Subjects" styleClass="section-card">
       <p class="value">{{ overview.subjects || '—' }}</p>
-    </section>
+    </p-card>
 
-    <section class="section" *ngIf="overview.subscriptionValidUntil">
-      <h2>Subscription</h2>
+    <p-card header="Subscription" styleClass="section-card" *ngIf="overview.subscriptionValidUntil">
       <p class="value">Valid until {{ overview.subscriptionValidUntil | date:'shortDate' }}</p>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Upcoming sessions (week view)</h2>
+    <p-card header="Upcoming sessions (week view)" styleClass="section-card">
       <p class="hint">Sessions this week for {{ overview.studentName }}. Times in Myanmar.</p>
       <div class="week-nav">
-        <button type="button" class="btn-nav" (click)="prevWeek()">← Previous</button>
+        <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevWeek()" title="Previous week" />
         <span class="week-label">{{ weekLabel }}</span>
-        <button type="button" class="btn-nav" (click)="nextWeek()">Next →</button>
-        <button type="button" class="btn-this-week" (click)="thisWeek()">This week</button>
+        <p-button icon="pi pi-chevron-right" [outlined]="true" (onClick)="nextWeek()" title="Next week" />
+        <p-button label="This week" [outlined]="true" severity="secondary" (onClick)="thisWeek()" />
       </div>
-      <div *ngIf="weekLoading" class="loading-inline">Loading...</div>
+      <div *ngIf="weekLoading" class="loading-inline"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
       <div *ngIf="!weekLoading" class="week-grid">
         <div *ngFor="let col of dayColumns" class="day-column" [class.today]="col.isToday">
           <div class="day-header">
@@ -56,23 +62,21 @@
           </div>
         </div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Active One-To-One classes (can attend)</h2>
+    <p-card header="Active One-To-One classes (can attend)" styleClass="section-card">
       <p class="hint">Teacher delivers sessions; Admin confirms. Renew via Admin when needed.</p>
-      <div *ngIf="overview.upcomingSessions.length === 0" class="empty">None.</div>
+      <div *ngIf="overview.upcomingSessions.length === 0" class="empty-state-inline">None.</div>
       <ul class="list" *ngIf="overview.upcomingSessions.length > 0">
         <li *ngFor="let u of overview.upcomingSessions">
           {{ u.teacherName }} – {{ u.contractIdDisplay }}<span *ngIf="u.subscriptionPeriodEnd"> until {{ u.subscriptionPeriodEnd | date:'shortDate' }}</span>
         </li>
       </ul>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Completed sessions</h2>
+    <p-card header="Completed sessions" styleClass="section-card">
       <p class="hint">Past sessions with lesson notes and progress (read-only).</p>
-      <div *ngIf="overview.completedSessions.length === 0" class="empty">No completed sessions yet.</div>
+      <div *ngIf="overview.completedSessions.length === 0" class="empty-state-inline">No completed sessions yet.</div>
       <div *ngFor="let c of overview.completedSessions" class="session-card">
         <div class="session-header">
           {{ c.teacherName }} · {{ c.checkInTime | displayDate:'short' }}
@@ -86,27 +90,25 @@
           <strong>Progress:</strong> {{ c.progressReport }}
         </div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Homework</h2>
+    <p-card header="Homework" styleClass="section-card">
       <p class="hint">Assignments from teachers (read-only).</p>
-      <div *ngIf="!overview.homeworks?.length" class="empty">No homework yet.</div>
+      <div *ngIf="!overview.homeworks?.length" class="empty-state-inline">No homework yet.</div>
       <div *ngFor="let h of overview.homeworks || []" class="session-card">
         <div class="session-header">{{ h.title }} · {{ h.teacherName }} · Due {{ h.dueDate | displayDate:'shortDate' }} · {{ h.statusText }}</div>
         <div class="session-notes" *ngIf="h.description">{{ h.description }}</div>
         <div class="session-notes" *ngIf="h.teacherFeedback"><strong>Teacher feedback:</strong> {{ h.teacherFeedback }}</div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2>Grades</h2>
+    <p-card header="Grades" styleClass="section-card">
       <p class="hint">Grades and assessments from teachers (read-only).</p>
-      <div *ngIf="!overview.grades?.length" class="empty">No grades yet.</div>
+      <div *ngIf="!overview.grades?.length" class="empty-state-inline">No grades yet.</div>
       <div *ngFor="let g of overview.grades || []" class="session-card">
         <div class="session-header">{{ g.title }} · {{ g.teacherName }} · {{ g.gradeValue }}{{ g.maxValue != null ? ' / ' + g.maxValue : '' }} · {{ g.gradeDate | displayDate:'shortDate' }}</div>
         <div class="session-notes" *ngIf="g.notes">{{ g.notes }}</div>
       </div>
-    </section>
+    </p-card>
   </ng-container>
 </div>

@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Student, ContractDto } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-admin-payments',
@@ -18,12 +19,14 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class AdminPaymentsComponent implements OnInit {
   students: Student[] = [];
   contracts: ContractDto[] = [];
+  loading = true;
   showRenewPopup = false;
   renewForm: FormGroup;
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService
   ) {
     this.renewForm = this.fb.group({
       contractId: [null, Validators.required]
@@ -31,21 +34,25 @@ export class AdminPaymentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loading = true;
     this.loadStudents();
     this.loadContracts();
   }
 
   loadStudents(): void {
     this.adminService.getStudents().subscribe({
-      next: (data) => this.students = data,
-      error: () => {}
+      next: (data) => { this.students = data; this.loading = false; },
+      error: (err) => {
+        this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load students.' });
+      }
     });
   }
 
   loadContracts(): void {
     this.adminService.getContracts().subscribe({
       next: (data) => this.contracts = data.filter(c => c.status === 1),
-      error: () => {}
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load contracts.' })
     });
   }
 
@@ -62,8 +69,12 @@ export class AdminPaymentsComponent implements OnInit {
     if (this.renewForm.valid) {
       const contractId = +this.renewForm.value.contractId;
       this.adminService.renewSubscription(contractId).subscribe({
-        next: () => { alert('Subscription renewed for one month.'); this.closeRenewPopup(); this.loadContracts(); },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Subscription renewed for one month.' });
+          this.closeRenewPopup();
+          this.loadContracts();
+        },
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Renew failed.' })
       });
     }
   }

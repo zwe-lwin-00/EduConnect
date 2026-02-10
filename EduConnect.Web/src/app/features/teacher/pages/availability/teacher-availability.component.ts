@@ -2,8 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherAvailabilityDto } from '../../../../core/models/teacher.model';
+import { MessageService } from 'primeng/api';
 
 const DAYS = [
   { value: 0, label: 'Sunday' },
@@ -18,7 +23,7 @@ const DAYS = [
 @Component({
   selector: 'app-teacher-availability',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule],
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, MessageModule, InputTextModule, TableModule],
   templateUrl: './teacher-availability.component.html',
   styleUrl: './teacher-availability.component.css'
 })
@@ -29,7 +34,10 @@ export class TeacherAvailabilityComponent implements OnInit {
   error = '';
   days = DAYS;
 
-  constructor(private teacherService: TeacherService) {}
+  constructor(
+    private teacherService: TeacherService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -49,6 +57,7 @@ export class TeacherAvailabilityComponent implements OnInit {
         this.error = err.error?.error || err.message || 'Failed to load';
         this.availabilities = this.getDefaultSlots();
         this.loading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }
@@ -84,12 +93,13 @@ export class TeacherAvailabilityComponent implements OnInit {
     this.teacherService.updateAvailability(toSend).subscribe({
       next: () => {
         this.saving = false;
-        alert('Availability saved.');
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Availability saved.' });
         this.load();
       },
       error: (err) => {
         this.error = err.error?.error || err.message || 'Failed to save';
         this.saving = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
   }

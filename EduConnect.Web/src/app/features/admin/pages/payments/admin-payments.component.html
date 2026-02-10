@@ -12,6 +12,7 @@
   <div class="card table-card">
     <p-table
       [value]="students"
+      [loading]="loading"
       [tableStyle]="{ 'min-width': '50rem' }"
       styleClass="p-datatable-gridlines p-datatable-striped"
       [paginator]="true"
@@ -40,7 +41,13 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6">No students.</td>
+          <td colspan="6">
+            <div class="empty-table-message">
+              <i class="pi pi-users empty-icon"></i>
+              <p>No students.</p>
+              <p class="empty-hint">Add students from the Students page; then renew subscriptions here.</p>
+            </div>
+          </td>
         </tr>
       </ng-template>
     </p-table>

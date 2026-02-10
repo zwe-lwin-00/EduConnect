@@ -6,13 +6,13 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="loading">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
+
+  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
 
   <ng-container *ngIf="!loading && !error">
-    <section class="section">
-      <h2 class="section-title">1:1 in progress</h2>
-      <div *ngIf="todaySessions.length === 0" class="empty">None. Start one below.</div>
+    <p-card header="1:1 in progress" styleClass="mb-3">
+      <div *ngIf="todaySessions.length === 0" class="empty-state">None. Start one below.</div>
       <div *ngFor="let s of todaySessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
@@ -21,75 +21,67 @@
         <div class="session-meta" *ngIf="s.checkInTime">Check-in: {{ s.checkInTime | displayDate:'short' }}</div>
         <div class="session-meta" *ngIf="s.checkOutTime">Check-out: {{ s.checkOutTime | displayDate:'short' }}</div>
         <div class="session-actions">
-          <a *ngIf="s.zoomJoinUrl" [href]="s.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>
-          <button *ngIf="s.canCheckOut" type="button" class="btn btn-primary" (click)="openCheckOut(s)">Check-out (add notes)</button>
+          <a *ngIf="s.zoomJoinUrl" [href]="s.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn-zoom mr-2">Join Zoom</a>
+          <p-button *ngIf="s.canCheckOut" label="Check-out (add notes)" icon="pi pi-check" (onClick)="openCheckOut(s)" />
         </div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2 class="section-title">Start 1:1</h2>
-      <div *ngIf="upcomingSessions.length === 0" class="empty">No One-To-One sessions to start.</div>
+    <p-card header="Start 1:1" styleClass="mb-3">
+      <div *ngIf="upcomingSessions.length === 0" class="empty-state">No One-To-One sessions to start.</div>
       <div *ngFor="let s of upcomingSessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
         </div>
         <div class="session-actions">
-          <button type="button" class="btn btn-success" (click)="checkIn(s.contractId)" [disabled]="checkingInContractId === s.contractId">
-            {{ checkingInContractId === s.contractId ? 'Checking in...' : 'Check-in' }}
-          </button>
+          <p-button label="Check-in" icon="pi pi-play" severity="success" (onClick)="checkIn(s.contractId)" [loading]="checkingInContractId === s.contractId" [disabled]="checkingInContractId === s.contractId" />
         </div>
       </div>
-    </section>
+    </p-card>
 
-    <section class="section">
-      <h2 class="section-title">Group session</h2>
+    <p-card header="Group session" styleClass="mb-3">
       <div *ngIf="inProgressGroupSession" class="session-card group-session">
         <div class="session-info">
           <strong>{{ inProgressGroupSession.groupClassName }}</strong> – In progress
           <span class="status">Started {{ inProgressGroupSession.checkInTime | displayDate:'short' }}</span>
         </div>
         <div class="session-actions">
-          <a *ngIf="inProgressGroupSession.zoomJoinUrl" [href]="inProgressGroupSession.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn btn-zoom">Join Zoom meeting</a>
-          <button type="button" class="btn btn-primary" (click)="openGroupCheckOut(inProgressGroupSession)">Check-out group (add notes)</button>
+          <a *ngIf="inProgressGroupSession.zoomJoinUrl" [href]="inProgressGroupSession.zoomJoinUrl" target="_blank" rel="noopener noreferrer" class="btn-zoom mr-2">Join Zoom</a>
+          <p-button label="Check-out group (add notes)" icon="pi pi-check" (onClick)="openGroupCheckOut(inProgressGroupSession)" />
         </div>
       </div>
       <div *ngIf="!inProgressGroupSession" class="group-start">
-        <select [(ngModel)]="selectedGroupClassId" class="form-control group-select">
+        <select [(ngModel)]="selectedGroupClassId" class="p-inputtext group-select">
           <option [ngValue]="null">-- Select group class --</option>
           <option *ngFor="let gc of startableGroupClasses" [ngValue]="gc.id">{{ gc.name }} ({{ gc.enrolledCount }} enrolled)</option>
         </select>
-        <button type="button" class="btn btn-success" (click)="startGroupSession()" [disabled]="!selectedGroupClassId || checkingInGroupClassId === selectedGroupClassId">
-          {{ checkingInGroupClassId ? 'Starting...' : 'Start group session' }}
-        </button>
+        <p-button label="Start group session" icon="pi pi-play" severity="success" (onClick)="startGroupSession()" [loading]="!!checkingInGroupClassId" [disabled]="!selectedGroupClassId || !!checkingInGroupClassId" />
       </div>
-      <p class="hint"><a routerLink="/teacher/group-classes">Group classes</a> → edit name, Zoom, enroll students</p>
-    </section>
+      <p class="hint mt-2"><a routerLink="/teacher/group-classes">Group classes</a> → edit name, Zoom, enroll students</p>
+    </p-card>
 
-    <div *ngIf="checkingOutSession" class="checkout-panel">
-      <h3>Check-out 1:1</h3>
-      <p><strong>{{ checkingOutSession.studentName }}</strong> – {{ checkingOutSession.contractIdDisplay }}</p>
-      <div class="form-group">
+    <p-dialog header="Check-out 1:1" [visible]="!!checkingOutSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeCheckOut()" *ngIf="checkingOutSession">
+      <p class="mb-3"><strong>{{ checkingOutSession.studentName }}</strong> – {{ checkingOutSession.contractIdDisplay }}</p>
+      <div class="field">
         <label>Lesson notes *</label>
-        <textarea [(ngModel)]="lessonNotes" class="form-control" rows="4" placeholder="Enter lesson notes (required)"></textarea>
+        <textarea pInputText [(ngModel)]="lessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn" (click)="closeCheckOut()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="submitCheckOut()" [disabled]="!lessonNotes.trim()">Check-out</button>
-      </div>
-    </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeCheckOut()" />
+        <p-button label="Check-out" icon="pi pi-check" (onClick)="submitCheckOut()" [disabled]="!lessonNotes.trim()" />
+      </ng-template>
+    </p-dialog>
 
-    <div *ngIf="checkingOutGroupSession" class="checkout-panel">
-      <h3>Check-out group</h3>
-      <p><strong>{{ checkingOutGroupSession.groupClassName }}</strong></p>
-      <div class="form-group">
+    <p-dialog header="Check-out group" [visible]="!!checkingOutGroupSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeGroupCheckOut()" *ngIf="checkingOutGroupSession">
+      <p class="mb-3"><strong>{{ checkingOutGroupSession.groupClassName }}</strong></p>
+      <div class="field">
         <label>Lesson notes *</label>
-        <textarea [(ngModel)]="groupLessonNotes" class="form-control" rows="4" placeholder="Enter lesson notes (required)"></textarea>
+        <textarea pInputText [(ngModel)]="groupLessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn" (click)="closeGroupCheckOut()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="submitGroupCheckOut()" [disabled]="!groupLessonNotes.trim()">Check-out group</button>
-      </div>
-    </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="closeGroupCheckOut()" />
+        <p-button label="Check-out group" icon="pi pi-check" (onClick)="submitGroupCheckOut()" [disabled]="!groupLessonNotes.trim()" />
+      </ng-template>
+    </p-dialog>
   </ng-container>
 </div>
