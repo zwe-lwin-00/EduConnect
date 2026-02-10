@@ -101,6 +101,16 @@ public static class MyanmarTimeHelper
         return (startUtc, endUtc);
     }
 
+    /// <summary>UTC range for a calendar month in Myanmar. year/month are the calendar month; returns [first day 00:00, first day of next month 00:00) in UTC.</summary>
+    public static (DateTime StartUtc, DateTime EndUtc) GetUtcRangeForMonth(int year, int month)
+    {
+        var start = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        var end = start.AddMonths(1);
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(start, MyanmarTimeZone);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(end, MyanmarTimeZone);
+        return (startUtc, endUtc);
+    }
+
     /// <summary>Convert UTC to Myanmar time and return time as "HH:mm".</summary>
     public static string FormatTimeUtcToMyanmar(DateTime utc)
     {

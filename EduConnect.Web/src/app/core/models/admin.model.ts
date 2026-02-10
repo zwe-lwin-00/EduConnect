@@ -97,12 +97,37 @@ export interface ContractDto {
 export interface CreateContractRequest {
   teacherId: number;
   studentId: number;
+  /** When set, this 1:1 class uses the student's One-to-one subscription (required for correct flow). */
   subscriptionId?: number | null;
   startDate?: string | null;
   endDate?: string | null;
   daysOfWeek?: string | null;
   startTime?: string | null;
   endTime?: string | null;
+}
+
+/** Subscription type: 1 = One-to-one class, 2 = Group class */
+export const SubscriptionType = { OneToOne: 1, Group: 2 } as const;
+
+export interface SubscriptionDto {
+  id: number;
+  subscriptionId: string;
+  studentId: number;
+  studentName: string;
+  type: number;
+  typeName: string;
+  startDate: string;
+  subscriptionPeriodEnd: string;
+  status: number;
+  statusName: string;
+  createdAt: string;
+}
+
+export interface CreateSubscriptionRequest {
+  studentId: number;
+  type: number;
+  durationMonths?: number;
+  startDate?: string | null;
 }
 
 // Reports — Master Doc B8

@@ -1,6 +1,7 @@
 using EduConnect.Shared.Extensions;
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Teacher;
+using EduConnect.Application.Features.Admin.Interfaces;
 using EduConnect.Application.Features.Attendance.Interfaces;
 using EduConnect.Application.Features.GroupClass.Interfaces;
 using EduConnect.Application.Features.Homework.Interfaces;
@@ -17,13 +18,15 @@ public class TeacherController : BaseController
     private readonly IAttendanceService _attendanceService;
     private readonly IHomeworkService _homeworkService;
     private readonly IGroupClassService _groupClassService;
+    private readonly ISettingsService _settingsService;
 
-    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService, IHomeworkService homeworkService, IGroupClassService groupClassService, ILogger<TeacherController> logger) : base(logger)
+    public TeacherController(ITeacherService teacherService, IAttendanceService attendanceService, IHomeworkService homeworkService, IGroupClassService groupClassService, ISettingsService settingsService, ILogger<TeacherController> logger) : base(logger)
     {
         _teacherService = teacherService;
         _attendanceService = attendanceService;
         _homeworkService = homeworkService;
         _groupClassService = groupClassService;
+        _settingsService = settingsService;
     }
 
     private async Task<int> GetTeacherIdAsync()
@@ -137,6 +140,40 @@ public class TeacherController : BaseController
         {
             if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetCalendarWeek: unauthorized"); return Unauthorized(); }
             Logger.ErrorLog(ex, "GetCalendarWeek failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("calendar/month")]
+    public async Task<IActionResult> GetCalendarMonth([FromQuery] int year, [FromQuery] int month)
+    {
+        try
+        {
+            var teacherId = await GetTeacherIdAsync();
+            if (year < 2000 || year > 2100 || month < 1 || month > 12)
+                return BadRequest(new { error = "Invalid year or month." });
+            var result = await _teacherService.GetSessionsForMonthAsync(teacherId, year, month);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            if (ex is UnauthorizedAccessException) { Logger.WarningLog("GetCalendarMonth: unauthorized"); return Unauthorized(); }
+            Logger.ErrorLog(ex, "GetCalendarMonth failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("holidays")]
+    public async Task<IActionResult> GetHolidays([FromQuery] int? year)
+    {
+        try
+        {
+            var list = await _settingsService.GetHolidaysAsync(year);
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetHolidays failed");
             return BadRequest(new { error = ex.Message });
         }
     }

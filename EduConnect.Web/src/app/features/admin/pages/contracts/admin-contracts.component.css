@@ -28,3 +28,15 @@
 .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
 .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.label-required { color: var(--p-text-color, #1e3a5f); }
+.required-asterisk { color: var(--p-danger-500, #dc3545); font-weight: 700; margin-left: 1px; }
+.w-full { width: 100%; }
+.field { margin-bottom: 1rem; }
+.dialog-form .field { margin-bottom: 1rem; }
+.dialog-form label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+.days-checkboxes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.days-checkboxes .day-check { display: flex; align-items: center; gap: 0.35rem; font-weight: normal; cursor: pointer; }
+.flex { display: flex; }
+.gap-4 { gap: 1rem; }
+.flex-wrap { flex-wrap: wrap; }
+.w-auto { width: auto; }

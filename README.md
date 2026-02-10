@@ -382,6 +382,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Responsive UI**: Viewport meta and 768px breakpoint; sidebar off-canvas + overlay on mobile; main padding 16px on small screens; PrimeNG tables scroll horizontally; toolbars and filters wrap; dashboard grids single column on mobile; reports, attendance, forms, and page containers full width on mobile; breadcrumb and auth pages avoid overflow
 - [x] **UI/UX consistency (Admin, Teacher, Parent)**: All list/detail pages use PrimeNG (p-card, p-table, p-dialog, p-button, p-message). Consistent page headers (`page-header-compact` + short description), table loading states, empty states (icon + message + hint), and error handling (Toast/MessageService; no `alert()`). Group classes (admin & teacher), Attendance, Reports, Homework & Grades, Availability, Calendar, and Profile aligned with the same patterns. Parent dashboard and student learning overview use p-card, p-button, and consistent empty/error states.
 - [x] **Project flow validation**: Auth (login, change-password, returnUrl, guards), 401 refresh, and role-based routing verified. API ↔ frontend IDs (contract, student, teacher, parent) and payloads checked; invalid Parent student route param (e.g. `/parent/student/xyz`) now handled without calling the API (show "Invalid student" and do not load).
+- [x] **Calendars (teacher & parent)**: Teacher month calendar shows **one-to-one** and **group** sessions (upcoming from contract/group schedule, completed from attendance/group sessions). Parent student month calendar shows the same for that student (1:1 + group with “Group: &lt;class name&gt;”). Both use **DateYmd** for correct day matching and holidays.
+- [x] **One-To-One form**: Days of week use **checkboxes** (Mon–Sun) like Group class; optional Start/End time. **Contracts table** includes a **Schedule** column (e.g. Mon, Wed · 09:00–10:00).
 
 ### 🚧 To Be Implemented
 - [ ] Teacher NRC/certificate document upload and verification workflow
@@ -598,8 +600,8 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.7.0
+**Version**: 1.8.0
 
 ---
 
-For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above.
+For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above. For end-to-end flow and logic (subscriptions → classes → calendars, access rules, consistency checks), see **[docs/PROJECT_FLOW_AND_LOGIC.md](docs/PROJECT_FLOW_AND_LOGIC.md)**.

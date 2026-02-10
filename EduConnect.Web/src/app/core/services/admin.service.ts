@@ -29,7 +29,9 @@ import {
   CreateHolidayRequest,
   UpdateHolidayRequest,
   SystemSettingDto,
-  UpsertSystemSettingRequest
+  UpsertSystemSettingRequest,
+  SubscriptionDto,
+  CreateSubscriptionRequest
 } from '../models/admin.model';
 
 @Injectable({
@@ -167,6 +169,27 @@ export class AdminService {
 
   renewSubscription(contractId: number): Observable<{ success: boolean; message?: string }> {
     return this.apiService.post(API_ENDPOINTS.ADMIN.CONTRACT_RENEW_SUBSCRIPTION(contractId), {});
+  }
+
+  getSubscriptions(studentId?: number, type?: number, status?: number): Observable<SubscriptionDto[]> {
+    const params = new URLSearchParams();
+    if (studentId != null) params.set('studentId', String(studentId));
+    if (type != null) params.set('type', String(type));
+    if (status != null) params.set('status', String(status));
+    const q = params.toString();
+    const url = q ? `${API_ENDPOINTS.ADMIN.SUBSCRIPTIONS}?${q}` : API_ENDPOINTS.ADMIN.SUBSCRIPTIONS;
+    return this.apiService.get<SubscriptionDto[]>(url);
+  }
+
+  createSubscription(request: CreateSubscriptionRequest): Observable<SubscriptionDto> {
+    return this.apiService.post<SubscriptionDto>(API_ENDPOINTS.ADMIN.SUBSCRIPTIONS, request);
+  }
+
+  renewSubscriptionById(subscriptionId: number, additionalMonths = 1): Observable<{ success: boolean; message?: string }> {
+    return this.apiService.post(
+      `${API_ENDPOINTS.ADMIN.SUBSCRIPTION_RENEW(subscriptionId)}?additionalMonths=${additionalMonths}`,
+      {}
+    );
   }
 
   getDailyReport(date?: string): Observable<DailyReportDto> {

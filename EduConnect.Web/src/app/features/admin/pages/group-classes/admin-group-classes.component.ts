@@ -14,7 +14,9 @@ import {
   AdminCreateGroupClassRequest,
   AdminUpdateGroupClassRequest,
   Teacher,
-  ContractDto
+  ContractDto,
+  SubscriptionDto,
+  SubscriptionType
 } from '../../../../core/models/admin.model';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
@@ -29,6 +31,7 @@ export class AdminGroupClassesComponent implements OnInit {
   groupClasses: AdminGroupClassDto[] = [];
   teachers: Teacher[] = [];
   contracts: ContractDto[] = [];
+  groupSubscriptions: SubscriptionDto[] = [];
   enrollments: AdminGroupClassEnrollmentDto[] = [];
   loading = true;
   error = '';
@@ -59,6 +62,7 @@ export class AdminGroupClassesComponent implements OnInit {
   updating = false;
 
   enrollContractId: number | null = null;
+  enrollSubscriptionId: number | null = null;
   enrolling = false;
 
   constructor(
@@ -195,6 +199,8 @@ export class AdminGroupClassesComponent implements OnInit {
   openEnrollments(gc: AdminGroupClassDto): void {
     this.selectedClass = gc;
     this.enrollments = [];
+    this.enrollContractId = null;
+    this.enrollSubscriptionId = null;
     this.showEnrollments = true;
     this.adminService.getGroupClassEnrollments(gc.id).subscribe({
       next: (data) => this.enrollments = data,
@@ -202,6 +208,14 @@ export class AdminGroupClassesComponent implements OnInit {
     });
     this.adminService.getContracts(gc.teacherId, undefined, 1).subscribe({
       next: (data) => this.contracts = data,
+      error: () => {}
+    });
+    this.adminService.getSubscriptions(undefined, SubscriptionType.Group, 1).subscribe({
+      next: (data) => {
+        this.groupSubscriptions = data.filter(
+          s => s.status === 1 && new Date(s.subscriptionPeriodEnd) >= new Date()
+        );
+      },
       error: () => {}
     });
   }
@@ -218,29 +232,64 @@ export class AdminGroupClassesComponent implements OnInit {
     return this.contracts.filter(c => !enrolledStudentIds.has(c.studentId));
   }
 
+  get assignableGroupSubscriptions(): SubscriptionDto[] {
+    if (!this.selectedClass) return [];
+    const enrolledStudentIds = new Set(this.enrollments.map(e => e.studentId));
+    return this.groupSubscriptions.filter(s => !enrolledStudentIds.has(s.studentId));
+  }
+
   openEnrollModal(): void {
     this.enrollContractId = null;
+    this.enrollSubscriptionId = null;
     this.showEnrollModal = true;
   }
 
+  subscriptionOptionLabel(sub: SubscriptionDto): string {
+    const end = new Date(sub.subscriptionPeriodEnd).toLocaleDateString();
+    return `${sub.studentName} – ${sub.subscriptionId} (until ${end})`;
+  }
+
   enroll(): void {
-    if (!this.selectedClass || this.enrollContractId == null) return;
-    const contract = this.contracts.find(c => c.id === this.enrollContractId);
-    if (!contract) return;
-    this.enrolling = true;
-    this.adminService.enrollInGroupClass(this.selectedClass.id, { studentId: contract.studentId, contractId: contract.id }).subscribe({
-      next: () => {
-        this.enrolling = false;
-        this.enrollContractId = null;
-        this.openEnrollments(this.selectedClass!);
-        this.load();
-      },
-      error: (err) => {
-        this.error = err.error?.error || err.message || 'Enroll failed';
-        this.enrolling = false;
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
-      }
-    });
+    if (!this.selectedClass) return;
+    if (this.enrollContractId != null) {
+      const contract = this.contracts.find(c => c.id === this.enrollContractId);
+      if (!contract) return;
+      this.enrolling = true;
+      this.adminService.enrollInGroupClass(this.selectedClass.id, { studentId: contract.studentId, contractId: contract.id }).subscribe({
+        next: () => {
+          this.enrolling = false;
+          this.enrollContractId = null;
+          this.openEnrollments(this.selectedClass!);
+          this.load();
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Student enrolled (by contract).' });
+        },
+        error: (err) => {
+          this.error = err.error?.error || err.message || 'Enroll failed';
+          this.enrolling = false;
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
+        }
+      });
+      return;
+    }
+    if (this.enrollSubscriptionId != null) {
+      const sub = this.groupSubscriptions.find(s => s.id === this.enrollSubscriptionId);
+      if (!sub) return;
+      this.enrolling = true;
+      this.adminService.enrollInGroupClass(this.selectedClass.id, { studentId: sub.studentId, subscriptionId: sub.id }).subscribe({
+        next: () => {
+          this.enrolling = false;
+          this.enrollSubscriptionId = null;
+          this.openEnrollments(this.selectedClass!);
+          this.load();
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Student enrolled (by group subscription).' });
+        },
+        error: (err) => {
+          this.error = err.error?.error || err.message || 'Enroll failed';
+          this.enrolling = false;
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
+        }
+      });
+    }
   }
 
   unenroll(enrollmentId: number): void {

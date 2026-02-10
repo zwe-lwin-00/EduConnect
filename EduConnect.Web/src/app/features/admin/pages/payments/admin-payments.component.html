@@ -2,64 +2,128 @@
   <div class="page-header-compact">
     <div>
       <h1>Subscriptions</h1>
-      <p class="page-desc-short">Renew monthly subscriptions (1st–last day of each month). Freeze student on Students page.</p>
+      <p class="page-desc-short">Add parent-paid subscription months to students first. Then create One-to-one or Group classes and assign students who have the right subscription.</p>
     </div>
     <div class="flex gap-2">
-      <p-button label="Renew subscription" icon="pi pi-calendar-plus" severity="success" (onClick)="openRenewPopup()" />
+      <p-button label="Add subscription" icon="pi pi-plus" severity="success" (onClick)="openAddSubscriptionPopup()" />
+      <p-button label="Renew One-to-one class" icon="pi pi-calendar-plus" (onClick)="openRenewContractPopup()" [outlined]="true" />
     </div>
   </div>
 
-  <div class="card table-card">
+  <p-card>
+    <div class="filter-row mb-2">
+      <span class="p-inputgroup">
+        <label class="filter-label">Type</label>
+        <select class="p-inputtext" [(ngModel)]="filterType" (change)="applyFilters()">
+          <option *ngFor="let o of typeOptions" [ngValue]="o.value">{{ o.label }}</option>
+        </select>
+      </span>
+      <span class="p-inputgroup">
+        <label class="filter-label">Status</label>
+        <select class="p-inputtext" [(ngModel)]="filterStatus" (change)="applyFilters()">
+          <option *ngFor="let o of statusOptions" [ngValue]="o.value">{{ o.label }}</option>
+        </select>
+      </span>
+      <p-button label="Apply" icon="pi pi-filter" (onClick)="applyFilters()" [outlined]="true" size="small" />
+    </div>
     <p-table
-      [value]="students"
+      [value]="subscriptions"
       [loading]="loading"
       [tableStyle]="{ 'min-width': '50rem' }"
       styleClass="p-datatable-gridlines p-datatable-striped"
       [paginator]="true"
       [rows]="10"
-      [rowsPerPageOptions]="[10, 25]"
+      [rowsPerPageOptions]="[10, 25, 50]"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
           <th style="width:3rem">#</th>
-          <th>First name</th>
-          <th>Last name</th>
-          <th>Parent</th>
-          <th>Grade</th>
-          <th>Active</th>
+          <th>Subscription</th>
+          <th>Student</th>
+          <th>Type</th>
+          <th>Period end</th>
+          <th>Status</th>
+          <th style="width:8rem">Actions</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
+      <ng-template pTemplate="body" let-sub let-rowIndex="rowIndex">
         <tr>
           <td>{{ rowIndex + 1 }}</td>
-          <td>{{ s.firstName }}</td>
-          <td>{{ s.lastName }}</td>
-          <td>{{ s.parentName }}</td>
-          <td>{{ s.gradeLevelName }}</td>
-          <td>{{ s.isActive ? 'Yes' : 'No' }}</td>
+          <td>{{ sub.subscriptionId }}</td>
+          <td>{{ sub.studentName }}</td>
+          <td><span class="type-badge" [class.type-one]="sub.type === 1" [class.type-group]="sub.type === 2">{{ sub.typeName }}</span></td>
+          <td>{{ sub.subscriptionPeriodEnd | date:'mediumDate' }}</td>
+          <td>
+            <p-tag [value]="sub.statusName" [severity]="isSubscriptionActive(sub) ? 'success' : 'secondary'" />
+          </td>
+          <td>
+            <p-button
+              *ngIf="isSubscriptionActive(sub)"
+              icon="pi pi-calendar-plus"
+              [outlined]="true"
+              size="small"
+              (onClick)="renewSubscription(sub)"
+              [loading]="renewingSubscriptionId === sub.id"
+              title="Renew 1 month" />
+          </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6">
+          <td colspan="7">
             <div class="empty-table-message">
-              <i class="pi pi-users empty-icon"></i>
-              <p>No students.</p>
-              <p class="empty-hint">Add students from the Students page; then renew subscriptions here.</p>
+              <i class="pi pi-wallet empty-icon"></i>
+              <p>No subscriptions yet.</p>
+              <p class="empty-hint">Create parent & students first, then click "Add subscription" to add paid months (One-to-one or Group) to a student. After that, create classes on One-To-One or Group pages.</p>
             </div>
           </td>
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 
-  <p-dialog header="Renew subscription" [(visible)]="showRenewPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRenewPopup()">
-    <form [formGroup]="renewForm" (ngSubmit)="onSubmitRenew()" class="dialog-form">
-      <div class="field"><label>One-To-One class</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select One-To-One class</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ contractLabel(c) }} – {{ c.studentName }}</option></select></div>
+  <p-dialog header="Add subscription (paid months to student)" [(visible)]="showAddSubscriptionPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeAddSubscriptionPopup()">
+    <form [formGroup]="addSubscriptionForm" (ngSubmit)="onSubmitAddSubscription()" class="dialog-form">
+      <div class="field">
+        <label class="label-required">Student <span class="required-asterisk">*</span></label>
+        <select formControlName="studentId" class="p-inputtext w-full">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let s of students" [ngValue]="s.id">{{ studentLabel(s) }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label-required">Type <span class="required-asterisk">*</span></label>
+        <select formControlName="type" class="p-inputtext w-full">
+          <option [ngValue]="1">One-to-one class</option>
+          <option [ngValue]="2">Group class</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label-required">Duration (months) <span class="required-asterisk">*</span></label>
+        <select formControlName="durationMonths" class="p-inputtext w-full">
+          <option *ngFor="let o of durationOptions" [ngValue]="o.value">{{ o.label }}</option>
+        </select>
+      </div>
     </form>
     <ng-template pTemplate="footer">
-      <p-button label="Cancel" severity="secondary" (onClick)="closeRenewPopup()" />
-      <p-button label="Renew 1 month" icon="pi pi-calendar-plus" (onClick)="onSubmitRenew()" [disabled]="!renewForm.valid" />
+      <p-button label="Cancel" severity="secondary" (onClick)="closeAddSubscriptionPopup()" />
+      <p-button label="Add subscription" icon="pi pi-check" (onClick)="onSubmitAddSubscription()" [disabled]="!addSubscriptionForm.valid" [loading]="creating" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog header="Renew One-to-one class (by contract)" [(visible)]="showRenewContractPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRenewContractPopup()">
+    <form [formGroup]="renewForm" (ngSubmit)="onSubmitRenewContract()" class="dialog-form">
+      <div class="field">
+        <label>One-to-one class</label>
+        <select formControlName="contractId" class="p-inputtext w-full">
+          <option [ngValue]="null">Select class</option>
+          <option *ngFor="let c of contracts" [ngValue]="c.id">{{ contractLabel(c) }} – {{ c.studentName }}</option>
+        </select>
+      </div>
+    </form>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="closeRenewContractPopup()" />
+      <p-button label="Renew 1 month" icon="pi pi-calendar-plus" (onClick)="onSubmitRenewContract()" [disabled]="!renewForm.valid" />
     </ng-template>
   </p-dialog>
 </div>

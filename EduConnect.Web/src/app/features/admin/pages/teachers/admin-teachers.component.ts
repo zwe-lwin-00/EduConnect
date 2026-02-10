@@ -67,7 +67,6 @@ export class AdminTeachersComponent implements OnInit {
       phoneNumber: ['', Validators.required],
       nrcNumber: ['', Validators.required],
       educationLevel: ['', Validators.required],
-      hourlyRate: [0, [Validators.required, Validators.min(0)]],
       bio: [''],
       specializations: ['']
     });
@@ -76,7 +75,6 @@ export class AdminTeachersComponent implements OnInit {
       lastName: ['', Validators.required],
       phoneNumber: ['', Validators.required],
       educationLevel: ['', Validators.required],
-      hourlyRate: [0, [Validators.required, Validators.min(0)]],
       bio: [''],
       specializations: ['']
     });
@@ -108,7 +106,16 @@ export class AdminTeachersComponent implements OnInit {
 
   openOnboardPopup(): void {
     this.showOnboardPopup = true;
-    this.onboardForm.reset();
+    this.onboardForm.reset({
+      email: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      nrcNumber: '',
+      educationLevel: '',
+      bio: '',
+      specializations: ''
+    });
   }
 
   closeOnboardPopup(): void {
@@ -123,7 +130,6 @@ export class AdminTeachersComponent implements OnInit {
       lastName: teacher.lastName,
       phoneNumber: teacher.phoneNumber,
       educationLevel: teacher.educationLevel,
-      hourlyRate: teacher.hourlyRate,
       bio: teacher.bio ?? '',
       specializations: teacher.specializations ?? ''
     });
@@ -138,7 +144,7 @@ export class AdminTeachersComponent implements OnInit {
 
   onSubmitEdit(): void {
     if (this.editForm.valid && this.editingTeacherId != null) {
-      const request: UpdateTeacherRequest = this.editForm.value;
+      const request: UpdateTeacherRequest = { ...this.editForm.value, hourlyRate: 0 } as UpdateTeacherRequest;
       this.adminService.updateTeacher(this.editingTeacherId, request).subscribe({
         next: () => {
           this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Teacher updated successfully' });
@@ -153,7 +159,7 @@ export class AdminTeachersComponent implements OnInit {
 
   onSubmitOnboard(): void {
     if (this.onboardForm.valid) {
-      const request: OnboardTeacherRequest = this.onboardForm.value;
+      const request: OnboardTeacherRequest = { ...this.onboardForm.value, hourlyRate: 0 } as OnboardTeacherRequest;
       this.adminService.onboardTeacher(request).subscribe({
         next: (response) => {
           this.closeOnboardPopup();

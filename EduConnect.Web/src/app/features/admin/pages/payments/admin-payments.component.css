@@ -9,6 +9,23 @@
 .form-control { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.filter-label { margin-right: 0.25rem; font-size: 0.875rem; color: var(--p-text-color-secondary); }
+.mb-2 { margin-bottom: 0.5rem; }
+.flex { display: flex; }
+.gap-2 { gap: 0.5rem; }
+.type-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 500; }
+.type-one { background: #e3f2fd; color: #1565c0; }
+.type-group { background: #f3e5f5; color: #7b1fa2; }
+.w-full { width: 100%; }
+.field { margin-bottom: 1rem; }
+.dialog-form .field { margin-bottom: 1rem; }
+.dialog-form label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+.label-required { color: var(--p-text-color, #1e3a5f); }
+.required-asterisk { color: var(--p-danger-500, #dc3545); font-weight: 700; margin-left: 1px; }
+.page-header-compact { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.page-header-compact h1 { margin: 0; font-size: 1.5rem; color: #1e3a5f; }
+.page-desc-short { margin: 0.25rem 0 0; color: #666; font-size: 0.9rem; max-width: 48rem; }
 .empty-table-message { padding: 2rem 1rem; text-align: center; color: var(--p-text-color-secondary, #666); }
 .empty-table-message .empty-icon { font-size: 2.5rem; opacity: 0.5; display: block; margin-bottom: 0.5rem; }
 .empty-table-message p { margin: 0.25rem 0; }

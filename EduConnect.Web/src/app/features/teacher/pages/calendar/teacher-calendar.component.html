@@ -1,34 +1,54 @@
 <div class="teacher-calendar">
   <div class="page-header-compact">
     <div>
-      <h1>My sessions this week</h1>
-      <p class="page-desc-short">Week view of your session delivery (from availability and contracts).</p>
+      <h1>My sessions this month</h1>
+      <p class="page-desc-short">Month view: holidays, completed classes, and upcoming (scheduled) classes.</p>
     </div>
   </div>
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
   <p-card>
-    <div class="week-nav">
-      <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevWeek()" title="Previous week" />
-      <span class="week-label">{{ weekLabel }}</span>
-      <p-button icon="pi pi-chevron-right" [outlined]="true" (onClick)="nextWeek()" title="Next week" />
-      <p-button label="This week" [outlined]="true" severity="secondary" (onClick)="thisWeek()" />
+    <div class="month-nav">
+      <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevMonth()" title="Previous month" />
+      <span class="month-label">{{ monthLabel }}</span>
+      <p-button icon="pi pi-chevron-right" [outlined]="true" (onClick)="nextMonth()" title="Next month" />
+      <p-button label="This month" [outlined]="true" severity="secondary" (onClick)="thisMonth()" />
+    </div>
+    <div class="legend mb-2">
+      <span class="legend-item"><span class="dot completed"></span> Completed</span>
+      <span class="legend-item"><span class="dot upcoming"></span> Upcoming</span>
+      <span class="legend-item"><span class="dot holiday"></span> Holiday</span>
     </div>
     <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
-    <div *ngIf="!loading && !error" class="week-grid">
-      <div *ngFor="let col of dayColumns" class="day-column" [class.today]="col.isToday">
-        <div class="day-header">
-          <span class="day-name">{{ col.label }}</span>
-          <span class="day-date">{{ col.date | date:'d MMM' }}</span>
-        </div>
-        <div class="day-sessions">
-          <div *ngFor="let s of sessionsOnDay(col.date)" class="session-block">
-            <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
-            <div class="session-student">{{ s.studentName }}</div>
-            <div class="session-meta">{{ s.contractIdDisplay }} · {{ s.status }}</div>
-          </div>
-          <div *ngIf="sessionsOnDay(col.date).length === 0" class="no-sessions">—</div>
+    <div *ngIf="!loading && !error" class="month-grid">
+      <div class="month-row header-row">
+        <div *ngFor="let h of dayHeaders" class="month-cell header-cell">{{ h }}</div>
+      </div>
+      <div *ngFor="let week of calendarWeeks" class="month-row">
+        <div *ngFor="let cell of week" class="month-cell day-cell"
+             [class.other-month]="!cell.isCurrentMonth"
+             [class.today]="cell.isToday">
+          <div class="day-num">{{ cell.dayOfMonth }}</div>
+          <ng-container *ngIf="cell.date">
+            <div *ngIf="holidayOnDay(cell.date) as holiday" class="day-holiday">
+              <span class="holiday-badge">{{ holiday.name }}</span>
+            </div>
+            <div class="day-sessions">
+              <div *ngFor="let s of sessionsOnDay(cell.date)" class="session-block"
+                   [class.completed]="isCompleted(s)"
+                   [class.upcoming]="isUpcoming(s)">
+                <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+                <div class="session-student">{{ s.groupClassName ? ('Group: ' + s.groupClassName) : s.studentName }}</div>
+                <div class="session-meta">
+                  <span *ngIf="isCompleted(s)" class="status-badge completed">Completed</span>
+                  <span *ngIf="isUpcoming(s)" class="status-badge upcoming">Upcoming</span>
+                  <span *ngIf="!isCompleted(s) && !isUpcoming(s)">{{ s.status }}</span>
+                  {{ s.groupClassId ? '' : s.contractIdDisplay }}
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>

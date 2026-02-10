@@ -2,7 +2,7 @@
   <div class="page-header-compact">
     <div>
       <h1>Group classes</h1>
-      <p class="page-desc-short">Set up Group class (name, teacher, days, start/end time), assign students. Zoom link is added by the assigned teacher. Two class types: One-To-One and Group.</p>
+      <p class="page-desc-short">Create a group class, assign a teacher, then enroll students who have an active Group subscription (add subscriptions on the Subscriptions page first).</p>
     </div>
     <p-button label="New class" icon="pi pi-plus" severity="success" (onClick)="openCreate()" />
   </div>
@@ -146,15 +146,29 @@
     (onHide)="closeEnrollments()"
     *ngIf="selectedClass">
     <div class="enrollments-content">
-      <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
-        <select [(ngModel)]="enrollContractId" class="p-inputtext inline-select">
-          <option [ngValue]="null">Add student...</option>
-          <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
-        </select>
-        <p-button label="Add" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollContractId" />
+      <div class="enroll-section">
+        <span class="enroll-section-label">By Group subscription</span>
+        <div class="add-enroll-inline" *ngIf="assignableGroupSubscriptions.length > 0">
+          <select [(ngModel)]="enrollSubscriptionId" class="p-inputtext inline-select" (ngModelChange)="enrollContractId = null">
+            <option [ngValue]="null">Select student with Group subscription...</option>
+            <option *ngFor="let sub of assignableGroupSubscriptions" [ngValue]="sub.id">{{ subscriptionOptionLabel(sub) }}</option>
+          </select>
+          <p-button label="Enroll" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollSubscriptionId" />
+        </div>
+        <p class="hint small" *ngIf="assignableGroupSubscriptions.length === 0">No students with active Group subscription (or all are already enrolled). Add Group subscriptions on the Subscriptions page.</p>
       </div>
-      <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
-      <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active One-To-One classes with {{ selectedClass.teacherName }}. Create a One-To-One class first.</p>
+      <div class="enroll-section">
+        <span class="enroll-section-label">By One-to-one contract (same teacher)</span>
+        <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
+          <select [(ngModel)]="enrollContractId" class="p-inputtext inline-select" (ngModelChange)="enrollSubscriptionId = null">
+            <option [ngValue]="null">Select contract...</option>
+            <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
+          </select>
+          <p-button label="Enroll" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollContractId" />
+        </div>
+        <p class="hint small" *ngIf="assignableContracts.length === 0 && assignableGroupSubscriptions.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
+        <p class="hint small" *ngIf="assignableContracts.length === 0 && assignableGroupSubscriptions.length > 0">No extra One-to-one contracts with this teacher.</p>
+      </div>
       <ul class="enrollment-list">
         <li *ngFor="let e of enrollments" class="enrollment-item">
           <span>{{ e.studentName }} – {{ e.contractIdDisplay || e.subscriptionIdDisplay || '—' }}</span>

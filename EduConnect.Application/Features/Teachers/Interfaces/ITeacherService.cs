@@ -13,6 +13,7 @@ public interface ITeacherService : IService
     Task<List<TeacherSessionItemDto>> GetTodaySessionsAsync(int teacherId);
     Task<List<TeacherSessionItemDto>> GetUpcomingSessionsAsync(int teacherId);
     Task<List<WeekSessionDto>> GetSessionsForWeekAsync(int teacherId, DateTime weekStartMonday);
+    Task<List<WeekSessionDto>> GetSessionsForMonthAsync(int teacherId, int year, int month);
     Task UpdateAvailabilityAsync(int teacherId, List<TeacherAvailabilityDto> availabilities);
     Task UpdateAvailabilityFromRequestAsync(int teacherId, List<TeacherAvailabilityRequestDto> availabilities);
     Task<List<TeacherAvailabilityDto>> GetAvailabilityAsync(int teacherId);

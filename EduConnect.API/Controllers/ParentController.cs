@@ -1,4 +1,5 @@
 using EduConnect.Shared.Extensions;
+using EduConnect.Application.Features.Admin.Interfaces;
 using EduConnect.Application.Features.Parents.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +10,12 @@ namespace EduConnect.API.Controllers;
 public class ParentController : BaseController
 {
     private readonly IParentService _parentService;
+    private readonly ISettingsService _settingsService;
 
-    public ParentController(IParentService parentService, ILogger<ParentController> logger) : base(logger)
+    public ParentController(IParentService parentService, ISettingsService settingsService, ILogger<ParentController> logger) : base(logger)
     {
         _parentService = parentService;
+        _settingsService = settingsService;
     }
 
     [HttpGet("my-students")]
@@ -80,6 +83,44 @@ public class ParentController : BaseController
         catch (Exception ex)
         {
             Logger.ErrorLog(ex, "GetStudentCalendarWeek failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("my-students/{studentId}/calendar/month")]
+    public async Task<IActionResult> GetStudentCalendarMonth(int studentId, [FromQuery] int year, [FromQuery] int month)
+    {
+        try
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                Logger.WarningLog("GetStudentCalendarMonth: unauthorized");
+                return Unauthorized();
+            }
+            if (year < 2000 || year > 2100 || month < 1 || month > 12)
+                return BadRequest(new { error = "Invalid year or month." });
+            var result = await _parentService.GetSessionsForStudentMonthAsync(userId, studentId, year, month);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetStudentCalendarMonth failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("holidays")]
+    public async Task<IActionResult> GetHolidays([FromQuery] int? year)
+    {
+        try
+        {
+            var list = await _settingsService.GetHolidaysAsync(year);
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetHolidays failed");
             return BadRequest(new { error = ex.Message });
         }
     }

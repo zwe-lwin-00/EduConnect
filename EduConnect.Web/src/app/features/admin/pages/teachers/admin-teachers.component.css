@@ -54,3 +54,16 @@
 .text-sm { font-size: 0.875rem; }
 .dialog-form .field { margin-bottom: 1rem; }
 .dialog-form label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+
+/* Required vs optional field labels */
+.label-required { color: var(--p-text-color, #1e3a5f); }
+.required-asterisk { color: var(--p-danger-500, #dc3545); font-weight: 700; margin-left: 1px; }
+.label-optional { color: var(--p-text-color-secondary, #6c757d); }
+.optional-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--p-text-color-secondary, #6c757d);
+  margin-left: 0.35rem;
+}

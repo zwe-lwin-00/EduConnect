@@ -80,14 +80,38 @@
 
   <p-dialog header="Onboard new teacher" [(visible)]="showOnboardPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeOnboardPopup()">
     <form [formGroup]="onboardForm" (ngSubmit)="onSubmitOnboard()" class="dialog-form">
-      <div class="field"><label>Email</label><input pInputText type="email" formControlName="email" class="w-full" /></div>
-      <div class="field"><label>First name</label><input pInputText type="text" formControlName="firstName" class="w-full" /></div>
-      <div class="field"><label>Last name</label><input pInputText type="text" formControlName="lastName" class="w-full" /></div>
-      <div class="field"><label>Phone</label><input pInputText type="text" formControlName="phoneNumber" class="w-full" /></div>
-      <div class="field"><label>NRC</label><input pInputText type="text" formControlName="nrcNumber" class="w-full" /></div>
-      <div class="field"><label>Education</label><input pInputText type="text" formControlName="educationLevel" class="w-full" /></div>
-      <div class="field"><label>Bio</label><textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea></div>
-      <div class="field"><label>Specializations</label><input pInputText type="text" formControlName="specializations" class="w-full" /></div>
+      <div class="field">
+        <label class="label-required">Email <span class="required-asterisk">*</span></label>
+        <input pInputText type="email" formControlName="email" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">First name <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="firstName" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Last name <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="lastName" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Phone <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="phoneNumber" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">NRC <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="nrcNumber" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Education <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="educationLevel" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-optional">Bio <span class="optional-badge">Optional</span></label>
+        <textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label class="label-optional">Specializations <span class="optional-badge">Optional</span></label>
+        <input pInputText type="text" formControlName="specializations" class="w-full" />
+      </div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeOnboardPopup()" />
@@ -110,13 +134,30 @@
 
   <p-dialog header="Edit teacher" [(visible)]="showEditPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeEditPopup()">
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()" class="dialog-form">
-      <div class="field"><label>First name</label><input pInputText type="text" formControlName="firstName" class="w-full" /></div>
-      <div class="field"><label>Last name</label><input pInputText type="text" formControlName="lastName" class="w-full" /></div>
-      <div class="field"><label>Phone</label><input pInputText type="text" formControlName="phoneNumber" class="w-full" /></div>
-      <div class="field"><label>Education</label><input pInputText type="text" formControlName="educationLevel" class="w-full" /></div>
-      <div class="field"><label>Hourly rate</label><input pInputText type="number" formControlName="hourlyRate" class="w-full" min="0" /></div>
-      <div class="field"><label>Bio</label><textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea></div>
-      <div class="field"><label>Specializations</label><input pInputText type="text" formControlName="specializations" class="w-full" /></div>
+      <div class="field">
+        <label class="label-required">First name <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="firstName" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Last name <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="lastName" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Phone <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="phoneNumber" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-required">Education <span class="required-asterisk">*</span></label>
+        <input pInputText type="text" formControlName="educationLevel" class="w-full" />
+      </div>
+      <div class="field">
+        <label class="label-optional">Bio <span class="optional-badge">Optional</span></label>
+        <textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label class="label-optional">Specializations <span class="optional-badge">Optional</span></label>
+        <input pInputText type="text" formControlName="specializations" class="w-full" />
+      </div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeEditPopup()" />

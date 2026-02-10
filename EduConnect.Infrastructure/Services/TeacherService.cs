@@ -233,7 +233,233 @@ public class TeacherService : ITeacherService
             .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= startUtc && a.CheckInTime < endUtc)
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
-        return logs.Select(a => MapToWeekSession(a)).ToList();
+
+        var contracts = await _context.ContractSessions
+            .Include(c => c.Student)
+            .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active
+                && !string.IsNullOrWhiteSpace(c.DaysOfWeek) && c.StartTime.HasValue)
+            .ToListAsync();
+
+        var groupSessions = await _context.GroupSessions
+            .Include(s => s.GroupClass)
+            .Where(s => s.GroupClass!.TeacherId == teacherId && s.CheckInTime >= startUtc && s.CheckInTime < endUtc)
+            .OrderBy(s => s.CheckInTime)
+            .ToListAsync();
+
+        var groupClasses = await _context.GroupClasses
+            .AsNoTracking()
+            .Where(g => g.TeacherId == teacherId && g.IsActive
+                && !string.IsNullOrWhiteSpace(g.DaysOfWeek) && g.StartTime.HasValue)
+            .ToListAsync();
+
+        var weekStart = weekStartMonday.Date;
+        var logDatesByContract = new HashSet<(int ContractId, DateTime Date)>();
+        foreach (var a in logs)
+        {
+            var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(a.CheckInTime);
+            logDatesByContract.Add((a.ContractId, dateMyanmar.Date));
+        }
+        var groupSessionDatesByClass = new HashSet<(int GroupClassId, DateTime Date)>();
+        foreach (var gs in groupSessions)
+        {
+            var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(gs.CheckInTime);
+            groupSessionDatesByClass.Add((gs.GroupClassId, dateMyanmar.Date));
+        }
+
+        var scheduled = new List<WeekSessionDto>();
+        for (var dayOffset = 0; dayOffset < 7; dayOffset++)
+        {
+            var date = weekStart.AddDays(dayOffset);
+            var isoDay = date.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)date.DayOfWeek;
+
+            foreach (var c in contracts)
+            {
+                var contractDays = ParseDaysOfWeek(c.DaysOfWeek!);
+                if (!contractDays.Contains(isoDay)) continue;
+
+                var startMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(c.StartDate);
+                if (date < startMyanmar.Date) continue;
+                if (c.EndDate.HasValue)
+                {
+                    var endMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(c.EndDate.Value);
+                    if (date > endMyanmar.Date) continue;
+                }
+
+                if (logDatesByContract.Contains((c.Id, date))) continue;
+
+                var startTime = c.StartTime!.Value.ToString("HH:mm");
+                var endTime = c.EndTime.HasValue ? c.EndTime.Value.ToString("HH:mm") : null;
+                scheduled.Add(new WeekSessionDto
+                {
+                    AttendanceLogId = 0,
+                    ContractId = c.Id,
+                    ContractIdDisplay = c.ContractId,
+                    Date = date,
+                    DateYmd = date.ToString("yyyy-MM-dd"),
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
+                    TeacherName = "",
+                    Status = "Scheduled",
+                    HoursUsed = 0
+                });
+            }
+
+            foreach (var gc in groupClasses)
+            {
+                var groupDays = ParseDaysOfWeek(gc.DaysOfWeek!);
+                if (!groupDays.Contains(isoDay)) continue;
+                if (groupSessionDatesByClass.Contains((gc.Id, date))) continue;
+
+                scheduled.Add(new WeekSessionDto
+                {
+                    AttendanceLogId = 0,
+                    ContractId = 0,
+                    ContractIdDisplay = "",
+                    Date = date,
+                    DateYmd = date.ToString("yyyy-MM-dd"),
+                    StartTime = gc.StartTime!.Value.ToString("HH:mm"),
+                    EndTime = gc.EndTime.HasValue ? gc.EndTime.Value.ToString("HH:mm") : null,
+                    StudentName = "",
+                    TeacherName = "",
+                    Status = "Scheduled",
+                    HoursUsed = 0,
+                    GroupClassId = gc.Id,
+                    GroupClassName = gc.Name
+                });
+            }
+        }
+
+        var groupSessionDtos = groupSessions.Select(gs => MapGroupSessionToWeek(gs));
+        var result = logs.Select(a => MapToWeekSession(a))
+            .Concat(groupSessionDtos)
+            .Concat(scheduled)
+            .OrderBy(s => s.Date).ThenBy(s => s.StartTime)
+            .ToList();
+        return result;
+    }
+
+    public async Task<List<WeekSessionDto>> GetSessionsForMonthAsync(int teacherId, int year, int month)
+    {
+        var (startUtc, endUtc) = MyanmarTimeHelper.GetUtcRangeForMonth(year, month);
+        var logs = await _context.AttendanceLogs
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Student)
+            .Include(a => a.ContractSession!).ThenInclude(c => c.Teacher!).ThenInclude(t => t.User)
+            .Where(a => a.ContractSession!.TeacherId == teacherId && a.CheckInTime >= startUtc && a.CheckInTime < endUtc)
+            .OrderBy(a => a.CheckInTime)
+            .ToListAsync();
+
+        var contracts = await _context.ContractSessions
+            .Include(c => c.Student)
+            .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active
+                && !string.IsNullOrWhiteSpace(c.DaysOfWeek) && c.StartTime.HasValue)
+            .ToListAsync();
+
+        var groupSessions = await _context.GroupSessions
+            .Include(s => s.GroupClass)
+            .Where(s => s.GroupClass!.TeacherId == teacherId && s.CheckInTime >= startUtc && s.CheckInTime < endUtc)
+            .OrderBy(s => s.CheckInTime)
+            .ToListAsync();
+
+        var groupClasses = await _context.GroupClasses
+            .AsNoTracking()
+            .Where(g => g.TeacherId == teacherId && g.IsActive
+                && !string.IsNullOrWhiteSpace(g.DaysOfWeek) && g.StartTime.HasValue)
+            .ToListAsync();
+
+        var logDatesByContract = new HashSet<(int ContractId, DateTime Date)>();
+        foreach (var a in logs)
+        {
+            var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(a.CheckInTime);
+            logDatesByContract.Add((a.ContractId, dateMyanmar.Date));
+        }
+        var groupSessionDatesByClass = new HashSet<(int GroupClassId, DateTime Date)>();
+        foreach (var gs in groupSessions)
+        {
+            var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(gs.CheckInTime);
+            groupSessionDatesByClass.Add((gs.GroupClassId, dateMyanmar.Date));
+        }
+
+        var scheduled = new List<WeekSessionDto>();
+        var daysInMonth = DateTime.DaysInMonth(year, month);
+        for (var day = 1; day <= daysInMonth; day++)
+        {
+            var date = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Unspecified);
+            var isoDay = date.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)date.DayOfWeek;
+
+            foreach (var c in contracts)
+            {
+                var contractDays = ParseDaysOfWeek(c.DaysOfWeek!);
+                if (!contractDays.Contains(isoDay)) continue;
+
+                var startMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(c.StartDate);
+                if (date < startMyanmar.Date) continue;
+                if (c.EndDate.HasValue)
+                {
+                    var endMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(c.EndDate.Value);
+                    if (date > endMyanmar.Date) continue;
+                }
+
+                if (logDatesByContract.Contains((c.Id, date))) continue;
+
+                var startTime = c.StartTime!.Value.ToString("HH:mm");
+                var endTime = c.EndTime.HasValue ? c.EndTime.Value.ToString("HH:mm") : null;
+                scheduled.Add(new WeekSessionDto
+                {
+                    AttendanceLogId = 0,
+                    ContractId = c.Id,
+                    ContractIdDisplay = c.ContractId,
+                    Date = date,
+                    DateYmd = date.ToString("yyyy-MM-dd"),
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
+                    TeacherName = "",
+                    Status = "Scheduled",
+                    HoursUsed = 0
+                });
+            }
+
+            foreach (var gc in groupClasses)
+            {
+                var groupDays = ParseDaysOfWeek(gc.DaysOfWeek!);
+                if (!groupDays.Contains(isoDay)) continue;
+                if (groupSessionDatesByClass.Contains((gc.Id, date))) continue;
+
+                scheduled.Add(new WeekSessionDto
+                {
+                    AttendanceLogId = 0,
+                    ContractId = 0,
+                    ContractIdDisplay = "",
+                    Date = date,
+                    DateYmd = date.ToString("yyyy-MM-dd"),
+                    StartTime = gc.StartTime!.Value.ToString("HH:mm"),
+                    EndTime = gc.EndTime.HasValue ? gc.EndTime.Value.ToString("HH:mm") : null,
+                    StudentName = "",
+                    TeacherName = "",
+                    Status = "Scheduled",
+                    HoursUsed = 0,
+                    GroupClassId = gc.Id,
+                    GroupClassName = gc.Name
+                });
+            }
+        }
+
+        var groupSessionDtos = groupSessions.Select(gs => MapGroupSessionToWeek(gs));
+        return logs.Select(a => MapToWeekSession(a))
+            .Concat(groupSessionDtos)
+            .Concat(scheduled)
+            .OrderBy(s => s.Date).ThenBy(s => s.StartTime)
+            .ToList();
+    }
+
+    private static HashSet<int> ParseDaysOfWeek(string daysOfWeek)
+    {
+        var set = new HashSet<int>();
+        foreach (var part in (daysOfWeek ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            if (int.TryParse(part, out var d) && d >= 1 && d <= 7)
+                set.Add(d);
+        return set;
     }
 
     private static WeekSessionDto MapToWeekSession(AttendanceLog a)
@@ -245,12 +471,35 @@ public class TeacherService : ITeacherService
             ContractId = a.ContractId,
             ContractIdDisplay = a.ContractSession?.ContractId ?? "",
             Date = dateMyanmar,
+            DateYmd = dateMyanmar.ToString("yyyy-MM-dd"),
             StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckInTime),
             EndTime = a.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckOutTime.Value) : null,
             StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
             TeacherName = "",
             Status = a.Status.ToString(),
             HoursUsed = a.HoursUsed
+        };
+    }
+
+    private static WeekSessionDto MapGroupSessionToWeek(GroupSession gs)
+    {
+        var dateMyanmar = MyanmarTimeHelper.UtcToMyanmarDate(gs.CheckInTime);
+        return new WeekSessionDto
+        {
+            AttendanceLogId = 0,
+            ContractId = 0,
+            ContractIdDisplay = "",
+            Date = dateMyanmar,
+            DateYmd = dateMyanmar.ToString("yyyy-MM-dd"),
+            StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(gs.CheckInTime),
+            EndTime = gs.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(gs.CheckOutTime.Value) : null,
+            StudentName = "",
+            TeacherName = "",
+            Status = gs.CheckOutTime.HasValue ? "Completed" : "InProgress",
+            HoursUsed = gs.TotalDurationHours,
+            GroupClassId = gs.GroupClassId,
+            GroupClassName = gs.GroupClass?.Name ?? "",
+            GroupSessionId = gs.Id
         };
     }
 

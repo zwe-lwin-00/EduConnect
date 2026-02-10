@@ -22,18 +22,24 @@ export interface TeacherSessionItemDto {
   zoomJoinUrl?: string | null;
 }
 
-/** Week calendar session (teacher "My sessions this week" / parent "Upcoming sessions"). */
+/** Week calendar session (teacher "My sessions this week" / parent "Upcoming sessions"). One-to-one or group. */
 export interface WeekSessionDto {
   attendanceLogId: number;
   contractId: number;
   contractIdDisplay: string;
   date: string;
+  /** Date as YYYY-MM-DD for calendar day matching (use this when present). */
+  dateYmd?: string;
   startTime: string;
   endTime?: string;
   studentName: string;
   teacherName: string;
   status: string;
   hoursUsed: number;
+  /** Set when this is a group class session. */
+  groupClassId?: number;
+  groupClassName?: string;
+  groupSessionId?: number;
 }
 
 export interface TeacherAlertDto {

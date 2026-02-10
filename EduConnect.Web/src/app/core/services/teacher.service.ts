@@ -61,6 +61,17 @@ export class TeacherService {
     return this.apiService.get<WeekSessionDto[]>(API_ENDPOINTS.TEACHER.CALENDAR_WEEK + q);
   }
 
+  getCalendarMonth(year: number, month: number): Observable<WeekSessionDto[]> {
+    return this.apiService.get<WeekSessionDto[]>(
+      `${API_ENDPOINTS.TEACHER.CALENDAR_MONTH}?year=${year}&month=${month}`
+    );
+  }
+
+  getHolidays(year?: number): Observable<{ id: number; date: string; name: string; description?: string | null }[]> {
+    const q = year != null ? `?year=${year}` : '';
+    return this.apiService.get(API_ENDPOINTS.TEACHER.HOLIDAYS + q);
+  }
+
   getAvailability(): Observable<TeacherAvailabilityDto[]> {
     return this.apiService.get<TeacherAvailabilityDto[]>(API_ENDPOINTS.TEACHER.AVAILABILITY);
   }

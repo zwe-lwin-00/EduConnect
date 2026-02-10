@@ -38,8 +38,54 @@
       <p class="value">Valid until {{ overview.subscriptionValidUntil | date:'shortDate' }}</p>
     </p-card>
 
-    <p-card header="Upcoming sessions (week view)" styleClass="section-card">
-      <p class="hint">Sessions this week for {{ overview.studentName }}. Times in Myanmar.</p>
+    <p-card header="Calendar (month)" styleClass="section-card">
+      <p class="hint">Month view: holidays, completed classes, and upcoming classes for {{ overview.studentName }}.</p>
+      <div class="month-nav">
+        <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevMonth()" title="Previous month" />
+        <span class="month-label">{{ monthLabel }}</span>
+        <p-button icon="pi pi-chevron-right" [outlined]="true" (onClick)="nextMonth()" title="Next month" />
+        <p-button label="This month" [outlined]="true" severity="secondary" (onClick)="thisMonth()" />
+      </div>
+      <div class="legend mb-2">
+        <span class="legend-item"><span class="dot completed"></span> Completed</span>
+        <span class="legend-item"><span class="dot upcoming"></span> Upcoming</span>
+        <span class="legend-item"><span class="dot holiday"></span> Holiday</span>
+      </div>
+      <div *ngIf="monthLoading" class="loading-inline"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+      <div *ngIf="!monthLoading" class="month-grid">
+        <div class="month-row header-row">
+          <div *ngFor="let h of dayHeaders" class="month-cell header-cell">{{ h }}</div>
+        </div>
+        <div *ngFor="let week of calendarWeeks" class="month-row">
+          <div *ngFor="let cell of week" class="month-cell day-cell"
+               [class.other-month]="!cell.isCurrentMonth"
+               [class.today]="cell.isToday">
+            <div class="day-num">{{ cell.dayOfMonth }}</div>
+            <ng-container *ngIf="cell.date">
+              <div *ngIf="holidayOnDay(cell.date) as holiday" class="day-holiday">
+                <span class="holiday-badge">{{ holiday.name }}</span>
+              </div>
+              <div class="day-sessions">
+                <div *ngFor="let s of monthSessionsOnDay(cell.date)" class="session-block"
+                     [class.completed]="isMonthSessionCompleted(s)"
+                     [class.upcoming]="isMonthSessionUpcoming(s)">
+                  <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+                  <div class="session-meta">
+                    <span *ngIf="s.groupClassName">Group: {{ s.groupClassName }}</span>
+                    <span *ngIf="!s.groupClassName">{{ s.teacherName }} · {{ s.contractIdDisplay }}</span>
+                    <span *ngIf="isMonthSessionCompleted(s)" class="status-badge completed">Completed</span>
+                    <span *ngIf="isMonthSessionUpcoming(s)" class="status-badge upcoming">Upcoming</span>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="This week (quick view)" styleClass="section-card">
+      <p class="hint">Sessions this week for {{ overview.studentName }}.</p>
       <div class="week-nav">
         <p-button icon="pi pi-chevron-left" [outlined]="true" (onClick)="prevWeek()" title="Previous week" />
         <span class="week-label">{{ weekLabel }}</span>

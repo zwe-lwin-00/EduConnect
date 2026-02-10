@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
     CONTRACT_ACTIVATE: (id: number) => `/admin/contracts/${id}/activate`,
     CONTRACT_CANCEL: (id: number) => `/admin/contracts/${id}/cancel`,
     CONTRACT_RENEW_SUBSCRIPTION: (id: number) => `/admin/contracts/${id}/renew-subscription`,
+    SUBSCRIPTIONS: '/admin/subscriptions',
+    SUBSCRIPTION_BY_ID: (id: number) => `/admin/subscriptions/${id}`,
+    SUBSCRIPTION_RENEW: (id: number) => `/admin/subscriptions/${id}/renew`,
     GROUP_CLASSES: '/admin/group-classes',
     GROUP_CLASS_BY_ID: (id: number) => `/admin/group-classes/${id}`,
     GROUP_CLASS_ENROLLMENTS: (id: number) => `/admin/group-classes/${id}/enrollments`,
@@ -54,6 +57,8 @@ export const API_ENDPOINTS = {
     SESSIONS_TODAY: '/teacher/sessions/today',
     SESSIONS_UPCOMING: '/teacher/sessions/upcoming',
     CALENDAR_WEEK: '/teacher/calendar/week',
+    CALENDAR_MONTH: '/teacher/calendar/month',
+    HOLIDAYS: '/teacher/holidays',
     AVAILABILITY: '/teacher/availability',
     CHECK_IN: '/teacher/check-in',
     CHECK_OUT: '/teacher/check-out',
@@ -72,7 +77,9 @@ export const API_ENDPOINTS = {
   PARENT: {
     MY_STUDENTS: '/parent/my-students',
     STUDENT_LEARNING_OVERVIEW: (studentId: number) => `/parent/my-students/${studentId}/learning-overview`,
-    STUDENT_CALENDAR_WEEK: (studentId: number) => `/parent/my-students/${studentId}/calendar/week`
+    STUDENT_CALENDAR_WEEK: (studentId: number) => `/parent/my-students/${studentId}/calendar/week`,
+    STUDENT_CALENDAR_MONTH: (studentId: number) => `/parent/my-students/${studentId}/calendar/month`,
+    HOLIDAYS: '/parent/holidays'
   },
   STUDENT: {
     LIST: '/student',

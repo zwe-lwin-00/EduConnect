@@ -9,6 +9,13 @@ import { MessageService } from 'primeng/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+export interface CalendarDay {
+  date: Date | null;
+  dayOfMonth: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+}
+
 @Component({
   selector: 'app-teacher-calendar',
   standalone: true,
@@ -17,8 +24,9 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   styleUrl: './teacher-calendar.component.css'
 })
 export class TeacherCalendarComponent implements OnInit {
-  weekStart: Date = this.getMonday(new Date());
+  currentMonth: Date = new Date();
   sessions: WeekSessionDto[] = [];
+  holidays: { id: number; date: string; name: string; description?: string | null }[] = [];
   loading = true;
   error = '';
 
@@ -31,58 +39,124 @@ export class TeacherCalendarComponent implements OnInit {
     this.load();
   }
 
-  get weekStartStr(): string {
-    return this.formatYmd(this.weekStart);
+  get monthLabel(): string {
+    return this.currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   }
 
-  get weekLabel(): string {
-    const end = new Date(this.weekStart);
-    end.setDate(end.getDate() + 6);
-    return `${this.formatShort(this.weekStart)} – ${this.formatShort(end)}`;
+  get year(): number {
+    return this.currentMonth.getFullYear();
   }
 
-  get dayColumns(): { date: Date; label: string; isToday: boolean }[] {
+  get month(): number {
+    return this.currentMonth.getMonth() + 1;
+  }
+
+  /** Build 6 rows × 7 days (Monday first). Each cell is either a day in the month or a padding day from prev/next month. */
+  get calendarWeeks(): CalendarDay[][] {
+    const y = this.currentMonth.getFullYear();
+    const m = this.currentMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const startWeekday = first.getDay();
+    const mondayFirst = startWeekday === 0 ? 6 : startWeekday - 1;
+    const weeks: CalendarDay[][] = [];
+    let week: CalendarDay[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(this.weekStart);
-      d.setDate(d.getDate() + i);
-      const isToday = d.getTime() === today.getTime();
-      return { date: d, label: DAY_LABELS[i], isToday };
-    });
+
+    for (let i = 0; i < mondayFirst; i++) {
+      const d = new Date(y, m, 1 - (mondayFirst - i));
+      week.push({
+        date: d,
+        dayOfMonth: d.getDate(),
+        isCurrentMonth: false,
+        isToday: this.sameDay(d, today)
+      });
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(y, m, day);
+      week.push({
+        date: d,
+        dayOfMonth: day,
+        isCurrentMonth: true,
+        isToday: this.sameDay(d, today)
+      });
+      if (week.length === 7) {
+        weeks.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) {
+      let nextDay = new Date(y, m, daysInMonth);
+      nextDay.setDate(nextDay.getDate() + 1);
+      while (week.length < 7) {
+        week.push({
+          date: nextDay,
+          dayOfMonth: nextDay.getDate(),
+          isCurrentMonth: false,
+          isToday: this.sameDay(nextDay, today)
+        });
+        nextDay = new Date(nextDay);
+        nextDay.setDate(nextDay.getDate() + 1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }
+
+  get dayHeaders(): string[] {
+    return DAY_LABELS;
   }
 
   sessionsOnDay(date: Date): WeekSessionDto[] {
     const ymd = this.formatYmd(date);
     return this.sessions.filter(s => {
-      const d = s.date ? (typeof s.date === 'string' ? s.date.slice(0, 10) : '') : '';
+      if (s.dateYmd) return s.dateYmd === ymd;
+      if (s.date == null) return false;
+      const d = typeof s.date === 'string'
+        ? s.date.slice(0, 10)
+        : (s.date as unknown as Date)?.toISOString?.()?.slice(0, 10) ?? '';
       return d === ymd;
     });
   }
 
-  prevWeek(): void {
-    const d = new Date(this.weekStart);
-    d.setDate(d.getDate() - 7);
-    this.weekStart = d;
+  holidayOnDay(date: Date): { name: string; description?: string | null } | null {
+    const ymd = this.formatYmd(date);
+    const h = this.holidays.find(x => x.date.slice(0, 10) === ymd);
+    return h ? { name: h.name, description: h.description } : null;
+  }
+
+  isCompleted(s: WeekSessionDto): boolean {
+    const status = (s.status || '').toLowerCase();
+    if (s.groupSessionId) return status === 'completed' || status === 'checkedout';
+    return status === 'completed' || status === 'checkedout' || (s.attendanceLogId > 0 && status !== 'scheduled');
+  }
+
+  isUpcoming(s: WeekSessionDto): boolean {
+    return (s.status || '').toLowerCase() === 'scheduled' || (s.attendanceLogId === 0 && !s.groupSessionId);
+  }
+
+  prevMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
     this.load();
   }
 
-  nextWeek(): void {
-    const d = new Date(this.weekStart);
-    d.setDate(d.getDate() + 7);
-    this.weekStart = d;
+  nextMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
     this.load();
   }
 
-  thisWeek(): void {
-    this.weekStart = this.getMonday(new Date());
+  thisMonth(): void {
+    this.currentMonth = new Date();
     this.load();
   }
 
   private load(): void {
     this.loading = true;
     this.error = '';
-    this.teacherService.getCalendarWeek(this.weekStartStr).subscribe({
+    const y = this.year;
+    const m = this.month;
+    this.teacherService.getCalendarMonth(y, m).subscribe({
       next: (list) => {
         this.sessions = list;
         this.loading = false;
@@ -93,25 +167,20 @@ export class TeacherCalendarComponent implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error });
       }
     });
+    this.teacherService.getHolidays(y).subscribe({
+      next: (list) => (this.holidays = list),
+      error: () => {}
+    });
   }
 
-  private getMonday(d: Date): Date {
-    const x = new Date(d);
-    x.setHours(0, 0, 0, 0);
-    const day = x.getDay();
-    const diff = (day === 0 ? -6 : 1) - day;
-    x.setDate(x.getDate() + diff);
-    return x;
+  private sameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
 
   private formatYmd(d: Date): string {
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  private formatShort(d: Date): string {
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${y}-${mo}-${day}`;
   }
 }

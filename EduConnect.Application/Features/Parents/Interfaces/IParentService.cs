@@ -11,4 +11,5 @@ public interface IParentService : IService
     Task<List<ParentStudentDto>> GetMyStudentsAsync(string parentUserId);
     Task<StudentLearningOverviewDto?> GetStudentLearningOverviewAsync(string parentUserId, int studentId);
     Task<List<EduConnect.Application.DTOs.Teacher.WeekSessionDto>> GetSessionsForStudentWeekAsync(string parentUserId, int studentId, DateTime weekStartMonday);
+    Task<List<EduConnect.Application.DTOs.Teacher.WeekSessionDto>> GetSessionsForStudentMonthAsync(string parentUserId, int studentId, int year, int month);
 }

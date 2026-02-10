@@ -12,6 +12,13 @@ import { MessageService } from 'primeng/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+export interface CalendarDay {
+  date: Date | null;
+  dayOfMonth: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+}
+
 @Component({
   selector: 'app-parent-student-learning',
   standalone: true,
@@ -29,6 +36,11 @@ export class ParentStudentLearningComponent implements OnInit {
   weekSessions: WeekSessionDto[] = [];
   weekLoading = false;
 
+  currentMonth: Date = new Date();
+  monthSessions: WeekSessionDto[] = [];
+  holidays: { id: number; date: string; name: string; description?: string | null }[] = [];
+  monthLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private parentService: ParentService,
@@ -42,6 +54,7 @@ export class ParentStudentLearningComponent implements OnInit {
       this.studentId = parsed;
       this.load();
       this.loadWeek();
+      this.loadMonth();
     } else {
       this.studentId = null;
       this.error = 'Invalid student';
@@ -89,6 +102,119 @@ export class ParentStudentLearningComponent implements OnInit {
       const d = s.date ? (typeof s.date === 'string' ? s.date.slice(0, 10) : '') : '';
       return d === ymd;
     });
+  }
+
+  get monthLabel(): string {
+    return this.currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+
+  get monthYear(): number {
+    return this.currentMonth.getFullYear();
+  }
+
+  get monthNum(): number {
+    return this.currentMonth.getMonth() + 1;
+  }
+
+  get calendarWeeks(): CalendarDay[][] {
+    const y = this.currentMonth.getFullYear();
+    const m = this.currentMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const startWeekday = first.getDay();
+    const mondayFirst = startWeekday === 0 ? 6 : startWeekday - 1;
+    const weeks: CalendarDay[][] = [];
+    let week: CalendarDay[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < mondayFirst; i++) {
+      const d = new Date(y, m, 1 - (mondayFirst - i));
+      week.push({ date: d, dayOfMonth: d.getDate(), isCurrentMonth: false, isToday: this.sameDay(d, today) });
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(y, m, day);
+      week.push({ date: d, dayOfMonth: day, isCurrentMonth: true, isToday: this.sameDay(d, today) });
+      if (week.length === 7) {
+        weeks.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) {
+      let nextDay = new Date(y, m, daysInMonth);
+      nextDay.setDate(nextDay.getDate() + 1);
+      while (week.length < 7) {
+        week.push({ date: nextDay, dayOfMonth: nextDay.getDate(), isCurrentMonth: false, isToday: this.sameDay(nextDay, today) });
+        nextDay = new Date(nextDay);
+        nextDay.setDate(nextDay.getDate() + 1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  }
+
+  get dayHeaders(): string[] {
+    return DAY_LABELS;
+  }
+
+  monthSessionsOnDay(date: Date): WeekSessionDto[] {
+    const ymd = this.formatYmd(date);
+    return this.monthSessions.filter(s => {
+      if (s.dateYmd) return s.dateYmd === ymd;
+      if (s.date == null) return false;
+      const d = typeof s.date === 'string' ? s.date.slice(0, 10) : (s.date as unknown as Date)?.toISOString?.()?.slice(0, 10) ?? '';
+      return d === ymd;
+    });
+  }
+
+  holidayOnDay(date: Date): { name: string } | null {
+    const ymd = this.formatYmd(date);
+    const h = this.holidays.find(x => x.date.slice(0, 10) === ymd);
+    return h ? { name: h.name } : null;
+  }
+
+  isMonthSessionCompleted(s: WeekSessionDto): boolean {
+    const status = (s.status || '').toLowerCase();
+    if (s.groupSessionId) return status === 'completed' || status === 'checkedout';
+    return status === 'completed' || status === 'checkedout' || (s.attendanceLogId > 0 && status !== 'scheduled');
+  }
+
+  isMonthSessionUpcoming(s: WeekSessionDto): boolean {
+    return (s.status || '').toLowerCase() === 'scheduled' || (s.attendanceLogId === 0 && !s.groupSessionId);
+  }
+
+  prevMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
+    this.loadMonth();
+  }
+
+  nextMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+    this.loadMonth();
+  }
+
+  thisMonth(): void {
+    this.currentMonth = new Date();
+    this.loadMonth();
+  }
+
+  private loadMonth(): void {
+    if (this.studentId == null) return;
+    this.monthLoading = true;
+    this.parentService.getStudentCalendarMonth(this.studentId, this.monthYear, this.monthNum).subscribe({
+      next: (list) => {
+        this.monthSessions = list;
+        this.monthLoading = false;
+      },
+      error: () => { this.monthLoading = false; }
+    });
+    this.parentService.getHolidays(this.monthYear).subscribe({
+      next: (list) => (this.holidays = list),
+      error: () => {}
+    });
+  }
+
+  private sameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
 
   prevWeek(): void {

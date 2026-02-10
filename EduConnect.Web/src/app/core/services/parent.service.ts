@@ -28,4 +28,15 @@ export class ParentService {
     const q = weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : '';
     return this.apiService.get<WeekSessionDto[]>(API_ENDPOINTS.PARENT.STUDENT_CALENDAR_WEEK(studentId) + q);
   }
+
+  getStudentCalendarMonth(studentId: number, year: number, month: number): Observable<WeekSessionDto[]> {
+    return this.apiService.get<WeekSessionDto[]>(
+      `${API_ENDPOINTS.PARENT.STUDENT_CALENDAR_MONTH(studentId)}?year=${year}&month=${month}`
+    );
+  }
+
+  getHolidays(year?: number): Observable<{ id: number; date: string; name: string; description?: string | null }[]> {
+    const q = year != null ? `?year=${year}` : '';
+    return this.apiService.get(API_ENDPOINTS.PARENT.HOLIDAYS + q);
+  }
 }

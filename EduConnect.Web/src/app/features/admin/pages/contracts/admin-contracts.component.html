@@ -2,7 +2,7 @@
   <div class="page-header-compact">
     <div>
       <h1>One-To-One classes</h1>
-      <p class="page-desc-short">Create and manage One-To-One classes (one teacher, one student). Filter by teacher, student, or status.</p>
+      <p class="page-desc-short">Create a class by assigning a teacher and a student who has an active One-to-one subscription (add subscriptions on the Subscriptions page first).</p>
     </div>
   </div>
 
@@ -52,6 +52,7 @@
           <th>Class ID</th>
           <th>Teacher</th>
           <th>Student</th>
+          <th>Schedule</th>
           <th>Subscription until</th>
           <th>Status</th>
           <th>Start</th>
@@ -65,6 +66,7 @@
           <td>{{ c.contractId }}</td>
           <td>{{ c.teacherName }}</td>
           <td>{{ c.studentName }}</td>
+          <td>{{ formatSchedule(c) }}</td>
           <td>{{ c.subscriptionPeriodEnd ? (c.subscriptionPeriodEnd | date:'shortDate') : '—' }}</td>
           <td><p-tag [value]="statusName(c.status)" [severity]="statusSeverity(c.status)" /></td>
           <td>{{ c.startDate | date:'shortDate' }}</td>
@@ -83,7 +85,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="9">
+          <td colspan="10">
             <div class="empty-table-message">
               <i class="pi pi-file-edit empty-icon"></i>
               <p>No One-To-One classes found.</p>
@@ -105,7 +107,16 @@
     (onHide)="closeCreatePopup()">
     <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
       <div class="field">
-        <label for="teacherId">Teacher</label>
+        <label for="subscriptionId" class="label-required">Student (One-to-one subscription) <span class="required-asterisk">*</span></label>
+        <select id="subscriptionId" formControlName="subscriptionId" class="p-inputtext w-full">
+          <option [ngValue]="null">Select student with One-to-one subscription</option>
+          <option *ngFor="let sub of oneToOneSubscriptions" [ngValue]="sub.id">{{ subscriptionOptionLabel(sub) }}</option>
+        </select>
+        <small class="text-color-secondary" *ngIf="oneToOneSubscriptions.length === 0 && showCreatePopup">No active One-to-one subscriptions. Add one on the Subscriptions page.</small>
+        <small class="p-error" *ngIf="createForm.get('subscriptionId')?.invalid && createForm.get('subscriptionId')?.touched">Required</small>
+      </div>
+      <div class="field">
+        <label for="teacherId" class="label-required">Teacher <span class="required-asterisk">*</span></label>
         <select id="teacherId" formControlName="teacherId" class="p-inputtext w-full">
           <option [ngValue]="null">Select teacher</option>
           <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
@@ -113,15 +124,7 @@
         <small class="p-error" *ngIf="createForm.get('teacherId')?.invalid && createForm.get('teacherId')?.touched">Required</small>
       </div>
       <div class="field">
-        <label for="studentId">Student</label>
-        <select id="studentId" formControlName="studentId" class="p-inputtext w-full">
-          <option [ngValue]="null">Select student</option>
-          <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }} ({{ s.gradeLevelName }})</option>
-        </select>
-        <small class="p-error" *ngIf="createForm.get('studentId')?.invalid && createForm.get('studentId')?.touched">Required</small>
-      </div>
-      <div class="field">
-        <label for="startDate">Start date (subscription = 1st–last day of that month)</label>
+        <label for="startDate">Start date (optional; subscription period is used when not set)</label>
         <input pInputText id="startDate" type="date" formControlName="startDate" class="w-full" />
       </div>
       <div class="field">
@@ -129,17 +132,20 @@
         <input pInputText id="endDate" type="date" formControlName="endDate" class="w-full" />
       </div>
       <div class="field">
+        <label>Days of week</label>
+        <div class="days-checkboxes">
+          <label *ngFor="let d of createDayOptions" class="day-check">
+            <input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" [ngModelOptions]="{standalone: true}" (ngModelChange)="onCreateDayChange()" /> {{ d.label }}
+          </label>
+        </div>
+      </div>
+      <div class="field">
         <label>Class schedule (optional)</label>
         <div class="flex gap-4 flex-wrap">
           <input pInputText type="time" formControlName="startTime" placeholder="Start" class="w-auto" />
           <input pInputText type="time" formControlName="endTime" placeholder="End" class="w-auto" />
         </div>
-        <small class="text-color-secondary">Days of week and times for this One-To-One class. End time must be after start time.</small>
-      </div>
-      <div class="field">
-        <label>Days of week</label>
-        <input pInputText type="text" formControlName="daysOfWeek" class="w-full" placeholder="e.g. 1,3,5 (Mon,Wed,Fri)" />
-        <small class="text-color-secondary">Numbers 1–7 only (1=Mon … 7=Sun), comma-separated, no duplicates.</small>
+        <small class="text-color-secondary">Start and end time for this One-To-One class. End time must be after start time.</small>
       </div>
     </form>
     <ng-template pTemplate="footer">

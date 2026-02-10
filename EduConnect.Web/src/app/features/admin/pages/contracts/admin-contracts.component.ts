@@ -9,7 +9,7 @@ import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
-import { ContractDto, CreateContractRequest, Teacher, Student } from '../../../../core/models/admin.model';
+import { ContractDto, CreateContractRequest, Teacher, Student, SubscriptionDto, SubscriptionType } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
@@ -35,6 +35,8 @@ export class AdminContractsComponent implements OnInit {
   contracts: ContractDto[] = [];
   teachers: Teacher[] = [];
   students: Student[] = [];
+  /** Active One-to-one subscriptions for the create-class dropdown */
+  oneToOneSubscriptions: SubscriptionDto[] = [];
   loading = false;
   showCreatePopup = false;
   createForm: FormGroup;
@@ -50,6 +52,12 @@ export class AdminContractsComponent implements OnInit {
     { label: 'Expired', value: 4 }
   ];
 
+  readonly DAY_LABELS: { value: number; label: string }[] = [
+    { value: 1, label: 'Mon' }, { value: 2, label: 'Tue' }, { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' }, { value: 5, label: 'Fri' }, { value: 6, label: 'Sat' }, { value: 7, label: 'Sun' }
+  ];
+  createDayOptions: { value: number; label: string; checked: boolean }[] = [];
+
   constructor(
     private adminService: AdminService,
     private fb: FormBuilder,
@@ -57,9 +65,9 @@ export class AdminContractsComponent implements OnInit {
     private confirmationService: ConfirmationService
   ) {
     this.createForm = this.fb.group({
+      subscriptionId: [null, Validators.required],
       teacherId: [null, Validators.required],
-      studentId: [null, Validators.required],
-      startDate: [new Date().toISOString().slice(0, 10), Validators.required],
+      startDate: [''],
       endDate: [''],
       daysOfWeek: [''],
       startTime: [''],
@@ -115,16 +123,46 @@ export class AdminContractsComponent implements OnInit {
   }
 
   openCreatePopup(): void {
+    this.loadOneToOneSubscriptions();
     this.showCreatePopup = true;
     this.createForm.reset({
+      subscriptionId: null,
       teacherId: null,
-      studentId: null,
-      startDate: new Date().toISOString().slice(0, 10),
+      startDate: '',
       endDate: '',
       daysOfWeek: '',
       startTime: '',
       endTime: ''
     });
+    this.createDayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: false }));
+  }
+
+  onCreateDayChange(): void {
+    const checked = this.createDayOptions.filter(d => d.checked).map(d => d.value).sort((a, b) => a - b);
+    this.createForm.patchValue({ daysOfWeek: checked.length ? checked.join(',') : '' });
+  }
+
+  loadOneToOneSubscriptions(): void {
+    this.adminService.getSubscriptions(undefined, SubscriptionType.OneToOne, 1).subscribe({
+      next: (data) => {
+        this.oneToOneSubscriptions = data.filter(
+          s => s.status === 1 && new Date(s.subscriptionPeriodEnd) >= new Date()
+        );
+      },
+      error: () => {}
+    });
+  }
+
+  subscriptionOptionLabel(sub: SubscriptionDto): string {
+    const end = new Date(sub.subscriptionPeriodEnd).toLocaleDateString();
+    return `${sub.studentName} – ${sub.subscriptionId} (until ${end})`;
+  }
+
+  formatSchedule(c: ContractDto): string {
+    if (!c.daysOfWeek && !c.startTime && !c.endTime) return '—';
+    const days = c.daysOfWeek ? c.daysOfWeek.split(',').map(n => this.DAY_LABELS[+n - 1]?.label || n).join(', ') : '';
+    const time = (c.startTime || c.endTime) ? `${c.startTime || '?'}–${c.endTime || '?'}` : '';
+    return [days, time].filter(Boolean).join(' · ') || '—';
   }
 
   closeCreatePopup(): void {
@@ -134,11 +172,17 @@ export class AdminContractsComponent implements OnInit {
   onSubmitCreate(): void {
     if (this.createForm.valid) {
       const v = this.createForm.value;
+      const sub = this.oneToOneSubscriptions.find(s => s.id === +v.subscriptionId);
+      if (!sub) {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Select a student with an active One-to-one subscription.' });
+        return;
+      }
       const request: CreateContractRequest = {
         teacherId: +v.teacherId,
-        studentId: +v.studentId,
-        startDate: v.startDate || undefined,
-        endDate: v.endDate || undefined,
+        studentId: sub.studentId,
+        subscriptionId: sub.id,
+        startDate: v.startDate?.trim() || undefined,
+        endDate: v.endDate?.trim() || undefined,
         daysOfWeek: v.daysOfWeek?.trim() || undefined,
         startTime: v.startTime?.trim() || undefined,
         endTime: v.endTime?.trim() || undefined
