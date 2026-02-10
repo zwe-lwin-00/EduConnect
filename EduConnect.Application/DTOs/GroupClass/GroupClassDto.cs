@@ -20,8 +20,10 @@ public class GroupClassEnrollmentDto
     public int GroupClassId { get; set; }
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
-    public int ContractId { get; set; }
-    public string ContractIdDisplay { get; set; } = string.Empty;
+    public int? ContractId { get; set; }
+    public string? ContractIdDisplay { get; set; }
+    public int? SubscriptionId { get; set; }
+    public string? SubscriptionIdDisplay { get; set; }
 }
 
 public class GroupSessionDto

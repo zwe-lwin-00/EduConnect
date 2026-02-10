@@ -1,4 +1,5 @@
 using EduConnect.Domain.Entities;
+using EduConnect.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StudentGrade> StudentGrades { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<GroupClass> GroupClasses { get; set; }
     public DbSet<GroupClassEnrollment> GroupClassEnrollments { get; set; }
     public DbSet<GroupSession> GroupSessions { get; set; }
@@ -66,6 +68,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasConversion<int>();
         });
 
+        // Configure Subscription
+        builder.Entity<Subscription>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.SubscriptionId).IsUnique();
+            entity.HasOne(e => e.Student)
+                .WithMany(s => s.Subscriptions)
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.Property(e => e.Type).HasConversion<int>();
+            entity.Property(e => e.Status).HasConversion<int>();
+        });
+
         // Configure ContractSession
         builder.Entity<ContractSession>(entity =>
         {
@@ -78,6 +93,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.Student)
                 .WithMany(s => s.ContractSessions)
                 .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subscription)
+                .WithMany(s => s.ContractSessions)
+                .HasForeignKey(e => e.SubscriptionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
             
             entity.Property(e => e.Status)
@@ -225,6 +245,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.ContractSession)
                 .WithMany()
                 .HasForeignKey(e => e.ContractId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subscription)
+                .WithMany(s => s.GroupClassEnrollments)
+                .HasForeignKey(e => e.SubscriptionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -255,6 +281,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.ContractSession)
                 .WithMany()
                 .HasForeignKey(e => e.ContractId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

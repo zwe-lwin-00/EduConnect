@@ -356,6 +356,73 @@ public class AdminController : BaseController
         }
     }
 
+    // ——— Subscriptions (parent-paid: type + duration) ———
+    [HttpGet("subscriptions")]
+    public async Task<IActionResult> GetSubscriptions([FromQuery] int? studentId, [FromQuery] int? type, [FromQuery] int? status)
+    {
+        try
+        {
+            var list = await _adminService.GetSubscriptionsAsync(studentId, type, status);
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetSubscriptions failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("subscriptions/{id}")]
+    public async Task<IActionResult> GetSubscriptionById(int id)
+    {
+        try
+        {
+            var s = await _adminService.GetSubscriptionByIdAsync(id);
+            if (s == null)
+                return NotFound();
+            return Ok(s);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetSubscriptionById failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("subscriptions")]
+    public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionRequest request)
+    {
+        try
+        {
+            var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
+            var s = await _adminService.CreateSubscriptionAsync(request, adminUserId);
+            Logger.InformationLog("Subscription created");
+            return Ok(s);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "CreateSubscription failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("subscriptions/{id}/renew")]
+    public async Task<IActionResult> RenewSubscriptionById(int id, [FromQuery] int additionalMonths = 1)
+    {
+        try
+        {
+            var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
+            await _adminService.RenewSubscriptionByIdAsync(id, additionalMonths, adminUserId);
+            Logger.InformationLog("Subscription renewed");
+            return Ok(new { success = true, message = $"Subscription renewed for {additionalMonths} month(s)." });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "RenewSubscriptionById failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     // ——— Group classes (admin prepares; assigns teacher) ———
     [HttpGet("group-classes")]
     public async Task<IActionResult> GetGroupClasses()
@@ -455,7 +522,12 @@ public class AdminController : BaseController
                 Logger.WarningLog("EnrollInGroupClass: group not found");
                 return NotFound();
             }
-            await _groupClassService.EnrollStudentAsync(id, group.TeacherId, request.StudentId, request.ContractId);
+            if (request.SubscriptionId.HasValue)
+                await _groupClassService.EnrollStudentBySubscriptionAsync(id, request.StudentId, request.SubscriptionId.Value);
+            else if (request.ContractId.HasValue)
+                await _groupClassService.EnrollStudentAsync(id, group.TeacherId, request.StudentId, request.ContractId.Value);
+            else
+                return BadRequest(new { error = "Provide either ContractId or SubscriptionId." });
             Logger.InformationLog("Student enrolled in group class");
             return Ok(new { success = true });
         }

@@ -363,8 +363,10 @@ public class TeacherController : BaseController
     {
         try
         {
+            if (!request.ContractId.HasValue)
+                return BadRequest(new { error = "ContractId is required for teacher enrollment." });
             var teacherId = await GetTeacherIdAsync();
-            await _groupClassService.EnrollStudentAsync(id, teacherId, request.StudentId, request.ContractId);
+            await _groupClassService.EnrollStudentAsync(id, teacherId, request.StudentId, request.ContractId.Value);
             Logger.InformationLog("Student enrolled in group class");
             return Ok(new { success = true });
         }

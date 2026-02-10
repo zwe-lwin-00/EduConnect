@@ -33,6 +33,7 @@ public class TeacherService : ITeacherService
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher).ThenInclude(t => t!.User)
+            .Include(c => c.Subscription)
             .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active)
             .ToListAsync();
 
@@ -108,6 +109,7 @@ public class TeacherService : ITeacherService
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher)
+            .Include(c => c.Subscription)
             .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active)
             .ToListAsync();
         return contracts.Select(c => new TeacherAssignedStudentDto
@@ -119,7 +121,7 @@ public class TeacherService : ITeacherService
             ContractStatus = c.Status.ToString(),
             ContractId = c.Id,
             ContractIdDisplay = c.ContractId,
-            SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
+            SubscriptionPeriodEnd = c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd
         }).ToList();
     }
 
@@ -140,6 +142,7 @@ public class TeacherService : ITeacherService
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher)
+            .Include(c => c.Subscription)
             .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active)
             .ToListAsync();
         contracts = contracts.Where(c => c.HasActiveAccess()).ToList();

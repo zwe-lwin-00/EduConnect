@@ -21,9 +21,8 @@ public class ParentService : IParentService
     public async Task<List<ParentStudentDto>> GetMyStudentsAsync(string parentUserId)
     {
         var students = await _context.Students
-            .Include(s => s.ContractSessions)
-            .ThenInclude(c => c.Teacher)
-            .ThenInclude(t => t!.User)
+            .Include(s => s.ContractSessions).ThenInclude(c => c.Teacher).ThenInclude(t => t!.User)
+            .Include(s => s.ContractSessions).ThenInclude(c => c.Subscription)
             .Where(s => s.ParentId == parentUserId && s.IsActive)
             .OrderBy(s => s.FirstName)
             .ToListAsync();
@@ -31,9 +30,8 @@ public class ParentService : IParentService
         return students.Select(s =>
         {
             var activeContracts = s.ContractSessions.Where(c => c.Status == ContractStatus.Active).ToList();
-            var subscriptionValidUntil = activeContracts.Any(c => c.SubscriptionPeriodEnd.HasValue)
-                ? activeContracts.Where(c => c.SubscriptionPeriodEnd.HasValue).Max(c => c.SubscriptionPeriodEnd!.Value)
-                : (DateTime?)null;
+            var periodEnds = activeContracts.Select(c => c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd).Where(d => d.HasValue).Select(d => d!.Value).ToList();
+            var subscriptionValidUntil = periodEnds.Any() ? periodEnds.Max() : (DateTime?)null;
             var firstTeacher = activeContracts.FirstOrDefault()?.Teacher;
             return new ParentStudentDto
             {
@@ -51,9 +49,8 @@ public class ParentService : IParentService
     public async Task<StudentLearningOverviewDto?> GetStudentLearningOverviewAsync(string parentUserId, int studentId)
     {
         var student = await _context.Students
-            .Include(s => s.ContractSessions)
-            .ThenInclude(c => c.Teacher)
-            .ThenInclude(t => t!.User)
+            .Include(s => s.ContractSessions).ThenInclude(c => c.Teacher).ThenInclude(t => t!.User)
+            .Include(s => s.ContractSessions).ThenInclude(c => c.Subscription)
             .FirstOrDefaultAsync(s => s.Id == studentId && s.ParentId == parentUserId);
 
         if (student == null)
@@ -77,7 +74,7 @@ public class ParentService : IParentService
                 TeacherId = c.TeacherId,
                 TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
                 ContractIdDisplay = c.ContractId,
-                SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
+                SubscriptionPeriodEnd = c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd
             })
             .ToList();
 
@@ -93,7 +90,7 @@ public class ParentService : IParentService
             {
                 ContractIdDisplay = c.ContractId,
                 TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
-                SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
+                SubscriptionPeriodEnd = c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd
             })
             .ToList();
 
@@ -126,9 +123,8 @@ public class ParentService : IParentService
             .ToListAsync();
         var gradeItems = grades.Select(g => HomeworkService.ToGradeItemDto(g, $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}")).ToList();
 
-        var subscriptionValidUntil = activeContracts.Any(c => c.SubscriptionPeriodEnd.HasValue)
-            ? activeContracts.Where(c => c.SubscriptionPeriodEnd.HasValue).Max(c => c.SubscriptionPeriodEnd!.Value)
-            : (DateTime?)null;
+        var periodEnds = activeContracts.Select(c => c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd).Where(d => d.HasValue).Select(d => d!.Value).ToList();
+        var subscriptionValidUntil = periodEnds.Any() ? periodEnds.Max() : (DateTime?)null;
         return new StudentLearningOverviewDto
         {
             StudentId = student.Id,

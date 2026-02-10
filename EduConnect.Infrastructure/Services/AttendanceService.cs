@@ -30,6 +30,7 @@ public class AttendanceService : IAttendanceService
     public async Task<int> CheckInAsync(int teacherId, int contractId)
     {
         var contract = await _context.ContractSessions
+            .Include(c => c.Subscription)
             .FirstOrDefaultAsync(c => c.Id == contractId && c.TeacherId == teacherId && c.Status == ContractStatus.Active);
         if (contract == null)
         {
@@ -121,6 +122,7 @@ public class AttendanceService : IAttendanceService
             throw new BusinessException("Lesson notes are required to check out.", "NOTES_REQUIRED");
         var session = await _context.GroupSessions
             .Include(s => s.GroupClass).ThenInclude(g => g!.Enrollments).ThenInclude(e => e.ContractSession).ThenInclude(c => c!.Student)
+            .Include(s => s.GroupClass).ThenInclude(g => g!.Enrollments).ThenInclude(e => e.Student)
             .FirstOrDefaultAsync(s => s.Id == groupSessionId && s.GroupClass!.TeacherId == teacherId);
         if (session == null)
             throw new NotFoundException("Group session", groupSessionId);
@@ -142,12 +144,14 @@ public class AttendanceService : IAttendanceService
                 GroupSessionId = session.Id,
                 StudentId = e.StudentId,
                 ContractId = e.ContractId,
+                SubscriptionId = e.SubscriptionId,
                 HoursUsed = hoursPerStudent
             });
-            if (e.ContractSession?.Student != null)
+            var student = e.Student ?? (e.ContractSession != null ? e.ContractSession.Student : null);
+            if (student != null)
             {
-                var studentName = $"{e.ContractSession.Student.FirstName} {e.ContractSession.Student.LastName}";
-                await _notificationService.CreateForUserAsync(e.ContractSession.Student.ParentId, "Session completed – notes added", $"Group session for {session.GroupClass?.Name} ({studentName}) has been completed with lesson notes.", NotificationType.SessionCompleted, "GroupSession", session.Id);
+                var studentName = $"{student.FirstName} {student.LastName}";
+                await _notificationService.CreateForUserAsync(student.ParentId, "Session completed – notes added", $"Group session for {session.GroupClass?.Name} ({studentName}) has been completed with lesson notes.", NotificationType.SessionCompleted, "GroupSession", session.Id);
             }
         }
         await _unitOfWork.SaveChangesAsync();

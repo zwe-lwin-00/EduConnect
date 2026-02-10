@@ -17,6 +17,7 @@ public class Student
     // Navigation properties
     public ApplicationUser Parent { get; set; } = null!;
     public ICollection<ContractSession> ContractSessions { get; set; } = new List<ContractSession>();
+    public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
     public ICollection<Homework> Homeworks { get; set; } = new List<Homework>();
     public ICollection<StudentGrade> StudentGrades { get; set; } = new List<StudentGrade>();
 }

@@ -27,5 +27,8 @@ public class UpdateGroupClassRequest
 public class EnrollInGroupClassRequest
 {
     public int StudentId { get; set; }
-    public int ContractId { get; set; }
+    /// <summary>Legacy / teacher: 1:1 contract for this student with this teacher.</summary>
+    public int? ContractId { get; set; }
+    /// <summary>Admin only: parent-paid Group subscription for this student. When set, enrollment uses subscription.</summary>
+    public int? SubscriptionId { get; set; }
 }

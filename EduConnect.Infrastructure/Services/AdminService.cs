@@ -383,24 +383,31 @@ public class AdminService : IAdminService
         var startOfMonth = TimeZoneInfo.ConvertTimeToUtc(startOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
         var endOfMonth = TimeZoneInfo.ConvertTimeToUtc(endOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
 
-        // Alerts: subscription ending soon (within 7 days)
+        // Alerts: subscription ending soon (within 7 days) — legacy contracts and subscription-backed contracts
         var alerts = new List<DashboardAlertDto>();
         var subscriptionEndThreshold = DateTime.UtcNow.AddDays(7);
-        var expiringSubscriptions = await _context.ContractSessions
+        var now = DateTime.UtcNow;
+        var expiringContracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher).ThenInclude(t => t!.User)
-            .Where(c => c.Status == ContractStatus.Active && c.SubscriptionPeriodEnd.HasValue
-                && c.SubscriptionPeriodEnd.Value >= DateTime.UtcNow && c.SubscriptionPeriodEnd.Value <= subscriptionEndThreshold)
-            .OrderBy(c => c.SubscriptionPeriodEnd)
+            .Include(c => c.Subscription)
+            .Where(c => c.Status == ContractStatus.Active)
             .ToListAsync();
-        foreach (var c in expiringSubscriptions)
+        foreach (var c in expiringContracts)
+        {
+            DateTime? periodEnd = c.SubscriptionId.HasValue && c.Subscription != null
+                ? c.Subscription.SubscriptionPeriodEnd
+                : c.SubscriptionPeriodEnd;
+            if (!periodEnd.HasValue || periodEnd.Value < now || periodEnd.Value > subscriptionEndThreshold)
+                continue;
             alerts.Add(new DashboardAlertDto
             {
                 Type = "SubscriptionExpiring",
-                Message = $"Subscription for {c.Student.FirstName} {c.Student.LastName} (Contract {c.ContractId}) ends on {c.SubscriptionPeriodEnd!:dd MMM yyyy}. Renew to extend.",
+                Message = $"Subscription for {c.Student.FirstName} {c.Student.LastName} (Contract {c.ContractId}) ends on {periodEnd.Value:dd MMM yyyy}. Renew to extend.",
                 EntityId = c.ContractId,
                 EntityName = $"{c.Student.FirstName} {c.Student.LastName}"
             });
+        }
 
         // Alerts: contracts ending in next 14 days
         var expiringEnd = today.AddDays(14);
@@ -542,12 +549,96 @@ public class AdminService : IAdminService
         return true;
     }
 
+    // ——— Subscriptions (parent-paid) ———
+    public async Task<SubscriptionDto> CreateSubscriptionAsync(CreateSubscriptionRequest request, string adminUserId)
+    {
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.Id == request.StudentId);
+        if (student == null)
+            throw new NotFoundException("Student", request.StudentId);
+        if (request.DurationMonths < 1)
+            throw new BusinessException("Duration must be at least 1 month.", "INVALID_DURATION");
+
+        var start = request.StartDate?.Date ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var periodEnd = start.AddMonths(request.DurationMonths).AddSeconds(-1);
+        var subId = "SUB-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        var subscription = new Subscription
+        {
+            SubscriptionId = subId,
+            StudentId = request.StudentId,
+            Type = request.Type,
+            StartDate = start,
+            SubscriptionPeriodEnd = periodEnd,
+            Status = ContractStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = adminUserId
+        };
+        _context.Subscriptions.Add(subscription);
+        await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Subscription created: " + subId);
+        return MapToSubscriptionDto(subscription, student);
+    }
+
+    public async Task<List<SubscriptionDto>> GetSubscriptionsAsync(int? studentId = null, int? type = null, int? status = null)
+    {
+        var query = _context.Subscriptions
+            .Include(s => s.Student)
+            .AsNoTracking()
+            .AsQueryable();
+        if (studentId.HasValue)
+            query = query.Where(s => s.StudentId == studentId.Value);
+        if (type.HasValue)
+            query = query.Where(s => (int)s.Type == type.Value);
+        if (status.HasValue)
+            query = query.Where(s => (int)s.Status == status.Value);
+        var list = await query.OrderByDescending(s => s.CreatedAt).ToListAsync();
+        return list.Select(s => MapToSubscriptionDto(s, s.Student)).ToList();
+    }
+
+    public async Task<SubscriptionDto?> GetSubscriptionByIdAsync(int id)
+    {
+        var s = await _context.Subscriptions.Include(x => x.Student).FirstOrDefaultAsync(x => x.Id == id);
+        return s == null ? null : MapToSubscriptionDto(s, s.Student);
+    }
+
+    public async Task<bool> RenewSubscriptionByIdAsync(int subscriptionId, int additionalMonths, string adminUserId)
+    {
+        var sub = await _context.Subscriptions.FirstOrDefaultAsync(s => s.Id == subscriptionId);
+        if (sub == null)
+            throw new NotFoundException("Subscription", subscriptionId);
+        if (additionalMonths < 1)
+            throw new BusinessException("Additional months must be at least 1.", "INVALID_DURATION");
+        var currentEnd = sub.SubscriptionPeriodEnd < DateTime.UtcNow ? DateTime.UtcNow : sub.SubscriptionPeriodEnd;
+        sub.SubscriptionPeriodEnd = currentEnd.AddMonths(additionalMonths).AddSeconds(-1);
+        await _unitOfWork.SaveChangesAsync();
+        _logger.InformationLog("Subscription renewed: " + sub.SubscriptionId);
+        return true;
+    }
+
+    private static SubscriptionDto MapToSubscriptionDto(Subscription s, Student student)
+    {
+        return new SubscriptionDto
+        {
+            Id = s.Id,
+            SubscriptionId = s.SubscriptionId,
+            StudentId = s.StudentId,
+            StudentName = $"{student.FirstName} {student.LastName}",
+            Type = (int)s.Type,
+            TypeName = s.Type.ToString(),
+            StartDate = s.StartDate,
+            SubscriptionPeriodEnd = s.SubscriptionPeriodEnd,
+            Status = (int)s.Status,
+            StatusName = s.Status.ToString(),
+            CreatedAt = s.CreatedAt
+        };
+    }
+
     // ——— Contracts ———
     public async Task<List<ContractDto>> GetContractsAsync(int? teacherId = null, int? studentId = null, int? status = null)
     {
         var query = _context.ContractSessions
             .Include(c => c.Teacher).ThenInclude(t => t!.User)
             .Include(c => c.Student).ThenInclude(s => s!.Parent)
+            .Include(c => c.Subscription)
             .AsQueryable();
         if (teacherId.HasValue)
             query = query.Where(c => c.TeacherId == teacherId);
@@ -564,6 +655,7 @@ public class AdminService : IAdminService
         var c = await _context.ContractSessions
             .Include(x => x.Teacher).ThenInclude(t => t!.User)
             .Include(x => x.Student).ThenInclude(s => s!.Parent)
+            .Include(x => x.Subscription)
             .FirstOrDefaultAsync(x => x.Id == id);
         return c == null ? null : MapToContractDto(c);
     }
@@ -577,22 +669,46 @@ public class AdminService : IAdminService
         if (student == null)
             throw new NotFoundException("Student", request.StudentId);
 
+        int? subscriptionId = request.SubscriptionId;
+        DateTime startDate;
+        DateTime? endDate = request.EndDate;
+        DateTime? subscriptionPeriodEnd = null;
+
+        if (subscriptionId.HasValue)
+        {
+            var sub = await _context.Subscriptions.FirstOrDefaultAsync(s => s.Id == subscriptionId.Value && s.StudentId == request.StudentId);
+            if (sub == null)
+                throw new NotFoundException("Subscription", subscriptionId.Value);
+            if (sub.Type != SubscriptionType.OneToOne)
+                throw new BusinessException("Subscription must be One-to-one type for a 1:1 class.", "INVALID_SUBSCRIPTION_TYPE");
+            if (!sub.HasActiveAccess())
+                throw new BusinessException("Subscription is not active or has expired.", "SUBSCRIPTION_INACTIVE");
+            startDate = sub.StartDate;
+            subscriptionPeriodEnd = null;
+        }
+        else
+        {
+            if (!request.StartDate.HasValue)
+                throw new BusinessException("StartDate is required when not using a subscription.", "MISSING_START_DATE");
+            startDate = request.StartDate.Value.Date;
+            var lastDay = new DateTime(startDate.Year, startDate.Month, DateTime.DaysInMonth(startDate.Year, startDate.Month), 23, 59, 59, DateTimeKind.Utc);
+            subscriptionPeriodEnd = lastDay;
+        }
+
         var contractId = "C-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
-        // Subscription period = 1st to last day of the month containing StartDate
-        var start = request.StartDate.Date;
-        var lastDay = new DateTime(start.Year, start.Month, DateTime.DaysInMonth(start.Year, start.Month), 23, 59, 59, DateTimeKind.Utc);
         var contract = new ContractSession
         {
             ContractId = contractId,
             TeacherId = request.TeacherId,
             StudentId = request.StudentId,
+            SubscriptionId = subscriptionId,
             PackageHours = 0,
             RemainingHours = 0,
             BillingType = BillingType.Monthly,
-            SubscriptionPeriodEnd = lastDay,
+            SubscriptionPeriodEnd = subscriptionPeriodEnd,
             Status = ContractStatus.Active,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = startDate,
+            EndDate = endDate,
             CreatedBy = adminUserId,
             CreatedAt = DateTime.UtcNow
         };
@@ -603,18 +719,19 @@ public class AdminService : IAdminService
         var teacherUserId = teacher.UserId;
         await _notificationService.CreateForUserAsync(teacherUserId, "New contract", $"New contract {contract.ContractId} with student {student.FirstName} {student.LastName}.", NotificationType.NewContract, "Contract", contract.Id);
 
-        if (contract.EndDate.HasValue)
+        if (endDate.HasValue)
         {
-            var daysUntilEnd = (contract.EndDate.Value - DateTime.UtcNow.Date).TotalDays;
+            var daysUntilEnd = (endDate.Value - DateTime.UtcNow.Date).TotalDays;
             if (daysUntilEnd >= 0 && daysUntilEnd <= 14)
             {
                 var adminIds = await _context.Users.Where(u => u.Role == UserRole.Admin).Select(u => u.Id).ToListAsync();
                 foreach (var adminId in adminIds)
                 {
-                    await _notificationService.CreateForUserAsync(adminId, "Contract ending soon", $"Contract {contract.ContractId} ends on {contract.EndDate:dd MMM yyyy}.", NotificationType.ContractEndingSoon, "Contract", contract.Id);
+                    await _notificationService.CreateForUserAsync(adminId, "Contract ending soon", $"Contract {contract.ContractId} ends on {endDate:dd MMM yyyy}.", NotificationType.ContractEndingSoon, "Contract", contract.Id);
                 }
             }
         }
+        await _context.Entry(contract).Reference(c => c.Subscription).LoadAsync();
         return MapToContractDto(contract);
     }
 
@@ -650,12 +767,14 @@ public class AdminService : IAdminService
             TeacherName = c.Teacher != null ? $"{c.Teacher.User.FirstName} {c.Teacher.User.LastName}" : "",
             StudentId = c.StudentId,
             StudentName = c.Student != null ? $"{c.Student.FirstName} {c.Student.LastName}" : "",
-            SubscriptionPeriodEnd = c.SubscriptionPeriodEnd,
+            SubscriptionPeriodEnd = c.SubscriptionId.HasValue && c.Subscription != null ? c.Subscription.SubscriptionPeriodEnd : c.SubscriptionPeriodEnd,
             Status = (int)c.Status,
             StatusName = c.Status.ToString(),
             StartDate = c.StartDate,
             EndDate = c.EndDate,
-            CreatedAt = c.CreatedAt
+            CreatedAt = c.CreatedAt,
+            SubscriptionId = c.SubscriptionId,
+            SubscriptionIdDisplay = c.Subscription?.SubscriptionId
         };
     }
 
@@ -706,12 +825,21 @@ public class AdminService : IAdminService
         return true;
     }
 
-    /// <summary>Extend subscription to end of next calendar month (1st–last of month).</summary>
+    /// <summary>Extend subscription: for subscription-backed contract renews the linked Subscription by 1 month; for legacy contract extends SubscriptionPeriodEnd to end of next month.</summary>
     public async Task<bool> RenewSubscriptionAsync(int contractId, string adminUserId)
     {
-        var c = await _context.ContractSessions.FirstOrDefaultAsync(x => x.Id == contractId && x.Status == ContractStatus.Active);
+        var c = await _context.ContractSessions.Include(x => x.Subscription).FirstOrDefaultAsync(x => x.Id == contractId && x.Status == ContractStatus.Active);
         if (c == null)
             throw new NotFoundException("Contract", contractId);
+        if (c.SubscriptionId.HasValue && c.Subscription != null)
+        {
+            var sub = c.Subscription!;
+            var currentEnd = sub.SubscriptionPeriodEnd < DateTime.UtcNow ? DateTime.UtcNow : sub.SubscriptionPeriodEnd;
+            sub.SubscriptionPeriodEnd = currentEnd.AddMonths(1).AddSeconds(-1);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.InformationLog("Subscription renewed (via contract): " + sub.SubscriptionId);
+            return true;
+        }
         var from = (c.SubscriptionPeriodEnd.HasValue && c.SubscriptionPeriodEnd.Value > DateTime.UtcNow)
             ? c.SubscriptionPeriodEnd.Value
             : DateTime.UtcNow;
@@ -719,7 +847,7 @@ public class AdminService : IAdminService
         var lastDay = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month), 23, 59, 59, DateTimeKind.Utc);
         c.SubscriptionPeriodEnd = lastDay;
         await _unitOfWork.SaveChangesAsync();
-        _logger.InformationLog("Subscription renewed");
+        _logger.InformationLog("Subscription renewed (legacy contract)");
         return true;
     }
 

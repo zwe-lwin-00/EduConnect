@@ -29,7 +29,13 @@ public interface IAdminService : IService
     Task<List<StudentDto>> GetStudentsByParentAsync(string parentId);
     Task<PagedResult<ParentDto>> GetParentsPagedAsync(PagedRequest request);
 
-    // Contracts — Master Doc B4
+    // Subscriptions (parent-paid: type + duration)
+    Task<SubscriptionDto> CreateSubscriptionAsync(CreateSubscriptionRequest request, string adminUserId);
+    Task<List<SubscriptionDto>> GetSubscriptionsAsync(int? studentId = null, int? type = null, int? status = null);
+    Task<SubscriptionDto?> GetSubscriptionByIdAsync(int id);
+    Task<bool> RenewSubscriptionByIdAsync(int subscriptionId, int additionalMonths, string adminUserId);
+
+    // Contracts — Master Doc B4 (1:1 class: legacy or subscription-backed)
     Task<List<ContractDto>> GetContractsAsync(int? teacherId = null, int? studentId = null, int? status = null);
     Task<ContractDto?> GetContractByIdAsync(int id);
     Task<ContractDto> CreateContractAsync(CreateContractRequest request, string adminUserId);

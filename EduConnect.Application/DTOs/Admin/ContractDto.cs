@@ -18,4 +18,6 @@ public class ContractDto
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int? SubscriptionId { get; set; }
+    public string? SubscriptionIdDisplay { get; set; }
 }

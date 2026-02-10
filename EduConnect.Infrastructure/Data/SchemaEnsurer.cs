@@ -16,8 +16,92 @@ public static class SchemaEnsurer
         await EnsureGroupClassEnrollmentsTableAsync(context, cancellationToken);
         await EnsureGroupSessionsTableAsync(context, cancellationToken);
         await EnsureGroupSessionAttendancesTableAsync(context, cancellationToken);
+        await EnsureSubscriptionsTableAsync(context, cancellationToken);
+        await EnsureSubscriptionIdColumnsAsync(context, cancellationToken);
+        await EnsureGroupSessionAttendanceSubscriptionAsync(context, cancellationToken);
         await EnsureBillingTypeColumnsAsync(context, cancellationToken);
         await EnsureZoomColumnsAsync(context, cancellationToken);
+    }
+
+    /// <summary>Create Subscriptions table (parent-paid subscription: type + duration).</summary>
+    private static async Task EnsureSubscriptionsTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Subscriptions')
+            BEGIN
+                CREATE TABLE [Subscriptions] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [SubscriptionId] nvarchar(50) NOT NULL,
+                    [StudentId] int NOT NULL,
+                    [Type] int NOT NULL,
+                    [StartDate] datetime2 NOT NULL,
+                    [SubscriptionPeriodEnd] datetime2 NOT NULL,
+                    [Status] int NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    [CreatedBy] nvarchar(450) NULL,
+                    CONSTRAINT [PK_Subscriptions] PRIMARY KEY ([Id]),
+                    CONSTRAINT [FK_Subscriptions_Students_StudentId] FOREIGN KEY ([StudentId]) REFERENCES [Students] ([Id]) ON DELETE NO ACTION
+                );
+                CREATE UNIQUE INDEX [IX_Subscriptions_SubscriptionId] ON [Subscriptions] ([SubscriptionId]);
+                CREATE INDEX [IX_Subscriptions_StudentId] ON [Subscriptions] ([StudentId]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    /// <summary>Add SubscriptionId to ContractSessions and GroupClassEnrollments; make GroupClassEnrollments.ContractId nullable.</summary>
+    private static async Task EnsureSubscriptionIdColumnsAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        var alterSql = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'SubscriptionId')
+                ALTER TABLE [ContractSessions] ADD [SubscriptionId] int NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClassEnrollments') AND name = 'SubscriptionId')
+                ALTER TABLE [GroupClassEnrollments] ADD [SubscriptionId] int NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
+        // Make ContractId nullable on GroupClassEnrollments (for enrollments by subscription)
+        var alterContractId = @"
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClassEnrollments') AND name = 'ContractId')
+                ALTER TABLE [GroupClassEnrollments] ALTER COLUMN [ContractId] int NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterContractId, cancellationToken);
+        // FK SubscriptionId -> Subscriptions (ContractSessions)
+        var fkContract = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_ContractSessions_Subscriptions_SubscriptionId')
+            BEGIN
+                IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'SubscriptionId')
+                    ALTER TABLE [ContractSessions] ADD CONSTRAINT [FK_ContractSessions_Subscriptions_SubscriptionId] FOREIGN KEY ([SubscriptionId]) REFERENCES [Subscriptions] ([Id]) ON DELETE NO ACTION;
+            END
+        ";
+        await context.Database.ExecuteSqlRawAsync(fkContract, cancellationToken);
+        var fkEnrollment = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_GroupClassEnrollments_Subscriptions_SubscriptionId')
+            BEGIN
+                IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClassEnrollments') AND name = 'SubscriptionId')
+                    ALTER TABLE [GroupClassEnrollments] ADD CONSTRAINT [FK_GroupClassEnrollments_Subscriptions_SubscriptionId] FOREIGN KEY ([SubscriptionId]) REFERENCES [Subscriptions] ([Id]) ON DELETE NO ACTION;
+            END
+        ";
+        await context.Database.ExecuteSqlRawAsync(fkEnrollment, cancellationToken);
+    }
+
+    /// <summary>GroupSessionAttendances: add SubscriptionId, make ContractId nullable.</summary>
+    private static async Task EnsureGroupSessionAttendanceSubscriptionAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        var alterSql = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupSessionAttendances') AND name = 'SubscriptionId')
+                ALTER TABLE [GroupSessionAttendances] ADD [SubscriptionId] int NULL;
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupSessionAttendances') AND name = 'ContractId')
+                ALTER TABLE [GroupSessionAttendances] ALTER COLUMN [ContractId] int NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
+        var fk = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_GroupSessionAttendances_Subscriptions_SubscriptionId')
+            BEGIN
+                IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupSessionAttendances') AND name = 'SubscriptionId')
+                    ALTER TABLE [GroupSessionAttendances] ADD CONSTRAINT [FK_GroupSessionAttendances_Subscriptions_SubscriptionId] FOREIGN KEY ([SubscriptionId]) REFERENCES [Subscriptions] ([Id]) ON DELETE NO ACTION;
+            END
+        ";
+        await context.Database.ExecuteSqlRawAsync(fk, cancellationToken);
     }
 
     /// <summary>Add BillingType and SubscriptionPeriodEnd for monthly subscription. Backfill SubscriptionPeriodEnd for existing active contracts.</summary>

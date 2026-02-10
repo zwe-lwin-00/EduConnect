@@ -97,6 +97,30 @@ public class GroupClassService : IGroupClassService
         return true;
     }
 
+    public async Task<bool> EnrollStudentBySubscriptionAsync(int groupClassId, int studentId, int subscriptionId)
+    {
+        var group = await _context.GroupClasses.FirstOrDefaultAsync(g => g.Id == groupClassId);
+        if (group == null) throw new NotFoundException("Group class", groupClassId);
+        var sub = await _context.Subscriptions.FirstOrDefaultAsync(s => s.Id == subscriptionId && s.StudentId == studentId);
+        if (sub == null) throw new NotFoundException("Subscription", subscriptionId);
+        if (sub.Type != SubscriptionType.Group)
+            throw new BusinessException("Subscription must be Group type for group class enrollment.", "INVALID_SUBSCRIPTION_TYPE");
+        if (!sub.HasActiveAccess())
+            throw new BusinessException("Subscription is not active or has expired.", "SUBSCRIPTION_INACTIVE");
+        var exists = await _context.GroupClassEnrollments
+            .AnyAsync(e => e.GroupClassId == groupClassId && e.StudentId == studentId);
+        if (exists) throw new BusinessException("Student is already enrolled in this group class.", "ALREADY_ENROLLED");
+        _context.GroupClassEnrollments.Add(new GroupClassEnrollment
+        {
+            GroupClassId = groupClassId,
+            StudentId = studentId,
+            SubscriptionId = subscriptionId,
+            EnrolledAt = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> UnenrollAsync(int enrollmentId, int teacherId)
     {
         var e = await _context.GroupClassEnrollments
@@ -115,6 +139,7 @@ public class GroupClassService : IGroupClassService
             .Include(e => e.GroupClass)
             .Include(e => e.Student)
             .Include(e => e.ContractSession)
+            .Include(e => e.Subscription)
             .Where(e => e.GroupClassId == groupClassId && e.GroupClass.TeacherId == teacherId)
             .OrderBy(e => e.Student.FirstName)
             .ToListAsync();
@@ -125,7 +150,9 @@ public class GroupClassService : IGroupClassService
             StudentId = e.StudentId,
             StudentName = $"{e.Student.FirstName} {e.Student.LastName}",
             ContractId = e.ContractId,
-            ContractIdDisplay = e.ContractSession.ContractId
+            ContractIdDisplay = e.ContractSession?.ContractId,
+            SubscriptionId = e.SubscriptionId,
+            SubscriptionIdDisplay = e.Subscription?.SubscriptionId
         }).ToList();
     }
 
@@ -171,6 +198,7 @@ public class GroupClassService : IGroupClassService
             .AsNoTracking()
             .Include(e => e.Student)
             .Include(e => e.ContractSession)
+            .Include(e => e.Subscription)
             .Where(e => e.GroupClassId == groupClassId)
             .OrderBy(e => e.Student!.FirstName)
             .ToListAsync();
@@ -181,7 +209,9 @@ public class GroupClassService : IGroupClassService
             StudentId = e.StudentId,
             StudentName = $"{e.Student!.FirstName} {e.Student.LastName}",
             ContractId = e.ContractId,
-            ContractIdDisplay = e.ContractSession?.ContractId ?? ""
+            ContractIdDisplay = e.ContractSession?.ContractId,
+            SubscriptionId = e.SubscriptionId,
+            SubscriptionIdDisplay = e.Subscription?.SubscriptionId
         }).ToList();
     }
 

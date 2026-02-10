@@ -120,7 +120,12 @@ The account is created automatically when the API starts for the first time. Che
 
 ## 💳 Billing Model
 
-EduConnect uses **monthly subscription** billing only. Each contract is valid from the 1st to the last day of a calendar month (`SubscriptionPeriodEnd`). Admin creates contracts (teacher + student + start date); the first period is the month of the start date. Admin **renew subscription** (Subscriptions page) to extend by one calendar month. No hour credit/deduct; session duration (`HoursUsed`) is recorded for reporting and revenue only.
+**Parent-paid subscriptions** drive class access. A parent pays for a **subscription** for a student: they choose **type** (One-to-one or Group) and **duration** (e.g. 1 or 2 months). Admin creates the subscription (student, type, duration). Admin then **creates classes** and **assigns** who teaches and who attends:
+
+- **One-to-one class**: Admin creates a 1:1 class by assigning a teacher and a student, and linking the student’s active **One-to-one** subscription. One contract (ContractSession) per teacher–student pair; access follows that subscription’s period.
+- **Group class**: Admin creates a group class (teacher, name) and **assigns students** by selecting each student’s active **Group** subscription. Enrollments can be subscription-backed (no 1:1 contract required) or legacy contract-backed.
+
+Subscriptions have a **subscription period** (start to end date). Admin can **renew** in two ways: (1) from **Payments**: pick a contract and renew—if the contract is subscription-backed, the linked Subscription is extended by one month; otherwise the contract’s legacy period is extended. (2) By **subscription id** (`POST /admin/subscriptions/{id}/renew?additionalMonths=1`) to extend any subscription by N months. No hour credit/deduct; session duration (`HoursUsed`) is recorded for reporting only.
 
 ## 📁 Project Structure
 
@@ -227,22 +232,25 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - **Create parent**: In **Admin → Parents**, click **"Create Parent"**. Enter email, first name, last name, phone. After create, a popup shows **email** and **temporary password**—share these with the parent so they can log in (they must change password on first login).  
    - **Create students**: In **Admin → Students**, click **"Add Student"**. Select the **parent** from the dropdown and enter the child’s details (name, grade P1–P4, DOB, etc.). Each student is linked to one parent; the parent sees all their linked students under "My Students" when they log in.
 
-4. **Contracts** (`/admin/contracts`)  
-   - Create **contract** (teacher + student + start/end date). Subscription period is the **calendar month** of the start date (1st–last day of month).  
-   - Contract moves to Active; subscription validity (SubscriptionPeriodEnd) drives session access.  
-   - **Cancel** contract when needed.
+4. **Subscriptions** (parent-paid)  
+   - Create **subscription** for a student: type (One-to-one or Group), duration (e.g. 1 or 2 months).  
+   - List/filter by student, type, status. **Renew** a subscription to extend by one or more months.
+
+5. **Contracts** (`/admin/contracts`) — 1:1 classes  
+   - Create **contract** (teacher + student). Either link an active **One-to-one subscription** for that student, or use legacy (start/end date; period = calendar month of start date).  
+   - Contract moves to Active; access follows the linked subscription or legacy period. **Cancel** when needed.
 
 5. **Group classes** (`/admin/group-classes`)  
    - **Create** group classes (name, assign teacher, optional Zoom join URL). Teacher must exist.  
    - **Edit** name, assigned teacher, Zoom URL, and active status. **Cannot change assigned teacher** when the class has enrollments (remove enrollments first or create a new group class).  
-   - **Enroll** students (by contract for that teacher; one enrollment per student per group). Remove enrollments as needed.
+   - **Enroll** students: by that student’s active **Group subscription** (admin) or by 1:1 contract with that teacher (teacher/legacy). One enrollment per student per group. Remove enrollments as needed.
 
 6. **Attendance** (`/admin/attendance`)  
    - View **today’s sessions**; override check-in/check-out if needed.  
    - **Adjust session hours** (edit recorded duration for reporting; no contract deduction).
 
-7. **Subscriptions** (`/admin/payments`)  
-   - **Renew subscription** for a contract (extends to end of next calendar month).  
+7. **Payments / Subscriptions** (`/admin/payments`)  
+   - **Renew subscription** for a contract (legacy: extends to end of next calendar month). Subscription-based renew is via Subscriptions (renew by subscription id, extend by N months).  
    - Monthly-only: no hour credit/deduct.
 
 8. **Reports** (`/admin/reports`)  
@@ -292,10 +300,9 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 ### Data Flow Summary
 
 - **Users & roles**: Admin creates all users (teachers, parents). Teachers are verified by admin.  
-- **Contracts** link Teacher ↔ Student (monthly subscription: valid until SubscriptionPeriodEnd, status).  
+- **Subscriptions** (parent-paid): Student + type (One-to-one / Group) + duration. Admin creates and renews (extend by N months). **Contracts** (1:1 class): Link Teacher ↔ Student; optionally backed by an active One-to-one subscription or legacy period.  
 - **Sessions**: **One-to-one**—attendance (check-in/out, lesson notes) per contract; **group**—admin creates group classes and assigns teacher; teacher edits and enrolls students (by contract), starts a group session and checks out with notes; duration (HoursUsed) is recorded for reporting; no hour deduction. Each enrolled student’s contract.  
 - **Zoom**: Each teacher uses their own Zoom account. They set a default Zoom join URL in Profile (for 1:1) and per group class; the app stores and shows “Join Zoom meeting” when a session is in progress. No Zoom API—teachers paste links from their Zoom account.  
-- **Subscriptions**: Admin renews contracts by month (1st–last day of month).  
 - **Reports** aggregate sessions and revenue for admin.
 
 ## 🎯 Domain Entities
@@ -303,7 +310,8 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **ApplicationUser** - Extended Identity user with role management
 - **TeacherProfile** - Teacher information, NRC (encrypted), verification status; optional **ZoomJoinUrl** (default for 1:1 teaching)
 - **Student** - Student information linked to parent
-- **ContractSession** - Teacher–student agreement; monthly subscription (SubscriptionPeriodEnd = end of month)
+- **Subscription** - Parent-paid: student, type (OneToOne/Group), start/end period. Funds 1:1 class or group enrollment.
+- **ContractSession** - 1:1 class: teacher–student; optional SubscriptionId (One-to-one) or legacy SubscriptionPeriodEnd.
 - **AttendanceLog** - One-to-one session tracking (check-in/out, lesson notes); optional **ZoomJoinUrl** per session
 - **TeacherAvailability** - Weekly availability schedule
 - **GroupClass** - Group class (teacher, name, active); optional **ZoomJoinUrl** for that class. Created by admin; teacher validated on create; assigned teacher cannot be changed when enrollments exist.
