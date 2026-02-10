@@ -48,7 +48,7 @@
 
   <p-dialog header="Renew subscription" [(visible)]="showRenewPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRenewPopup()">
     <form [formGroup]="renewForm" (ngSubmit)="onSubmitRenew()" class="dialog-form">
-      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ contractLabel(c) }} – {{ c.studentName }}</option></select></div>
+      <div class="field"><label>One-To-One class</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select One-To-One class</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ contractLabel(c) }} – {{ c.studentName }}</option></select></div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeRenewPopup()" />

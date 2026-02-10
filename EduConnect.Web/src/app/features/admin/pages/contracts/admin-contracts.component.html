@@ -1,15 +1,15 @@
 <div class="admin-contracts">
   <div class="page-header-compact">
     <div>
-      <h1>Contracts</h1>
-      <p class="page-desc-short">Create and manage teacher–student contracts. Filter by teacher, student, or status.</p>
+      <h1>One-To-One classes</h1>
+      <p class="page-desc-short">Create and manage One-To-One classes (one teacher, one student). Filter by teacher, student, or status.</p>
     </div>
   </div>
 
   <p-card>
     <p-toolbar styleClass="mb-2">
       <ng-template pTemplate="start">
-        <p-button label="New contract" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
+        <p-button label="New One-To-One class" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
         <span class="filter-group">
           <select [(ngModel)]="filterTeacherId" class="p-inputtext filter-select">
             <option [ngValue]="null">All teachers</option>
@@ -30,7 +30,7 @@
       <ng-template pTemplate="end">
         <span class="p-input-icon-left">
           <i class="pi pi-search"></i>
-          <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search contracts" class="global-filter-input" />
+          <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search One-To-One classes" class="global-filter-input" />
         </span>
       </ng-template>
     </p-toolbar>
@@ -44,12 +44,12 @@
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} contracts"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} One-To-One classes"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
           <th style="width:3rem">#</th>
-          <th>Contract ID</th>
+          <th>Class ID</th>
           <th>Teacher</th>
           <th>Student</th>
           <th>Subscription until</th>
@@ -86,8 +86,8 @@
           <td colspan="9">
             <div class="empty-table-message">
               <i class="pi pi-file-edit empty-icon"></i>
-              <p>No contracts found.</p>
-              <p class="empty-hint">Adjust filters or create a new contract.</p>
+              <p>No One-To-One classes found.</p>
+              <p class="empty-hint">Adjust filters or create a new One-To-One class.</p>
             </div>
           </td>
         </tr>
@@ -96,7 +96,7 @@
   </p-card>
 
   <p-dialog
-    header="New contract"
+    header="New One-To-One class"
     [(visible)]="showCreatePopup"
     [modal]="true"
     [style]="{ width: '28rem' }"

@@ -80,7 +80,7 @@ export class AdminContractsComponent implements OnInit {
     const status = this.filterStatus ?? undefined;
     this.adminService.getContracts(teacherId, studentId, status).subscribe({
       next: (data) => { this.contracts = data; this.loading = false; },
-      error: (err) => { console.error('Error loading contracts:', err); this.loading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load contracts' }); }
+      error: (err) => { console.error('Error loading One-To-One classes:', err); this.loading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to load One-To-One classes' }); }
     });
   }
 
@@ -145,7 +145,7 @@ export class AdminContractsComponent implements OnInit {
       };
       this.adminService.createContract(request).subscribe({
         next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract created successfully' });
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: 'One-To-One class created successfully' });
           this.closeCreatePopup();
           this.loadContracts();
         },
@@ -156,13 +156,13 @@ export class AdminContractsComponent implements OnInit {
 
   cancelContract(c: ContractDto): void {
     this.confirmationService.confirm({
-      message: `Cancel contract ${c.contractId}?`,
-      header: 'Cancel contract',
+      message: `Cancel this One-To-One class (${c.contractId})?`,
+      header: 'Cancel One-To-One class',
       icon: 'pi pi-exclamation-triangle',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.adminService.cancelContract(c.id).subscribe({
-          next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Contract cancelled' }); this.loadContracts(); },
+          next: () => { this.messageService.add({ severity: 'success', summary: 'Success', detail: 'One-To-One class cancelled' }); this.loadContracts(); },
           error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message })
         });
       }

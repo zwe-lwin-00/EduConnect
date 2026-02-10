@@ -87,7 +87,7 @@ export class TeacherSessionsComponent implements OnInit {
 
   checkIn(contractId: number): void {
     this.confirmationService.confirm({
-      message: 'Start session (Check-in) for this contract?',
+      message: 'Start session (Check-in) for this One-To-One class?',
       header: 'Check-in',
       icon: 'pi pi-play',
       accept: () => {

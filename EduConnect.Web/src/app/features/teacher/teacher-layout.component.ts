@@ -21,7 +21,7 @@ export class TeacherLayoutComponent {
     availability: 'Availability',
     students: 'Students',
     sessions: 'Sessions',
-    'group-classes': 'Group classes',
+    'group-classes': 'Group',
     calendar: 'Calendar',
     'homework-grades': 'Homework & Grades',
     profile: 'Profile'

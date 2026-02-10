@@ -21,8 +21,8 @@ export class AdminLayoutComponent {
     teachers: 'Teachers',
     parents: 'Parents',
     students: 'Students',
-    contracts: 'Contracts',
-    'group-classes': 'Group classes',
+    contracts: 'One-To-One',
+    'group-classes': 'Group',
     attendance: 'Attendance',
     payments: 'Subscriptions',
     reports: 'Reports'

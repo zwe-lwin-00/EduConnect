@@ -2,7 +2,7 @@
   <div class="page-header-compact">
     <div>
       <h1>Group classes</h1>
-      <p class="page-desc-short">Set up class (name, teacher, days, start/end time), assign students. Zoom link is added by the assigned teacher.</p>
+      <p class="page-desc-short">Set up Group class (name, teacher, days, start/end time), assign students. Zoom link is added by the assigned teacher. Two class types: One-To-One and Group.</p>
     </div>
     <button type="button" class="btn btn-primary" (click)="openCreate()">New class</button>
   </div>
@@ -146,7 +146,7 @@
           <button type="button" class="btn btn-primary" (click)="enroll()" [disabled]="!enrollContractId || enrolling">{{ enrolling ? '...' : 'Add' }}</button>
         </div>
         <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>
-        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active contracts with {{ selectedClass.teacherName }}. Create a contract first.</p>
+        <p class="hint small" *ngIf="assignableContracts.length === 0 && enrollments.length === 0">No active One-To-One classes with {{ selectedClass.teacherName }}. Create a One-To-One class first.</p>
         <ul class="enrollment-list">
           <li *ngFor="let e of enrollments" class="enrollment-item">
             <span>{{ e.studentName }} – {{ e.contractIdDisplay || e.subscriptionIdDisplay || '—' }}</span>
