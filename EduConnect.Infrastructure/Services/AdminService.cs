@@ -1,3 +1,4 @@
+using EduConnect.Application.Common;
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.Common.Models;
 using EduConnect.Application.DTOs.Admin;
@@ -705,6 +706,7 @@ public class AdminService : IAdminService
 
         var contractId = "C-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
         var (startTime, endTime) = (ParseTime(request.StartTime), ParseTime(request.EndTime));
+        ScheduleValidation.Validate(request.DaysOfWeek, startTime, endTime);
         var contract = new ContractSession
         {
             ContractId = contractId,

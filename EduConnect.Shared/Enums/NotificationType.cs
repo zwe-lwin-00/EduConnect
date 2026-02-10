@@ -8,5 +8,6 @@ public enum NotificationType
     NewContract = 4,
     SessionReminder = 5,
     PendingVerification = 6,
-    ContractEndingSoon = 7
+    ContractEndingSoon = 7,
+    ScheduleChanged = 8
 }

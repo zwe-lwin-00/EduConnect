@@ -1,7 +1,9 @@
+using EduConnect.Application.Common;
 using EduConnect.Application.Common.Exceptions;
 using EduConnect.Application.DTOs.Admin;
 using EduConnect.Application.DTOs.GroupClass;
 using EduConnect.Application.Features.GroupClass.Interfaces;
+using EduConnect.Application.Features.Notifications.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
 using EduConnect.Shared.Enums;
@@ -15,11 +17,13 @@ public class GroupClassService : IGroupClassService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<GroupClassService> _logger;
+    private readonly INotificationService _notificationService;
 
-    public GroupClassService(ApplicationDbContext context, ILogger<GroupClassService> logger)
+    public GroupClassService(ApplicationDbContext context, ILogger<GroupClassService> logger, INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     public async Task<GroupClassDto> CreateAsync(int teacherId, string name, string? zoomJoinUrl = null)
@@ -51,6 +55,7 @@ public class GroupClassService : IGroupClassService
         if (!teacherExists)
             throw new NotFoundException("Teacher", request.TeacherId);
         var (startTime, endTime) = (ParseTime(request.StartTime), ParseTime(request.EndTime));
+        ScheduleValidation.Validate(request.DaysOfWeek, startTime, endTime);
         var group = new GroupClass
         {
             TeacherId = request.TeacherId,
@@ -105,6 +110,7 @@ public class GroupClassService : IGroupClassService
         var group = await _context.GroupClasses.FirstOrDefaultAsync(g => g.Id == groupClassId && g.TeacherId == teacherId);
         if (group == null) throw new NotFoundException("Group class", groupClassId);
         var contract = await _context.ContractSessions
+            .Include(c => c.Subscription)
             .FirstOrDefaultAsync(c => c.Id == contractId && c.TeacherId == teacherId && c.StudentId == studentId && c.Status == ContractStatus.Active);
         if (contract == null) throw new NotFoundException("Contract", contractId);
         if (!contract.HasActiveAccess())
@@ -206,17 +212,34 @@ public class GroupClassService : IGroupClassService
 
     public async Task<bool> UpdateByAdminAsync(int groupClassId, AdminUpdateGroupClassRequest request)
     {
-        var g = await _context.GroupClasses.Include(x => x.Enrollments).FirstOrDefaultAsync(x => x.Id == groupClassId);
+        var g = await _context.GroupClasses.Include(x => x.Enrollments).Include(x => x.Teacher).FirstOrDefaultAsync(x => x.Id == groupClassId);
         if (g == null) return false;
         if (g.TeacherId != request.TeacherId && g.Enrollments.Count > 0)
             throw new BusinessException("Cannot change assigned teacher when there are enrollments. Remove enrollments first or create a new group class.", "HAS_ENROLLMENTS");
+
+        var newDays = string.IsNullOrWhiteSpace(request.DaysOfWeek) ? null : request.DaysOfWeek.Trim();
+        var newStart = ParseTime(request.StartTime);
+        var newEnd = ParseTime(request.EndTime);
+        ScheduleValidation.Validate(newDays, newStart, newEnd);
+
+        var scheduleChanged = (g.DaysOfWeek ?? "") != (newDays ?? "") || g.StartTime != newStart || g.EndTime != newEnd;
+
         g.TeacherId = request.TeacherId;
         if (!string.IsNullOrWhiteSpace(request.Name)) g.Name = request.Name.Trim();
         g.IsActive = request.IsActive;
-        g.DaysOfWeek = string.IsNullOrWhiteSpace(request.DaysOfWeek) ? null : request.DaysOfWeek.Trim();
-        g.StartTime = ParseTime(request.StartTime);
-        g.EndTime = ParseTime(request.EndTime);
+        g.DaysOfWeek = newDays;
+        g.StartTime = newStart;
+        g.EndTime = newEnd;
         await _context.SaveChangesAsync();
+
+        if (scheduleChanged && !string.IsNullOrEmpty(g.Teacher?.UserId))
+        {
+            await _notificationService.CreateForUserAsync(g.Teacher.UserId, "Class schedule updated",
+                $"The schedule for group class \"{g.Name}\" has been changed (days or times). Please check the new schedule.",
+                NotificationType.ScheduleChanged, "GroupClass", g.Id);
+            _logger.InformationLog($"Group class schedule changed; teacher notified. ClassId={g.Id}");
+        }
+
         return true;
     }
 
