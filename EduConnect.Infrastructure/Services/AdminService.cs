@@ -383,19 +383,24 @@ public class AdminService : IAdminService
         var startOfMonth = TimeZoneInfo.ConvertTimeToUtc(startOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
         var endOfMonth = TimeZoneInfo.ConvertTimeToUtc(endOfMonthMyanmar, MyanmarTimeHelper.MyanmarTimeZone);
 
-        // Alerts: low remaining hours (<2)
-        var lowHoursContracts = await _context.ContractSessions
-            .Include(c => c.Teacher).ThenInclude(t => t!.User)
+        // Alerts: subscription ending soon (within 7 days)
+        var alerts = new List<DashboardAlertDto>();
+        var subscriptionEndThreshold = DateTime.UtcNow.AddDays(7);
+        var expiringSubscriptions = await _context.ContractSessions
             .Include(c => c.Student)
-            .Where(c => c.Status == ContractStatus.Active && c.RemainingHours < 2 && c.RemainingHours >= 0)
+            .Include(c => c.Teacher).ThenInclude(t => t!.User)
+            .Where(c => c.Status == ContractStatus.Active && c.SubscriptionPeriodEnd.HasValue
+                && c.SubscriptionPeriodEnd.Value >= DateTime.UtcNow && c.SubscriptionPeriodEnd.Value <= subscriptionEndThreshold)
+            .OrderBy(c => c.SubscriptionPeriodEnd)
             .ToListAsync();
-        var alerts = lowHoursContracts.Select(c => new DashboardAlertDto
-        {
-            Type = "LowHours",
-            Message = $"Remaining hours < 2 for {c.Student.FirstName} {c.Student.LastName} (Contract {c.ContractId})",
-            EntityId = c.ContractId,
-            EntityName = $"{c.Student.FirstName} {c.Student.LastName}"
-        }).ToList();
+        foreach (var c in expiringSubscriptions)
+            alerts.Add(new DashboardAlertDto
+            {
+                Type = "SubscriptionExpiring",
+                Message = $"Subscription for {c.Student.FirstName} {c.Student.LastName} (Contract {c.ContractId}) ends on {c.SubscriptionPeriodEnd!:dd MMM yyyy}. Renew to extend.",
+                EntityId = c.ContractId,
+                EntityName = $"{c.Student.FirstName} {c.Student.LastName}"
+            });
 
         // Alerts: contracts ending in next 14 days
         var expiringEnd = today.AddDays(14);
@@ -573,13 +578,18 @@ public class AdminService : IAdminService
             throw new NotFoundException("Student", request.StudentId);
 
         var contractId = "C-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        // Subscription period = 1st to last day of the month containing StartDate
+        var start = request.StartDate.Date;
+        var lastDay = new DateTime(start.Year, start.Month, DateTime.DaysInMonth(start.Year, start.Month), 23, 59, 59, DateTimeKind.Utc);
         var contract = new ContractSession
         {
             ContractId = contractId,
             TeacherId = request.TeacherId,
             StudentId = request.StudentId,
-            PackageHours = request.PackageHours,
-            RemainingHours = request.PackageHours,
+            PackageHours = 0,
+            RemainingHours = 0,
+            BillingType = BillingType.Monthly,
+            SubscriptionPeriodEnd = lastDay,
             Status = ContractStatus.Active,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
@@ -640,8 +650,7 @@ public class AdminService : IAdminService
             TeacherName = c.Teacher != null ? $"{c.Teacher.User.FirstName} {c.Teacher.User.LastName}" : "",
             StudentId = c.StudentId,
             StudentName = c.Student != null ? $"{c.Student.FirstName} {c.Student.LastName}" : "",
-            PackageHours = c.PackageHours,
-            RemainingHours = c.RemainingHours,
+            SubscriptionPeriodEnd = c.SubscriptionPeriodEnd,
             Status = (int)c.Status,
             StatusName = c.Status.ToString(),
             StartDate = c.StartDate,
@@ -681,10 +690,6 @@ public class AdminService : IAdminService
         log.CheckOutTime = now;
         log.HoursUsed = (decimal)(now - log.CheckInTime).TotalHours;
         log.Status = SessionStatus.Completed;
-        if (log.ContractSession != null)
-        {
-            log.ContractSession.RemainingHours = Math.Max(0, log.ContractSession.RemainingHours - (int)Math.Ceiling(log.HoursUsed));
-        }
         await _unitOfWork.SaveChangesAsync();
         return true;
     }
@@ -696,38 +701,25 @@ public class AdminService : IAdminService
             .FirstOrDefaultAsync(a => a.Id == attendanceLogId);
         if (log == null)
             throw new NotFoundException("AttendanceLog", attendanceLogId);
-        var oldHours = (int)Math.Ceiling(log.HoursUsed);
-        var newHours = (int)Math.Ceiling(request.Hours);
         log.HoursUsed = request.Hours;
-        if (log.ContractSession != null)
-        {
-            // Give back old hours, deduct new hours from contract
-            log.ContractSession.RemainingHours = Math.Max(0, log.ContractSession.RemainingHours + oldHours - newHours);
-        }
         await _unitOfWork.SaveChangesAsync();
         return true;
     }
 
-    // ——— Wallet ———
-    public async Task<bool> CreditStudentHoursAsync(int studentId, int contractId, WalletAdjustRequest request, string adminUserId)
+    /// <summary>Extend subscription to end of next calendar month (1st–last of month).</summary>
+    public async Task<bool> RenewSubscriptionAsync(int contractId, string adminUserId)
     {
-        var c = await _context.ContractSessions.FirstOrDefaultAsync(x => x.StudentId == studentId && x.Id == contractId && x.Status == ContractStatus.Active);
+        var c = await _context.ContractSessions.FirstOrDefaultAsync(x => x.Id == contractId && x.Status == ContractStatus.Active);
         if (c == null)
             throw new NotFoundException("Contract", contractId);
-        c.RemainingHours += (int)Math.Ceiling(request.Hours);
+        var from = (c.SubscriptionPeriodEnd.HasValue && c.SubscriptionPeriodEnd.Value > DateTime.UtcNow)
+            ? c.SubscriptionPeriodEnd.Value
+            : DateTime.UtcNow;
+        var nextMonth = from.AddMonths(1);
+        var lastDay = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month), 23, 59, 59, DateTimeKind.Utc);
+        c.SubscriptionPeriodEnd = lastDay;
         await _unitOfWork.SaveChangesAsync();
-        _logger.InformationLog("Wallet credited");
-        return true;
-    }
-
-    public async Task<bool> DeductStudentHoursAsync(int studentId, int contractId, WalletAdjustRequest request, string adminUserId)
-    {
-        var c = await _context.ContractSessions.FirstOrDefaultAsync(x => x.StudentId == studentId && x.Id == contractId && x.Status == ContractStatus.Active);
-        if (c == null)
-            throw new NotFoundException("Contract", contractId);
-        c.RemainingHours = Math.Max(0, c.RemainingHours - (int)Math.Ceiling(request.Hours));
-        await _unitOfWork.SaveChangesAsync();
-        _logger.InformationLog("Wallet deducted");
+        _logger.InformationLog("Subscription renewed");
         return true;
     }
 

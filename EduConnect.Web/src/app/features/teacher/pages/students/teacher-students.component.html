@@ -2,7 +2,7 @@
   <div class="page-header-compact">
     <div>
       <h1>Assigned Students</h1>
-      <p class="page-desc-short">Student, grade, contract status, remaining hours.</p>
+      <p class="page-desc-short">Student, grade, contract status, subscription until.</p>
     </div>
   </div>
 
@@ -26,7 +26,7 @@
           <th>Subjects</th>
           <th>Contract Status</th>
           <th>Contract ID</th>
-          <th>Remaining</th>
+          <th>Subscription until</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
@@ -37,7 +37,7 @@
           <td>{{ s.subjects }}</td>
           <td>{{ s.contractStatus }}</td>
           <td>{{ s.contractIdDisplay }}</td>
-          <td>{{ s.remainingHours }}</td>
+          <td>{{ s.subscriptionPeriodEnd ? (s.subscriptionPeriodEnd | date:'shortDate') : '—' }}</td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">

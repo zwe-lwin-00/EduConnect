@@ -118,6 +118,10 @@ When you first run the application, a default admin account is automatically cre
 
 The account is created automatically when the API starts for the first time. Check the API console output for confirmation.
 
+## 💳 Billing Model
+
+EduConnect uses **monthly subscription** billing only. Each contract is valid from the 1st to the last day of a calendar month (`SubscriptionPeriodEnd`). Admin creates contracts (teacher + student + start date); the first period is the month of the start date. Admin **renew subscription** (Subscriptions page) to extend by one calendar month. No hour credit/deduct; session duration (`HoursUsed`) is recorded for reporting and revenue only.
+
 ## 📁 Project Structure
 
 ### Backend Structure
@@ -224,8 +228,8 @@ So: **parent account = parent + their students**. Admin creates the parent first
    - **Create students**: In **Admin → Students**, click **"Add Student"**. Select the **parent** from the dropdown and enter the child’s details (name, grade P1–P4, DOB, etc.). Each student is linked to one parent; the parent sees all their linked students under "My Students" when they log in.
 
 4. **Contracts** (`/admin/contracts`)  
-   - Create **contract** (teacher + student + package hours + start/end date).  
-   - Contract moves to Active; remaining hours drive session usage.  
+   - Create **contract** (teacher + student + start/end date). Subscription period is the **calendar month** of the start date (1st–last day of month).  
+   - Contract moves to Active; subscription validity (SubscriptionPeriodEnd) drives session access.  
    - **Cancel** contract when needed.
 
 5. **Group classes** (`/admin/group-classes`)  
@@ -235,11 +239,11 @@ So: **parent account = parent + their students**. Admin creates the parent first
 
 6. **Attendance** (`/admin/attendance`)  
    - View **today’s sessions**; override check-in/check-out if needed.  
-   - **Adjust hours** (deduct from contract remaining hours).
+   - **Adjust session hours** (edit recorded duration for reporting; no contract deduction).
 
-7. **Payments** (`/admin/payments`)  
-   - **Credit** or **Deduct** hours on a contract (with reason).  
-   - Student wallet balance reflects available hours.
+7. **Subscriptions** (`/admin/payments`)  
+   - **Renew subscription** for a contract (extends to end of next calendar month).  
+   - Monthly-only: no hour credit/deduct.
 
 8. **Reports** (`/admin/reports`)  
    - **Daily** and **monthly** reports (e.g. sessions, revenue) powered by Dapper.
@@ -253,11 +257,11 @@ So: **parent account = parent + their students**. Admin creates the parent first
    Set **weekly time slots** when the teacher is available. Admin uses this for scheduling (Phase 1: manual confirmation).
 
 3. **Students** (`/teacher/students`)  
-   View **assigned students** (from active contracts): name, grade, subjects, contract status, contract ID, remaining hours. No parent contact details.
+   View **assigned students** (from active contracts): name, grade, subjects, contract status, contract ID, subscription valid until. No parent contact details.
 
 4. **Sessions** (`/teacher/sessions`)  
-   - **One-to-one**: Check-in per contract to start a session; check-out with lesson notes (required). Session is tied to contract; remaining hours are updated.  
-   - **Group class**: Select a group class (with enrolled students), start a group session; check-out with lesson notes. Hours are split across enrolled students’ contracts.  
+   - **One-to-one**: Check-in per contract to start a session; check-out with lesson notes (required). Session is tied to contract; duration is recorded (monthly subscription).  
+   - **Group class**: Select a group class (with enrolled students), start a group session; check-out with lesson notes. Duration is recorded per student (monthly subscription; no hour deduction). Enrolled students’ contracts.  
    - **Zoom**: If the teacher has set a Zoom join URL (in Profile for 1:1, or per group class), a **“Join Zoom meeting”** link appears when a session is in progress. Each teacher uses their own Zoom account and sets up meetings for their classes.  
    - Admin can override or adjust in Attendance.
 
@@ -288,10 +292,10 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 ### Data Flow Summary
 
 - **Users & roles**: Admin creates all users (teachers, parents). Teachers are verified by admin.  
-- **Contracts** link Teacher ↔ Student (package hours, remaining hours, status).  
-- **Sessions**: **One-to-one**—attendance (check-in/out, lesson notes) per contract; **group**—admin creates group classes and assigns teacher; teacher edits and enrolls students (by contract), starts a group session and checks out with notes; hours are deducted from each enrolled student’s contract.  
+- **Contracts** link Teacher ↔ Student (monthly subscription: valid until SubscriptionPeriodEnd, status).  
+- **Sessions**: **One-to-one**—attendance (check-in/out, lesson notes) per contract; **group**—admin creates group classes and assigns teacher; teacher edits and enrolls students (by contract), starts a group session and checks out with notes; duration (HoursUsed) is recorded for reporting; no hour deduction. Each enrolled student’s contract.  
 - **Zoom**: Each teacher uses their own Zoom account. They set a default Zoom join URL in Profile (for 1:1) and per group class; the app stores and shows “Join Zoom meeting” when a session is in progress. No Zoom API—teachers paste links from their Zoom account.  
-- **Wallet** (student) and **transactions** track credit/deduct and balance.  
+- **Subscriptions**: Admin renews contracts by month (1st–last day of month).  
 - **Reports** aggregate sessions and revenue for admin.
 
 ## 🎯 Domain Entities
@@ -299,15 +303,15 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - **ApplicationUser** - Extended Identity user with role management
 - **TeacherProfile** - Teacher information, NRC (encrypted), verification status; optional **ZoomJoinUrl** (default for 1:1 teaching)
 - **Student** - Student information linked to parent
-- **ContractSession** - Rental agreement tracking (PackageHours, RemainingHours)
+- **ContractSession** - Teacher–student agreement; monthly subscription (SubscriptionPeriodEnd = end of month)
 - **AttendanceLog** - One-to-one session tracking (check-in/out, lesson notes); optional **ZoomJoinUrl** per session
 - **TeacherAvailability** - Weekly availability schedule
 - **GroupClass** - Group class (teacher, name, active); optional **ZoomJoinUrl** for that class. Created by admin; teacher validated on create; assigned teacher cannot be changed when enrollments exist.
-- **GroupClassEnrollment** - Student enrolled in a group class (one per student per class; links to that teacher’s contract for hour deduction)
+- **GroupClassEnrollment** - Student enrolled in a group class (one per student per class; links to that teacher’s contract subscription validity checked for access)
 - **GroupSession** - One delivered group session (check-in/out, lesson notes, duration); optional **ZoomJoinUrl** per session
-- **GroupSessionAttendance** - Per-student attendance and hours deducted for a group session
-- **StudentWallet** - Hours balance management
-- **TransactionHistory** - Transaction records
+- **GroupSessionAttendance** - Per-student attendance and duration (HoursUsed) for a group session
+- **StudentWallet** - (Legacy; monthly-only: not used for billing.)
+- **TransactionHistory** - (Legacy; monthly-only: not used for billing.)
 - **Homework** - Teacher–student assignments (title, description, due date, status: Assigned / Submitted / Graded / Overdue, teacher feedback)
 - **StudentGrade** - Grades and assessments (title, grade value, optional max value, date, notes) linked to teacher and student
 - **RefreshToken** - Stored hashed refresh tokens per user; used to issue new access tokens without re-login; revoked on logout or after rotation
@@ -319,12 +323,12 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Feature-based organization (backend & frontend)
 - [x] JWT Authentication with login/logout and role-based redirect (Admin / Teacher / Parent)
 - [x] Admin account auto-creation on startup
-- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), **Group classes** (create, assign teacher, optional Zoom; edit name/teacher/Zoom/active; enroll students by contract; cannot change teacher when enrollments exist), Attendance (today, override check-in/out, adjust hours), Payments (wallet credit/deduct), Reports (daily/monthly)
+- [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), Contracts (create, activate, cancel), **Group classes** (create, assign teacher, optional Zoom; edit name/teacher/Zoom/active; enroll students by contract; cannot change teacher when enrollments exist), Attendance (today, override check-in/out, adjust session hours), Subscriptions (renew monthly), Reports (daily/monthly)
 - [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (one-to-one and **group class** check-in/check-out with lesson notes), **Group classes** (edit name/Zoom/active, enroll students by contract—admin creates and assigns; set Zoom link per class), **Homework & Grades** (assign homework, mark submitted/graded with feedback, add grades for assigned students), profile (read-only core data; **Zoom join URL** for 1:1 teaching)
 - [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
 - [x] Teacher management: onboard, **edit** (name, phone, education, hourly rate, bio, specializations), verify, reject, activate/suspend
 - [x] Check-in/check-out system (teacher + admin override)
-- [x] Wallet logic (credit/deduct hours, student active/freeze)
+- [x] Subscription billing (monthly only; renew via Admin), student active/freeze
 - [x] Daily and monthly reports (Dapper-powered)
 - [x] Exception handling middleware, Angular guards and interceptors
 - [x] **Time zone**: All times use **Myanmar (Asia/Yangon, UTC+6:30)**—backend “today” and reports use Myanmar date; frontend displays dates/times with `+0630`; API serializes `DateTime` as UTC with `Z` for correct client display
@@ -334,7 +338,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] Database schema and relationships
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 - [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. **Breadcrumbs**: Admin, Teacher, and Parent layouts show a PrimeNG breadcrumb (e.g. Home > Teachers, Home > Learning overview) above the main content so users know where they are and can navigate back. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
-- [x] **Two class types**: One-to-one (contract-based check-in/out) and **group classes** (create group, enroll students by contract, start/check-out group session; hours split across enrollments; parent notifications)
+- [x] **Two class types**: One-to-one (contract-based check-in/out) and **group classes** (create group, enroll students by contract, start/check-out group session; duration recorded per student; parent notifications)
 - [x] **Zoom for teaching**: Each teacher uses their own Zoom account. Teachers set default Zoom join URL in Profile (1:1) and per group class; app shows “Join Zoom meeting” when a session is in progress (no Zoom API—links stored and displayed)
 - [x] **Refresh tokens**: Access token + refresh token on login; refresh token stored (hashed) in DB; 401 triggers refresh and retry; logout revokes refresh tokens; rotation on refresh
 - [x] **Notifications – Mark all as read**: Notification bell (Admin, Teacher, Parent) includes “Mark all as read”; API `POST /notifications/mark-all-read` marks all stored notifications for the current user (better UX when there are many notifications)

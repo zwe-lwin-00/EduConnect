@@ -1,7 +1,7 @@
 namespace EduConnect.Domain.Entities;
 
 /// <summary>
-/// Links a student to a group class. ContractId is the 1:1 contract used to deduct hours when the student attends a group session.
+/// Links a student to a group class. ContractId is the 1:1 contract; subscription validity is checked when the student attends a group session.
 /// </summary>
 public class GroupClassEnrollment
 {

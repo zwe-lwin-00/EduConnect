@@ -559,39 +559,20 @@ public class AdminController : BaseController
         }
     }
 
-    // ——— Wallet / Payments — Master Doc B7 ———
-    [HttpPost("wallet/credit")]
-    public async Task<IActionResult> CreditHours([FromBody] WalletCreditRequest request)
+    // ——— Subscriptions — Master Doc B7 (monthly only) ———
+    [HttpPost("contracts/{id}/renew-subscription")]
+    public async Task<IActionResult> RenewSubscription(int id)
     {
         try
         {
             var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
-            await _adminService.CreditStudentHoursAsync(request.StudentId, request.ContractId,
-                new WalletAdjustRequest { Hours = request.Hours, Reason = request.Reason }, adminUserId);
-            Logger.InformationLog("Wallet credited");
-            return Ok(new { success = true });
+            await _adminService.RenewSubscriptionAsync(id, adminUserId);
+            Logger.InformationLog("Subscription renewed");
+            return Ok(new { success = true, message = "Subscription renewed for one month." });
         }
         catch (Exception ex)
         {
-            Logger.ErrorLog(ex, "CreditHours failed");
-            return BadRequest(new { error = ex.Message });
-        }
-    }
-
-    [HttpPost("wallet/deduct")]
-    public async Task<IActionResult> DeductHours([FromBody] WalletDeductRequest request)
-    {
-        try
-        {
-            var adminUserId = GetUserId() ?? throw new UnauthorizedAccessException();
-            await _adminService.DeductStudentHoursAsync(request.StudentId, request.ContractId,
-                new WalletAdjustRequest { Hours = request.Hours, Reason = request.Reason }, adminUserId);
-            Logger.InformationLog("Wallet deducted");
-            return Ok(new { success = true });
-        }
-        catch (Exception ex)
-        {
-            Logger.ErrorLog(ex, "DeductHours failed");
+            Logger.ErrorLog(ex, "RenewSubscription failed");
             return BadRequest(new { error = ex.Message });
         }
     }

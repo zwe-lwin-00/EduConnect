@@ -42,13 +42,11 @@ public class TeacherService : ITeacherService
             .OrderBy(a => a.CheckInTime)
             .ToListAsync();
 
-        var totalRemaining = contracts.Sum(c => c.RemainingHours);
-
         var todaySessions = todayLogs.Select(a => MapToSessionItem(a)).ToList();
 
         var inProgressLog = todayLogs.FirstOrDefault(a => a.CheckOutTime == null);
         var upcoming = contracts
-            .Where(c => c.RemainingHours > 0 && !todayLogs.Any(l => l.ContractId == c.Id && l.CheckOutTime == null))
+            .Where(c => c.HasActiveAccess() && !todayLogs.Any(l => l.ContractId == c.Id && l.CheckOutTime == null))
             .Take(10)
             .Select(c => new TeacherSessionItemDto
             {
@@ -71,7 +69,7 @@ public class TeacherService : ITeacherService
         {
             TodaySessions = todaySessions,
             UpcomingSessions = upcoming,
-            TotalRemainingHours = totalRemaining,
+            TotalRemainingHours = 0,
             Alerts = alerts
         };
     }
@@ -121,7 +119,7 @@ public class TeacherService : ITeacherService
             ContractStatus = c.Status.ToString(),
             ContractId = c.Id,
             ContractIdDisplay = c.ContractId,
-            RemainingHours = c.RemainingHours
+            SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
         }).ToList();
     }
 
@@ -142,8 +140,9 @@ public class TeacherService : ITeacherService
         var contracts = await _context.ContractSessions
             .Include(c => c.Student)
             .Include(c => c.Teacher)
-            .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active && c.RemainingHours > 0)
+            .Where(c => c.TeacherId == teacherId && c.Status == ContractStatus.Active)
             .ToListAsync();
+        contracts = contracts.Where(c => c.HasActiveAccess()).ToList();
         var (todayStartUtc, todayEndUtc) = MyanmarTimeHelper.GetTodayUtcRange();
         var todayLogs = await _context.AttendanceLogs
             .Where(a => a.CheckInTime >= todayStartUtc && a.CheckInTime < todayEndUtc && a.CheckOutTime == null)

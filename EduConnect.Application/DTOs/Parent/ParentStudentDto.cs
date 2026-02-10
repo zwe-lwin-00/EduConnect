@@ -9,7 +9,8 @@ public class ParentStudentDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string GradeLevel { get; set; } = string.Empty;
-    public int TotalRemainingHours { get; set; }
+    /// <summary>Latest subscription end (for display).</summary>
+    public DateTime? SubscriptionValidUntil { get; set; }
     public string? AssignedTeacherName { get; set; }
     public int ActiveContractsCount { get; set; }
 }

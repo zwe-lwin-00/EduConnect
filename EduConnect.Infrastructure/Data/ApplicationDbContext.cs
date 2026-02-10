@@ -82,6 +82,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             
             entity.Property(e => e.Status)
                 .HasConversion<int>();
+            entity.Property(e => e.BillingType)
+                .HasConversion<int>();
         });
 
         // Configure AttendanceLog

@@ -7,9 +7,8 @@
   <ng-container *ngIf="overview && !loading && !error">
     <h1 class="page-title">{{ overview.studentName }}</h1>
     <p class="page-desc">Learning overview (read-only). Grade {{ overview.gradeLevel }}. Master Doc 11C C1.</p>
-    <div class="hours-left-block" [class.low-hours]="overview.totalRemainingHours < 5 && overview.totalRemainingHours >= 0">
-      <strong>{{ overview.totalRemainingHours }} hours left</strong> for {{ overview.studentName }}.
-      <span class="top-up-hint" *ngIf="overview.totalRemainingHours < 5 && overview.totalRemainingHours >= 0">Consider topping up with Admin.</span>
+    <div class="hours-left-block" *ngIf="overview.subscriptionValidUntil">
+      <strong>Subscription until {{ overview.subscriptionValidUntil | date:'shortDate' }}</strong> for {{ overview.studentName }}.
     </div>
 
     <section class="section">
@@ -17,7 +16,7 @@
       <div *ngIf="overview.assignedTeachers.length === 0" class="empty">No active contract.</div>
       <ul class="list" *ngIf="overview.assignedTeachers.length > 0">
         <li *ngFor="let t of overview.assignedTeachers">
-          {{ t.teacherName }} – {{ t.contractIdDisplay }} ({{ t.remainingHours }} hrs remaining)
+          {{ t.teacherName }} – {{ t.contractIdDisplay }}<span *ngIf="t.subscriptionPeriodEnd"> until {{ t.subscriptionPeriodEnd | date:'shortDate' }}</span>
         </li>
       </ul>
     </section>
@@ -27,9 +26,9 @@
       <p class="value">{{ overview.subjects || '—' }}</p>
     </section>
 
-    <section class="section">
-      <h2>Remaining hours</h2>
-      <p class="value">{{ overview.totalRemainingHours }} hours</p>
+    <section class="section" *ngIf="overview.subscriptionValidUntil">
+      <h2>Subscription</h2>
+      <p class="value">Valid until {{ overview.subscriptionValidUntil | date:'shortDate' }}</p>
     </section>
 
     <section class="section">
@@ -60,12 +59,12 @@
     </section>
 
     <section class="section">
-      <h2>Contracts with remaining hours</h2>
-      <p class="hint">Teacher delivers sessions; Admin confirms.</p>
+      <h2>Active contracts (can attend)</h2>
+      <p class="hint">Teacher delivers sessions; Admin confirms. Renew via Admin when needed.</p>
       <div *ngIf="overview.upcomingSessions.length === 0" class="empty">None.</div>
       <ul class="list" *ngIf="overview.upcomingSessions.length > 0">
         <li *ngFor="let u of overview.upcomingSessions">
-          {{ u.teacherName }} – {{ u.contractIdDisplay }} ({{ u.remainingHours }} hrs)
+          {{ u.teacherName }} – {{ u.contractIdDisplay }}<span *ngIf="u.subscriptionPeriodEnd"> until {{ u.subscriptionPeriodEnd | date:'shortDate' }}</span>
         </li>
       </ul>
     </section>

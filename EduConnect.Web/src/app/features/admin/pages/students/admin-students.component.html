@@ -23,7 +23,6 @@
           <th>Last name</th>
           <th>Parent</th>
           <th>Grade</th>
-          <th>Wallet (hrs)</th>
           <th>DOB</th>
           <th>Active</th>
           <th style="width:6rem">Actions</th>
@@ -36,7 +35,6 @@
           <td>{{ s.lastName }}</td>
           <td>{{ s.parentName }}</td>
           <td>{{ s.gradeLevelName }}</td>
-          <td>{{ s.walletBalance }}</td>
           <td>{{ s.dateOfBirth | date:'shortDate' }}</td>
           <td>{{ s.isActive ? 'Yes' : 'No' }}</td>
           <td>
@@ -51,7 +49,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="9">No students.</td>
+          <td colspan="8">No students.</td>
         </tr>
       </ng-template>
     </p-table>

@@ -24,7 +24,7 @@ export class AdminLayoutComponent {
     contracts: 'Contracts',
     'group-classes': 'Group classes',
     attendance: 'Attendance',
-    payments: 'Payments',
+    payments: 'Subscriptions',
     reports: 'Reports'
   };
 

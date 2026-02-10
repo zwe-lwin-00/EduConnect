@@ -12,7 +12,6 @@ import {
   CreateParentResponse,
   CreateStudentRequest,
   CreateContractRequest,
-  WalletAdjustRequest,
   AdjustHoursRequest,
   PagedRequest,
   PagedResult,
@@ -161,12 +160,8 @@ export class AdminService {
     return this.apiService.post(API_ENDPOINTS.ADMIN.ATTENDANCE_ADJUST_HOURS(attendanceLogId), request);
   }
 
-  creditHours(request: WalletAdjustRequest): Observable<{ success: boolean }> {
-    return this.apiService.post(API_ENDPOINTS.ADMIN.WALLET_CREDIT, request);
-  }
-
-  deductHours(request: WalletAdjustRequest): Observable<{ success: boolean }> {
-    return this.apiService.post(API_ENDPOINTS.ADMIN.WALLET_DEDUCT, request);
+  renewSubscription(contractId: number): Observable<{ success: boolean; message?: string }> {
+    return this.apiService.post(API_ENDPOINTS.ADMIN.CONTRACT_RENEW_SUBSCRIPTION(contractId), {});
   }
 
   getDailyReport(date?: string): Observable<DailyReportDto> {

@@ -81,8 +81,8 @@ public class GroupClassService : IGroupClassService
         var contract = await _context.ContractSessions
             .FirstOrDefaultAsync(c => c.Id == contractId && c.TeacherId == teacherId && c.StudentId == studentId && c.Status == ContractStatus.Active);
         if (contract == null) throw new NotFoundException("Contract", contractId);
-        if (contract.RemainingHours <= 0)
-            throw new BusinessException("Contract has no remaining hours.", "NO_HOURS");
+        if (!contract.HasActiveAccess())
+            throw new BusinessException("Subscription period has ended. Please renew.", "NO_ACCESS");
         var exists = await _context.GroupClassEnrollments
             .AnyAsync(e => e.GroupClassId == groupClassId && e.StudentId == studentId);
         if (exists) throw new BusinessException("Student is already enrolled in this group class.", "ALREADY_ENROLLED");

@@ -1,7 +1,7 @@
 namespace EduConnect.Domain.Entities;
 
 /// <summary>
-/// Per-student attendance and hours deducted for one group session.
+/// Per-student attendance and duration (HoursUsed) for one group session.
 /// </summary>
 public class GroupSessionAttendance
 {

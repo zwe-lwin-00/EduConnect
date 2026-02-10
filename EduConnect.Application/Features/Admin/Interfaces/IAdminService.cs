@@ -42,9 +42,8 @@ public interface IAdminService : IService
     Task<bool> OverrideCheckOutAsync(int attendanceLogId, string adminUserId);
     Task<bool> AdjustSessionHoursAsync(int attendanceLogId, AdjustHoursRequest request, string adminUserId);
 
-    // Wallet / Payments — Master Doc B7
-    Task<bool> CreditStudentHoursAsync(int studentId, int contractId, WalletAdjustRequest request, string adminUserId);
-    Task<bool> DeductStudentHoursAsync(int studentId, int contractId, WalletAdjustRequest request, string adminUserId);
+    // Subscriptions — Master Doc B7 (monthly only)
+    Task<bool> RenewSubscriptionAsync(int contractId, string adminUserId);
     Task<bool> SetStudentActiveAsync(int studentId, bool isActive);
 
     // Reports — Master Doc B8

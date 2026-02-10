@@ -4,7 +4,7 @@ export interface ParentStudentDto {
   firstName: string;
   lastName: string;
   gradeLevel: string;
-  totalRemainingHours: number;
+  subscriptionValidUntil?: string | null;
   assignedTeacherName?: string;
   activeContractsCount: number;
 }
@@ -16,7 +16,7 @@ export interface StudentLearningOverviewDto {
   gradeLevel: string;
   assignedTeachers: AssignedTeacherDto[];
   subjects: string;
-  totalRemainingHours: number;
+  subscriptionValidUntil?: string | null;
   upcomingSessions: UpcomingSessionDto[];
   completedSessions: CompletedSessionDto[];
   homeworks: HomeworkItemDto[];
@@ -48,13 +48,13 @@ export interface AssignedTeacherDto {
   teacherId: number;
   teacherName: string;
   contractIdDisplay: string;
-  remainingHours: number;
+  subscriptionPeriodEnd?: string | null;
 }
 
 export interface UpcomingSessionDto {
   contractIdDisplay: string;
   teacherName: string;
-  remainingHours: number;
+  subscriptionPeriodEnd?: string | null;
 }
 
 export interface CompletedSessionDto {

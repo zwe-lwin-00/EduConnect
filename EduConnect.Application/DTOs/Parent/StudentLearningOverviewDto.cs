@@ -10,7 +10,8 @@ public class StudentLearningOverviewDto
     public string GradeLevel { get; set; } = string.Empty;
     public List<AssignedTeacherDto> AssignedTeachers { get; set; } = new();
     public string Subjects { get; set; } = string.Empty;
-    public int TotalRemainingHours { get; set; }
+    /// <summary>Latest subscription end across active contracts (for display).</summary>
+    public DateTime? SubscriptionValidUntil { get; set; }
     public List<UpcomingSessionDto> UpcomingSessions { get; set; } = new();
     public List<CompletedSessionDto> CompletedSessions { get; set; } = new();
     public List<HomeworkItemDto> Homeworks { get; set; } = new();
@@ -47,14 +48,14 @@ public class AssignedTeacherDto
     public int TeacherId { get; set; }
     public string TeacherName { get; set; } = string.Empty;
     public string ContractIdDisplay { get; set; } = string.Empty;
-    public int RemainingHours { get; set; }
+    public DateTime? SubscriptionPeriodEnd { get; set; }
 }
 
 public class UpcomingSessionDto
 {
     public string ContractIdDisplay { get; set; } = string.Empty;
     public string TeacherName { get; set; } = string.Empty;
-    public int RemainingHours { get; set; }
+    public DateTime? SubscriptionPeriodEnd { get; set; }
 }
 
 /// <summary>

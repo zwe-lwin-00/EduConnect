@@ -1,7 +1,7 @@
 namespace EduConnect.Application.DTOs.Admin;
 
 /// <summary>
-/// Admin credits/deducts hours — Master Doc B7. All adjustments require reason.
+/// Legacy DTO (hour-based wallet). Billing is monthly subscription only; credit/deduct endpoints removed.
 /// </summary>
 public class WalletAdjustRequest
 {

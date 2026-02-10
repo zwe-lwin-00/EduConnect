@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { AdminService } from '../../../../core/services/admin.service';
-import { Student, ContractDto, WalletAdjustRequest } from '../../../../core/models/admin.model';
+import { Student, ContractDto } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -18,27 +18,15 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class AdminPaymentsComponent implements OnInit {
   students: Student[] = [];
   contracts: ContractDto[] = [];
-  showCreditPopup = false;
-  showDeductPopup = false;
-  creditForm: FormGroup;
-  deductForm: FormGroup;
-  selectedStudent: Student | null = null;
+  showRenewPopup = false;
+  renewForm: FormGroup;
 
   constructor(
     private adminService: AdminService,
     private fb: FormBuilder
   ) {
-    this.creditForm = this.fb.group({
-      studentId: [null, Validators.required],
-      contractId: [null, Validators.required],
-      hours: [0, [Validators.required, Validators.min(0.5)]],
-      reason: ['', Validators.required]
-    });
-    this.deductForm = this.fb.group({
-      studentId: [null, Validators.required],
-      contractId: [null, Validators.required],
-      hours: [0, [Validators.required, Validators.min(0.5)]],
-      reason: ['', Validators.required]
+    this.renewForm = this.fb.group({
+      contractId: [null, Validators.required]
     });
   }
 
@@ -61,47 +49,30 @@ export class AdminPaymentsComponent implements OnInit {
     });
   }
 
-  openCreditPopup(): void {
-    this.showCreditPopup = true;
-    this.creditForm.reset();
+  openRenewPopup(): void {
+    this.showRenewPopup = true;
+    this.renewForm.reset();
   }
 
-  closeCreditPopup(): void {
-    this.showCreditPopup = false;
+  closeRenewPopup(): void {
+    this.showRenewPopup = false;
   }
 
-  openDeductPopup(): void {
-    this.showDeductPopup = true;
-    this.deductForm.reset();
-  }
-
-  closeDeductPopup(): void {
-    this.showDeductPopup = false;
-  }
-
-  onSubmitCredit(): void {
-    if (this.creditForm.valid) {
-      const v = this.creditForm.value;
-      const request: WalletAdjustRequest = { studentId: +v.studentId, contractId: +v.contractId, hours: +v.hours, reason: v.reason };
-      this.adminService.creditHours(request).subscribe({
-        next: () => { alert('Hours credited.'); this.closeCreditPopup(); this.loadStudents(); this.loadContracts(); },
+  onSubmitRenew(): void {
+    if (this.renewForm.valid) {
+      const contractId = +this.renewForm.value.contractId;
+      this.adminService.renewSubscription(contractId).subscribe({
+        next: () => { alert('Subscription renewed for one month.'); this.closeRenewPopup(); this.loadContracts(); },
         error: (err) => alert('Error: ' + (err.error?.error || err.message))
       });
     }
   }
 
-  onSubmitDeduct(): void {
-    if (this.deductForm.valid) {
-      const v = this.deductForm.value;
-      const request: WalletAdjustRequest = { studentId: +v.studentId, contractId: +v.contractId, hours: +v.hours, reason: v.reason };
-      this.adminService.deductHours(request).subscribe({
-        next: () => { alert('Hours deducted.'); this.closeDeductPopup(); this.loadStudents(); this.loadContracts(); },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
-      });
+  contractLabel(c: ContractDto): string {
+    if (c.subscriptionPeriodEnd) {
+      const d = new Date(c.subscriptionPeriodEnd);
+      return `${c.contractId} until ${d.toLocaleDateString()}`;
     }
-  }
-
-  contractsForStudent(studentId: number): ContractDto[] {
-    return this.contracts.filter(c => c.studentId === studentId);
+    return c.contractId;
   }
 }

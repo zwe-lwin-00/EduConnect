@@ -16,7 +16,28 @@ public static class SchemaEnsurer
         await EnsureGroupClassEnrollmentsTableAsync(context, cancellationToken);
         await EnsureGroupSessionsTableAsync(context, cancellationToken);
         await EnsureGroupSessionAttendancesTableAsync(context, cancellationToken);
+        await EnsureBillingTypeColumnsAsync(context, cancellationToken);
         await EnsureZoomColumnsAsync(context, cancellationToken);
+    }
+
+    /// <summary>Add BillingType and SubscriptionPeriodEnd for monthly subscription. Backfill SubscriptionPeriodEnd for existing active contracts.</summary>
+    private static async Task EnsureBillingTypeColumnsAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        var alterSql = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'BillingType')
+                ALTER TABLE [ContractSessions] ADD [BillingType] int NOT NULL DEFAULT 1;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'SubscriptionPeriodEnd')
+                ALTER TABLE [ContractSessions] ADD [SubscriptionPeriodEnd] datetime2 NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
+        // Backfill: active contracts with NULL SubscriptionPeriodEnd get end of current month 23:59:59 (so they remain usable)
+        // CAST to datetime2 required: DATEADD(SECOND, ...) is not supported for date type
+        var backfillSql = @"
+            UPDATE [ContractSessions]
+            SET [SubscriptionPeriodEnd] = DATEADD(SECOND, -1, CAST(DATEADD(MONTH, 1, DATEFROMPARTS(YEAR(GETUTCDATE()), MONTH(GETUTCDATE()), 1)) AS DATETIME2))
+            WHERE [Status] = 1 AND [SubscriptionPeriodEnd] IS NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(backfillSql, cancellationToken);
     }
 
     /// <summary>Add Zoom join URL columns to existing tables (for teaching via Zoom).</summary>

@@ -50,7 +50,7 @@ export interface TeacherAssignedStudentDto {
   contractStatus: string;
   contractId: number;
   contractIdDisplay: string;
-  remainingHours: number;
+  subscriptionPeriodEnd?: string | null;
 }
 
 // Profile read-only — no prices

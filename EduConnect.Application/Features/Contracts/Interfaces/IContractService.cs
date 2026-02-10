@@ -16,7 +16,6 @@ public class CreateContractDto
 {
     public int TeacherId { get; set; }
     public int StudentId { get; set; }
-    public int PackageHours { get; set; }
     public DateTime StartDate { get; set; }
 }
 
@@ -27,8 +26,7 @@ public class ContractDto
     public string TeacherName { get; set; } = string.Empty;
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
-    public int PackageHours { get; set; }
-    public int RemainingHours { get; set; }
+    public DateTime? SubscriptionPeriodEnd { get; set; }
     public int Status { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }

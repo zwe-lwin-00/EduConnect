@@ -74,7 +74,7 @@ export interface RevenueSnapshotDto {
   hoursConsumedThisMonth: number;
 }
 
-// Contracts — Master Doc B4
+// Contracts — Master Doc B4 (monthly subscription only)
 export interface ContractDto {
   id: number;
   contractId: string;
@@ -82,8 +82,8 @@ export interface ContractDto {
   teacherName: string;
   studentId: number;
   studentName: string;
-  packageHours: number;
-  remainingHours: number;
+  /** Subscription valid until (end of month). */
+  subscriptionPeriodEnd?: string | null;
   status: number;
   statusName: string;
   startDate: string;
@@ -162,7 +162,6 @@ export interface CreateStudentRequest {
 export interface CreateContractRequest {
   teacherId: number;
   studentId: number;
-  packageHours: number;
   startDate: string;
   endDate?: string;
 }

@@ -52,8 +52,7 @@
           <th>Contract ID</th>
           <th>Teacher</th>
           <th>Student</th>
-          <th pSortableColumn="packageHours">Package <p-sortIcon field="packageHours" /></th>
-          <th pSortableColumn="remainingHours">Remaining <p-sortIcon field="remainingHours" /></th>
+          <th>Subscription until</th>
           <th>Status</th>
           <th>Start</th>
           <th>End</th>
@@ -66,8 +65,7 @@
           <td>{{ c.contractId }}</td>
           <td>{{ c.teacherName }}</td>
           <td>{{ c.studentName }}</td>
-          <td>{{ c.packageHours }}</td>
-          <td>{{ c.remainingHours }}</td>
+          <td>{{ c.subscriptionPeriodEnd ? (c.subscriptionPeriodEnd | date:'shortDate') : '—' }}</td>
           <td><p-tag [value]="statusName(c.status)" [severity]="statusSeverity(c.status)" /></td>
           <td>{{ c.startDate | date:'shortDate' }}</td>
           <td>{{ c.endDate | date:'shortDate' }}</td>
@@ -85,7 +83,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="10">
+          <td colspan="9">
             <div class="empty-table-message">
               <i class="pi pi-file-edit empty-icon"></i>
               <p>No contracts found.</p>
@@ -123,11 +121,7 @@
         <small class="p-error" *ngIf="createForm.get('studentId')?.invalid && createForm.get('studentId')?.touched">Required</small>
       </div>
       <div class="field">
-        <label for="packageHours">Package hours</label>
-        <input pInputText id="packageHours" type="number" formControlName="packageHours" min="1" class="w-full" />
-      </div>
-      <div class="field">
-        <label for="startDate">Start date</label>
+        <label for="startDate">Start date (subscription = 1st–last day of that month)</label>
         <input pInputText id="startDate" type="date" formControlName="startDate" class="w-full" />
       </div>
       <div class="field">

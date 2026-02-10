@@ -8,14 +8,25 @@ public class ContractSession
     public string ContractId { get; set; } = string.Empty; // Unique identifier
     public int TeacherId { get; set; }
     public int StudentId { get; set; }
-    public int PackageHours { get; set; }
-    public int RemainingHours { get; set; }
+    public int PackageHours { get; set; }  // Kept for DB; not used (monthly-only)
+    public int RemainingHours { get; set; } // Kept for DB; not used (monthly-only)
+    public BillingType BillingType { get; set; } = BillingType.Monthly; // Kept for DB; not used
+    /// <summary>Subscription valid from 1st of month to this date (end of month). Access when UtcNow &lt;= this.</summary>
+    public DateTime? SubscriptionPeriodEnd { get; set; }
     public ContractStatus Status { get; set; } = ContractStatus.Active;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? CreatedBy { get; set; } // Admin UserId
-    
+
+    /// <summary>True if contract allows attending sessions: active and subscription period (1st–last of month) includes today.</summary>
+    public bool HasActiveAccess()
+    {
+        return Status == ContractStatus.Active
+            && SubscriptionPeriodEnd.HasValue
+            && SubscriptionPeriodEnd.Value >= DateTime.UtcNow;
+    }
+
     // Navigation properties
     public TeacherProfile Teacher { get; set; } = null!;
     public Student Student { get; set; } = null!;

@@ -1,12 +1,11 @@
 <div class="admin-payments">
   <div class="page-header-compact">
     <div>
-      <h1>Payments & wallet</h1>
-      <p class="page-desc-short">Credit or deduct hours on a contract. Freeze student on Students page.</p>
+      <h1>Subscriptions</h1>
+      <p class="page-desc-short">Renew monthly subscriptions (1st–last day of each month). Freeze student on Students page.</p>
     </div>
     <div class="flex gap-2">
-      <p-button label="Credit hours" icon="pi pi-plus" severity="success" (onClick)="openCreditPopup()" />
-      <p-button label="Deduct hours" icon="pi pi-minus" severity="danger" [outlined]="true" (onClick)="openDeductPopup()" />
+      <p-button label="Renew subscription" icon="pi pi-calendar-plus" severity="success" (onClick)="openRenewPopup()" />
     </div>
   </div>
 
@@ -26,7 +25,6 @@
           <th>Last name</th>
           <th>Parent</th>
           <th>Grade</th>
-          <th>Wallet (hrs)</th>
           <th>Active</th>
         </tr>
       </ng-template>
@@ -37,41 +35,24 @@
           <td>{{ s.lastName }}</td>
           <td>{{ s.parentName }}</td>
           <td>{{ s.gradeLevelName }}</td>
-          <td>{{ s.walletBalance }}</td>
           <td>{{ s.isActive ? 'Yes' : 'No' }}</td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="7">No students.</td>
+          <td colspan="6">No students.</td>
         </tr>
       </ng-template>
     </p-table>
   </div>
 
-  <p-dialog header="Credit hours" [(visible)]="showCreditPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeCreditPopup()">
-    <form [formGroup]="creditForm" (ngSubmit)="onSubmitCredit()" class="dialog-form">
-      <div class="field"><label>Student</label><select formControlName="studentId" class="p-inputtext w-full"><option [ngValue]="null">Select student</option><option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option></select></div>
-      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs)</option></select></div>
-      <div class="field"><label>Hours</label><input pInputText type="number" formControlName="hours" class="w-full" step="0.5" min="0.5" /></div>
-      <div class="field"><label>Reason</label><input pInputText type="text" formControlName="reason" class="w-full" /></div>
+  <p-dialog header="Renew subscription" [(visible)]="showRenewPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRenewPopup()">
+    <form [formGroup]="renewForm" (ngSubmit)="onSubmitRenew()" class="dialog-form">
+      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ contractLabel(c) }} – {{ c.studentName }}</option></select></div>
     </form>
     <ng-template pTemplate="footer">
-      <p-button label="Cancel" severity="secondary" (onClick)="closeCreditPopup()" />
-      <p-button label="Credit" icon="pi pi-check" (onClick)="onSubmitCredit()" [disabled]="!creditForm.valid" />
-    </ng-template>
-  </p-dialog>
-
-  <p-dialog header="Deduct hours" [(visible)]="showDeductPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeDeductPopup()">
-    <form [formGroup]="deductForm" (ngSubmit)="onSubmitDeduct()" class="dialog-form">
-      <div class="field"><label>Student</label><select formControlName="studentId" class="p-inputtext w-full"><option [ngValue]="null">Select student</option><option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option></select></div>
-      <div class="field"><label>Contract</label><select formControlName="contractId" class="p-inputtext w-full"><option [ngValue]="null">Select contract</option><option *ngFor="let c of contracts" [ngValue]="c.id">{{ c.contractId }} ({{ c.remainingHours }} hrs)</option></select></div>
-      <div class="field"><label>Hours</label><input pInputText type="number" formControlName="hours" class="w-full" step="0.5" min="0.5" /></div>
-      <div class="field"><label>Reason</label><input pInputText type="text" formControlName="reason" class="w-full" /></div>
-    </form>
-    <ng-template pTemplate="footer">
-      <p-button label="Cancel" severity="secondary" (onClick)="closeDeductPopup()" />
-      <p-button label="Deduct" severity="danger" icon="pi pi-check" (onClick)="onSubmitDeduct()" [disabled]="!deductForm.valid" />
+      <p-button label="Cancel" severity="secondary" (onClick)="closeRenewPopup()" />
+      <p-button label="Renew 1 month" icon="pi pi-calendar-plus" (onClick)="onSubmitRenew()" [disabled]="!renewForm.valid" />
     </ng-template>
   </p-dialog>
 </div>

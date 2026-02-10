@@ -59,7 +59,6 @@ export class AdminContractsComponent implements OnInit {
     this.createForm = this.fb.group({
       teacherId: [null, Validators.required],
       studentId: [null, Validators.required],
-      packageHours: [8, [Validators.required, Validators.min(1)]],
       startDate: [new Date().toISOString().slice(0, 10), Validators.required],
       endDate: ['']
     });
@@ -115,7 +114,6 @@ export class AdminContractsComponent implements OnInit {
   openCreatePopup(): void {
     this.showCreatePopup = true;
     this.createForm.reset({
-      packageHours: 8,
       startDate: new Date().toISOString().slice(0, 10),
       endDate: ''
     });
@@ -131,7 +129,6 @@ export class AdminContractsComponent implements OnInit {
       const request: CreateContractRequest = {
         teacherId: +v.teacherId,
         studentId: +v.studentId,
-        packageHours: +v.packageHours,
         startDate: v.startDate,
         endDate: v.endDate || undefined
       };

@@ -31,7 +31,9 @@ public class ParentService : IParentService
         return students.Select(s =>
         {
             var activeContracts = s.ContractSessions.Where(c => c.Status == ContractStatus.Active).ToList();
-            var totalRemaining = activeContracts.Sum(c => c.RemainingHours);
+            var subscriptionValidUntil = activeContracts.Any(c => c.SubscriptionPeriodEnd.HasValue)
+                ? activeContracts.Where(c => c.SubscriptionPeriodEnd.HasValue).Max(c => c.SubscriptionPeriodEnd!.Value)
+                : (DateTime?)null;
             var firstTeacher = activeContracts.FirstOrDefault()?.Teacher;
             return new ParentStudentDto
             {
@@ -39,7 +41,7 @@ public class ParentService : IParentService
                 FirstName = s.FirstName,
                 LastName = s.LastName,
                 GradeLevel = s.GradeLevel.ToString(),
-                TotalRemainingHours = totalRemaining,
+                SubscriptionValidUntil = subscriptionValidUntil,
                 AssignedTeacherName = firstTeacher != null ? $"{firstTeacher.User.FirstName} {firstTeacher.User.LastName}" : null,
                 ActiveContractsCount = activeContracts.Count
             };
@@ -75,7 +77,7 @@ public class ParentService : IParentService
                 TeacherId = c.TeacherId,
                 TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
                 ContractIdDisplay = c.ContractId,
-                RemainingHours = c.RemainingHours
+                SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
             })
             .ToList();
 
@@ -86,12 +88,12 @@ public class ParentService : IParentService
         var subjectsStr = string.Join(", ", subjects);
 
         var upcoming = activeContracts
-            .Where(c => c.RemainingHours > 0)
+            .Where(c => c.HasActiveAccess())
             .Select(c => new UpcomingSessionDto
             {
                 ContractIdDisplay = c.ContractId,
                 TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
-                RemainingHours = c.RemainingHours
+                SubscriptionPeriodEnd = c.SubscriptionPeriodEnd
             })
             .ToList();
 
@@ -124,6 +126,9 @@ public class ParentService : IParentService
             .ToListAsync();
         var gradeItems = grades.Select(g => HomeworkService.ToGradeItemDto(g, $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}")).ToList();
 
+        var subscriptionValidUntil = activeContracts.Any(c => c.SubscriptionPeriodEnd.HasValue)
+            ? activeContracts.Where(c => c.SubscriptionPeriodEnd.HasValue).Max(c => c.SubscriptionPeriodEnd!.Value)
+            : (DateTime?)null;
         return new StudentLearningOverviewDto
         {
             StudentId = student.Id,
@@ -131,7 +136,7 @@ public class ParentService : IParentService
             GradeLevel = student.GradeLevel.ToString(),
             AssignedTeachers = assignedTeachers,
             Subjects = subjectsStr,
-            TotalRemainingHours = activeContracts.Sum(c => c.RemainingHours),
+            SubscriptionValidUntil = subscriptionValidUntil,
             UpcomingSessions = upcoming,
             CompletedSessions = completed,
             Homeworks = homeworkItems,

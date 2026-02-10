@@ -1,12 +1,13 @@
 namespace EduConnect.Application.DTOs.Teacher;
 
 /// <summary>
-/// Teacher dashboard — Master Doc 11B B1. Today's Sessions, Upcoming, Remaining Hours, Alerts. No revenue, no analytics.
+/// Teacher dashboard — Master Doc 11B B1. Today's Sessions, Upcoming (subscription-based), Alerts. No revenue, no analytics.
 /// </summary>
 public class TeacherDashboardDto
 {
     public List<TeacherSessionItemDto> TodaySessions { get; set; } = new();
     public List<TeacherSessionItemDto> UpcomingSessions { get; set; } = new();
+    /// <summary>Legacy; always 0 (monthly subscription only).</summary>
     public int TotalRemainingHours { get; set; }
     public List<TeacherAlertDto> Alerts { get; set; } = new();
 }

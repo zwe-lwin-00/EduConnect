@@ -13,5 +13,6 @@ public class TeacherAssignedStudentDto
     /// <summary>ContractSession.Id — use for group class enrollment.</summary>
     public int ContractId { get; set; }
     public string ContractIdDisplay { get; set; } = string.Empty;
-    public int RemainingHours { get; set; }
+    /// <summary>Subscription valid until (end of month).</summary>
+    public DateTime? SubscriptionPeriodEnd { get; set; }
 }

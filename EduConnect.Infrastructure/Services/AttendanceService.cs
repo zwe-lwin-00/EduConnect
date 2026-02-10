@@ -36,8 +36,8 @@ public class AttendanceService : IAttendanceService
             _logger.WarningLog("CheckIn: contract not found");
             throw new NotFoundException("Contract", contractId);
         }
-        if (contract.RemainingHours <= 0)
-            throw new EduConnect.Application.Common.Exceptions.BusinessException("No remaining hours on this contract.", "NO_HOURS");
+        if (!contract.HasActiveAccess())
+            throw new EduConnect.Application.Common.Exceptions.BusinessException("Subscription period has ended. Please renew.", "NO_ACCESS");
 
         var alreadyInProgress = await _context.AttendanceLogs
             .AnyAsync(a => a.ContractId == contractId && a.CheckOutTime == null);
@@ -78,12 +78,6 @@ public class AttendanceService : IAttendanceService
         log.HoursUsed = (decimal)(now - log.CheckInTime).TotalHours;
         log.LessonNotes = lessonNotes.Trim();
         log.Status = SessionStatus.Completed;
-
-        if (log.ContractSession != null)
-        {
-            var hoursToDeduct = (int)Math.Ceiling(log.HoursUsed);
-            log.ContractSession.RemainingHours = Math.Max(0, log.ContractSession.RemainingHours - hoursToDeduct);
-        }
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -141,15 +135,8 @@ public class AttendanceService : IAttendanceService
         var count = enrollments.Count;
         if (count == 0) { await _unitOfWork.SaveChangesAsync(); return true; }
         var hoursPerStudent = Math.Max(0.25m, session.TotalDurationHours / count);
-        var hoursToDeductPerStudent = (int)Math.Ceiling(hoursPerStudent);
         foreach (var e in enrollments)
         {
-            var contract = e.ContractSession;
-            if (contract != null)
-            {
-                var deduct = Math.Min(hoursToDeductPerStudent, contract.RemainingHours);
-                contract.RemainingHours = Math.Max(0, contract.RemainingHours - deduct);
-            }
             _context.GroupSessionAttendances.Add(new GroupSessionAttendance
             {
                 GroupSessionId = session.Id,

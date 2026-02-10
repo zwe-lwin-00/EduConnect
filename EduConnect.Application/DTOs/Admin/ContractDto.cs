@@ -1,7 +1,7 @@
 namespace EduConnect.Application.DTOs.Admin;
 
 /// <summary>
-/// Contract = financial heart — Master Doc B4, 6.2.
+/// Contract = monthly subscription from 1st to last day of month — Master Doc B4, 6.2.
 /// </summary>
 public class ContractDto
 {
@@ -11,8 +11,8 @@ public class ContractDto
     public string TeacherName { get; set; } = string.Empty;
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
-    public int PackageHours { get; set; }
-    public int RemainingHours { get; set; }
+    /// <summary>Subscription valid until this date (end of month).</summary>
+    public DateTime? SubscriptionPeriodEnd { get; set; }
     public int Status { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
