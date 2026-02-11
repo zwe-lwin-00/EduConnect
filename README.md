@@ -604,4 +604,4 @@ For questions or support, contact the development team.
 
 ---
 
-For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above. For end-to-end flow and logic (subscriptions → classes → calendars, access rules, consistency checks), see **[docs/PROJECT_FLOW_AND_LOGIC.md](docs/PROJECT_FLOW_AND_LOGIC.md)**.
+For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above.
