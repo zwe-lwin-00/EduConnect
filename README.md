@@ -604,4 +604,4 @@ For questions or support, contact the development team.
 
 ---
 
-For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above.
+For a step-by-step view of how users move through the app (login → role redirect → admin/teacher/parent flows and data relationships), see [Project Flow](#-project-flow) above. For a detailed trace of access rules, validation, and frontend consistency, see [docs/FLOW_LOGIC_VERIFICATION.md](docs/FLOW_LOGIC_VERIFICATION.md).
