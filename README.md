@@ -54,7 +54,7 @@ This project follows **Clean Architecture** principles with a feature-based, sca
 | **Health (liveness)** | 5049 | `http://localhost:5049/health/live` |
 | **Health (readiness)** | 5049 | `http://localhost:5049/health/ready` |
 
-The frontend (`EduConnect.Web/src/environments/environment.ts`) must have `apiUrl: 'http://localhost:5049/api'`. The backend CORS (`appsettings.json` / `appsettings.Development.json`) must allow `http://localhost:5480`. If you see "Cannot connect to server", ensure (1) the API is running (`dotnet run` in `EduConnect.API`) and (2) these ports match.
+The frontend (`EduConnect.Web/src/environments/environment.ts`) must have `apiUrl: 'http://localhost:5049/api'`. The backend CORS (`appsettings.json` / `appsettings.Development.json`) must allow `http://localhost:5480`. The API launch profile (`EduConnect.API/Properties/launchSettings.json`) is set to `http://localhost:5049` and does not open a browser. If you see "Cannot connect to server", ensure (1) the API is running (`dotnet run` in `EduConnect.API` or run the API project in Visual Studio) and (2) these ports match.
 
 ## 🛠️ Quick Start
 
