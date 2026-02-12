@@ -54,7 +54,7 @@ public class TeacherService : ITeacherService
                 Id = 0,
                 ContractId = c.Id,
                 ContractIdDisplay = c.ContractId,
-                StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
+                StudentName = c.Student?.FullName ?? "",
                 Status = "Available",
                 CanCheckIn = true,
                 CanCheckOut = false
@@ -84,8 +84,7 @@ public class TeacherService : ITeacherService
         if (t == null) throw new EduConnect.Application.Common.Exceptions.NotFoundException("Teacher", teacherId);
         return new TeacherProfileDto
         {
-            FirstName = t.User.FirstName,
-            LastName = t.User.LastName,
+            FullName = t.User.FullName ?? string.Empty,
             Email = t.User.Email ?? string.Empty,
             PhoneNumber = t.User.PhoneNumber ?? string.Empty,
             EducationLevel = t.EducationLevel,
@@ -115,7 +114,7 @@ public class TeacherService : ITeacherService
         return contracts.Select(c => new TeacherAssignedStudentDto
         {
             StudentId = c.StudentId,
-            StudentName = $"{c.Student!.FirstName} {c.Student.LastName}",
+            StudentName = c.Student?.FullName ?? "",
             GradeLevel = c.Student.GradeLevel.ToString(),
             Subjects = c.Teacher?.Specializations ?? "",
             ContractStatus = c.Status.ToString(),
@@ -160,7 +159,7 @@ public class TeacherService : ITeacherService
                 Id = 0,
                 ContractId = c.Id,
                 ContractIdDisplay = c.ContractId,
-                StudentName = $"{c.Student!.FirstName} {c.Student.LastName}",
+                StudentName = c.Student?.FullName ?? "",
                 Status = "Available",
                 CanCheckIn = true,
                 CanCheckOut = false,
@@ -298,7 +297,7 @@ public class TeacherService : ITeacherService
                     DateYmd = date.ToString("yyyy-MM-dd"),
                     StartTime = startTime,
                     EndTime = endTime,
-                    StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
+                    StudentName = c.Student?.FullName ?? "",
                     TeacherName = "",
                     Status = "Scheduled",
                     HoursUsed = 0
@@ -413,7 +412,7 @@ public class TeacherService : ITeacherService
                     DateYmd = date.ToString("yyyy-MM-dd"),
                     StartTime = startTime,
                     EndTime = endTime,
-                    StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
+                    StudentName = c.Student?.FullName ?? "",
                     TeacherName = "",
                     Status = "Scheduled",
                     HoursUsed = 0
@@ -474,7 +473,7 @@ public class TeacherService : ITeacherService
             DateYmd = dateMyanmar.ToString("yyyy-MM-dd"),
             StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckInTime),
             EndTime = a.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckOutTime.Value) : null,
-            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
+            StudentName = a.ContractSession?.Student?.FullName ?? "",
             TeacherName = "",
             Status = a.Status.ToString(),
             HoursUsed = a.HoursUsed
@@ -510,7 +509,7 @@ public class TeacherService : ITeacherService
             Id = a.Id,
             ContractId = a.ContractId,
             ContractIdDisplay = a.ContractSession?.ContractId ?? "",
-            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
+            StudentName = a.ContractSession?.Student?.FullName ?? "",
             Status = a.Status.ToString(),
             CheckInTime = a.CheckInTime,
             CheckOutTime = a.CheckOutTime,

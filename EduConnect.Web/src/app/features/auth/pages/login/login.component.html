@@ -1,11 +1,11 @@
-<div class="login-wrapper">
-  <div class="login-bg"></div>
-  <div class="login-content">
-    <p-card styleClass="login-card">
-      <div class="login-header">
-        <span class="login-logo"><i class="pi pi-book"></i></span>
+<div class="auth-wrapper">
+  <div class="auth-bg"></div>
+  <div class="auth-content">
+    <p-card styleClass="auth-card">
+      <div class="auth-header">
+        <span class="auth-logo"><i class="pi pi-book"></i></span>
         <h1>EduConnect</h1>
-        <p class="login-subtitle">Sign in to your account</p>
+        <p class="auth-subtitle">Sign in to your account</p>
       </div>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <p-message *ngIf="errorMessage" severity="error" [text]="errorMessage" styleClass="w-full mb-3" />

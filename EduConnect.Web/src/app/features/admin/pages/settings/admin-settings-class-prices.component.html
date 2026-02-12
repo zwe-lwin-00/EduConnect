@@ -1,0 +1,74 @@
+<p-card header="Class prices">
+  <p class="text-color-secondary mb-3">Set the price per month (MMK) for each grade and class type (One-to-one or Group). Used for reference and invoicing.</p>
+  <p-toolbar>
+    <ng-template pTemplate="start">
+      <p-button label="Add price" icon="pi pi-plus" severity="success" (onClick)="openAddClassPrice()" />
+    </ng-template>
+  </p-toolbar>
+  <p-table
+    [value]="classPrices"
+    [loading]="loadingClassPrices"
+    [tableStyle]="{ 'min-width': '32rem' }"
+    styleClass="p-datatable-gridlines p-datatable-striped"
+    [paginator]="classPrices.length > 10"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25]">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Grade</th>
+        <th>Class type</th>
+        <th>Price per month (MMK)</th>
+        <th style="width: 10rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-cp>
+      <tr>
+        <td>{{ cp.gradeLevelName }}</td>
+        <td>{{ cp.classTypeName }}</td>
+        <td>{{ cp.pricePerMonth | number:'1.2-2' }}</td>
+        <td>
+          <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" (onClick)="openEditClassPrice(cp)" />
+          <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteClassPrice(cp)" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4">
+          <div class="empty-table-message">
+            <i class="pi pi-dollar empty-icon"></i>
+            <p>No class prices set.</p>
+            <p class="empty-hint">Click &quot;Add price&quot; to assign a price for a grade and class type.</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  appendTo="body"
+  header="{{ classPriceId == null ? 'Add class price' : 'Edit class price' }}"
+  [(visible)]="showClassPriceDialog"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="showClassPriceDialog = false">
+  <div class="field">
+    <label class="label-required">Grade <span class="required-asterisk">*</span></label>
+    <p-dropdown appendTo="body" [(ngModel)]="classPriceGradeLevel" [options]="gradeOptions" optionLabel="label" optionValue="value" placeholder="Select grade" styleClass="w-full" [disabled]="classPriceId != null" />
+  </div>
+  <div class="field">
+    <label class="label-required">Class type <span class="required-asterisk">*</span></label>
+    <p-dropdown appendTo="body" [(ngModel)]="classPriceClassType" [options]="classTypeOptions" optionLabel="label" optionValue="value" placeholder="Select type" styleClass="w-full" [disabled]="classPriceId != null" />
+  </div>
+  <div class="field">
+    <label class="label-required">Price per month (MMK) <span class="required-asterisk">*</span></label>
+    <p-inputNumber [(ngModel)]="classPricePerMonth" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" placeholder="0.00" styleClass="w-full" inputStyleClass="w-full" />
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showClassPriceDialog = false" />
+    <p-button label="Save" icon="pi pi-check" (onClick)="saveClassPrice()" [loading]="savingClassPrice" />
+  </ng-template>
+</p-dialog>

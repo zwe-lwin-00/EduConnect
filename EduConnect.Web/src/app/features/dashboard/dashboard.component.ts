@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, RouterOutlet],
   template: `
     <div class="dashboard">
-      <h1>Welcome, {{ authService.currentUser()?.firstName }}!</h1>
+      <h1>Welcome, {{ authService.currentUser()?.fullName }}!</h1>
       <p>Role: {{ getRoleName(authService.currentUser()?.role) }}</p>
       <router-outlet></router-outlet>
     </div>

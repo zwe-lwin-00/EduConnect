@@ -31,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GroupSessionAttendance> GroupSessionAttendances { get; set; }
     public DbSet<Holiday> Holidays { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<ClassPrice> ClassPrices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -304,6 +305,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Key).IsUnique();
+        });
+
+        // Configure ClassPrice
+        builder.Entity<ClassPrice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.GradeLevel, e.ClassType }).IsUnique();
+            entity.Property(e => e.GradeLevel).HasConversion<int>();
         });
     }
 }

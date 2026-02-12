@@ -33,7 +33,7 @@ public class ContractSession
         if (Status != ContractStatus.Active) return false;
         if (SubscriptionId.HasValue && Subscription != null)
             return Subscription.HasActiveAccess();
-        return SubscriptionPeriodEnd.HasValue && SubscriptionPeriodEnd.Value >= DateTime.UtcNow;
+        return SubscriptionPeriodEnd.HasValue && SubscriptionPeriodEnd.Value.Date >= DateTime.UtcNow.Date;
     }
 
     // Navigation properties

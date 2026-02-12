@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { CardModule } from 'primeng/card';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Parent, CreateParentRequest, CreateParentResponse, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -12,7 +13,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-admin-parents',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, DialogModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, CardModule],
   templateUrl: './admin-parents.component.html',
   styleUrl: './admin-parents.component.css'
 })
@@ -33,8 +34,7 @@ export class AdminParentsComponent implements OnInit {
   ) {
     this.createForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      fullName: ['', Validators.required],
       phoneNumber: ['', Validators.required]
     });
   }
@@ -79,7 +79,7 @@ export class AdminParentsComponent implements OnInit {
           this.showCredentialsPopup = true;
           this.copyFeedback = '';
         },
-        error: (err) => alert('Error: ' + (err.error?.error || err.message))
+        error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to create parent.' })
       });
     }
   }

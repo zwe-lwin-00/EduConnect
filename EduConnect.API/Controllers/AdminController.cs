@@ -819,6 +819,56 @@ public class AdminController : BaseController
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    [HttpGet("settings/class-prices")]
+    public async Task<IActionResult> GetClassPrices()
+    {
+        try
+        {
+            var list = await _settingsService.GetClassPricesAsync();
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "GetClassPrices failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("settings/class-prices")]
+    public async Task<IActionResult> UpsertClassPrice([FromBody] UpsertClassPriceRequest request)
+    {
+        try
+        {
+            var result = await _settingsService.UpsertClassPriceAsync(request);
+            return Ok(result);
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { error = ex.Message, code = ex.Code });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "UpsertClassPrice failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("settings/class-prices/{id}")]
+    public async Task<IActionResult> DeleteClassPrice(int id)
+    {
+        try
+        {
+            var ok = await _settingsService.DeleteClassPriceAsync(id);
+            if (!ok) return NotFound();
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorLog(ex, "DeleteClassPrice failed");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }
 
 public class SetActiveRequest

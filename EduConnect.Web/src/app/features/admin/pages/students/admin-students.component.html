@@ -1,4 +1,4 @@
-<div class="admin-students">
+<div class="admin-students page-container">
   <div class="page-header-compact">
     <div>
       <h1>Students (P1–P4)</h1>
@@ -7,7 +7,7 @@
     <p-button label="Add student" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
   </div>
 
-  <div class="card table-card">
+  <p-card styleClass="table-card">
     <p-table
       [value]="students"
       [loading]="loading"
@@ -16,12 +16,12 @@
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} students"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
           <th style="width:3rem">#</th>
-          <th>First name</th>
-          <th>Last name</th>
+          <th>Name</th>
           <th>Parent</th>
           <th>Grade</th>
           <th>DOB</th>
@@ -32,8 +32,7 @@
       <ng-template pTemplate="body" let-s let-rowIndex="rowIndex">
         <tr>
           <td>{{ rowIndex + 1 }}</td>
-          <td>{{ s.firstName }}</td>
-          <td>{{ s.lastName }}</td>
+          <td>{{ s.fullName }}</td>
           <td>{{ s.parentName }}</td>
           <td>{{ s.gradeLevelName }}</td>
           <td>{{ s.dateOfBirth | date:'shortDate' }}</td>
@@ -50,7 +49,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="empty-table-message">
               <i class="pi pi-users empty-icon"></i>
               <p>No students.</p>
@@ -60,9 +59,10 @@
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 
   <p-dialog
+    appendTo="body"
     header="Add student"
     [(visible)]="showCreatePopup"
     [modal]="true"
@@ -71,22 +71,52 @@
     (onHide)="closeCreatePopup()">
     <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
       <div class="field">
-        <label>Parent</label>
-        <select formControlName="parentId" class="p-inputtext w-full">
-          <option value="">Select parent</option>
-          <option *ngFor="let p of parents" [value]="p.id">{{ p.firstName }} {{ p.lastName }}</option>
-        </select>
+        <label class="label-required" for="create-parentId">Parent <span class="required-asterisk">*</span></label>
+        <p-dropdown
+          appendTo="body"
+          id="create-parentId"
+          formControlName="parentId"
+          [options]="parentOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select parent"
+          styleClass="w-full" />
+        <small class="p-error" *ngIf="createForm.get('parentId')?.invalid && createForm.get('parentId')?.touched">Parent is required</small>
       </div>
-      <div class="field"><label>First name</label><input pInputText type="text" formControlName="firstName" class="w-full" /></div>
-      <div class="field"><label>Last name</label><input pInputText type="text" formControlName="lastName" class="w-full" /></div>
       <div class="field">
-        <label>Grade</label>
-        <select formControlName="gradeLevel" class="p-inputtext w-full">
-          <option *ngFor="let g of gradeOptions" [value]="g.value">{{ g.label }}</option>
-        </select>
+        <label class="label-required" for="create-fullName">Full name <span class="required-asterisk">*</span></label>
+        <input pInputText id="create-fullName" type="text" formControlName="fullName" class="w-full" [class.p-invalid]="createForm.get('fullName')?.invalid && createForm.get('fullName')?.touched" />
+        <small class="p-error" *ngIf="createForm.get('fullName')?.invalid && createForm.get('fullName')?.touched">Full name is required</small>
       </div>
-      <div class="field"><label>Date of birth</label><input pInputText type="date" formControlName="dateOfBirth" class="w-full" /></div>
-      <div class="field"><label>Special needs</label><input pInputText type="text" formControlName="specialNeeds" class="w-full" /></div>
+      <div class="field">
+        <label class="label-required" for="create-grade">Grade <span class="required-asterisk">*</span></label>
+        <p-dropdown
+          appendTo="body"
+          id="create-grade"
+          formControlName="gradeLevel"
+          [options]="gradeOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select grade"
+          styleClass="w-full" />
+        <small class="p-error" *ngIf="createForm.get('gradeLevel')?.invalid && createForm.get('gradeLevel')?.touched">Grade is required</small>
+      </div>
+      <div class="field">
+        <label class="label-required" for="create-dob">Date of birth <span class="required-asterisk">*</span></label>
+        <p-calendar
+          appendTo="body"
+          id="create-dob"
+          formControlName="dateOfBirth"
+          dateFormat="yy-mm-dd"
+          placeholder="Select date"
+          styleClass="w-full"
+          [inputStyleClass]="createForm.get('dateOfBirth')?.invalid && createForm.get('dateOfBirth')?.touched ? 'p-invalid w-full' : 'w-full'" />
+        <small class="p-error" *ngIf="createForm.get('dateOfBirth')?.invalid && createForm.get('dateOfBirth')?.touched">Date of birth is required</small>
+      </div>
+      <div class="field">
+        <label class="label-optional" for="create-specialNeeds">Special needs <span class="optional-badge">Optional</span></label>
+        <input pInputText id="create-specialNeeds" type="text" formControlName="specialNeeds" class="w-full" />
+      </div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeCreatePopup()" />

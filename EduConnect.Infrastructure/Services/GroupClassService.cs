@@ -56,6 +56,10 @@ public class GroupClassService : IGroupClassService
             throw new NotFoundException("Teacher", request.TeacherId);
         var (startTime, endTime) = (ParseTime(request.StartTime), ParseTime(request.EndTime));
         ScheduleValidation.Validate(request.DaysOfWeek, startTime, endTime);
+        DateTime? startDate = request.StartDate?.Date ?? null;
+        DateTime? endDate = request.EndDate?.Date ?? null;
+        if (startDate.HasValue && endDate.HasValue && endDate.Value < startDate.Value)
+            throw new BusinessException("End date cannot be before start date.", "END_DATE_BEFORE_START");
         var group = new GroupClass
         {
             TeacherId = request.TeacherId,
@@ -63,6 +67,8 @@ public class GroupClassService : IGroupClassService
             DaysOfWeek = string.IsNullOrWhiteSpace(request.DaysOfWeek) ? null : request.DaysOfWeek.Trim(),
             StartTime = startTime,
             EndTime = endTime,
+            StartDate = startDate,
+            EndDate = endDate,
             IsActive = true,
             ZoomJoinUrl = null,
             CreatedAt = DateTime.UtcNow
@@ -115,6 +121,27 @@ public class GroupClassService : IGroupClassService
         if (contract == null) throw new NotFoundException("Contract", contractId);
         if (!contract.HasActiveAccess())
             throw new BusinessException("Subscription period has ended. Please renew.", "NO_ACCESS");
+        if (group.StartDate.HasValue || group.EndDate.HasValue)
+        {
+            var classStart = group.StartDate ?? DateTime.MinValue.Date;
+            var classEnd = group.EndDate ?? DateTime.MaxValue.Date;
+            DateTime subStart;
+            DateTime subEnd;
+            if (contract.SubscriptionId.HasValue && contract.Subscription != null)
+            {
+                subStart = contract.Subscription.StartDate.Date;
+                subEnd = contract.Subscription.SubscriptionPeriodEnd.Date;
+            }
+            else
+            {
+                subStart = contract.StartDate.Date;
+                subEnd = (contract.SubscriptionPeriodEnd ?? DateTime.MaxValue).Date;
+            }
+            if (subStart > classStart)
+                throw new BusinessException($"Subscription does not cover the class period. Class starts {classStart:yyyy-MM-dd}; subscription starts {subStart:yyyy-MM-dd}. The student's subscription must cover the class from date.", "SUBSCRIPTION_START_AFTER_CLASS");
+            if (subEnd < classEnd)
+                throw new BusinessException($"Subscription does not cover the class period. Class ends {classEnd:yyyy-MM-dd}; subscription ends {subEnd:yyyy-MM-dd}. The student's subscription must cover the class to date.", "SUBSCRIPTION_END_BEFORE_CLASS");
+        }
         var exists = await _context.GroupClassEnrollments
             .AnyAsync(e => e.GroupClassId == groupClassId && e.StudentId == studentId);
         if (exists) throw new BusinessException("Student is already enrolled in this group class.", "ALREADY_ENROLLED");
@@ -139,6 +166,17 @@ public class GroupClassService : IGroupClassService
             throw new BusinessException("Subscription must be Group type for group class enrollment.", "INVALID_SUBSCRIPTION_TYPE");
         if (!sub.HasActiveAccess())
             throw new BusinessException("Subscription is not active or has expired.", "SUBSCRIPTION_INACTIVE");
+        if (group.StartDate.HasValue || group.EndDate.HasValue)
+        {
+            var classStart = group.StartDate ?? DateTime.MinValue.Date;
+            var classEnd = group.EndDate ?? DateTime.MaxValue.Date;
+            var subStart = sub.StartDate.Date;
+            var subEnd = sub.SubscriptionPeriodEnd.Date;
+            if (subStart > classStart)
+                throw new BusinessException($"Subscription does not cover the class period. Class starts {classStart:yyyy-MM-dd}; subscription starts {subStart:yyyy-MM-dd}. The student's subscription must cover the class from date.", "SUBSCRIPTION_START_AFTER_CLASS");
+            if (subEnd < classEnd)
+                throw new BusinessException($"Subscription does not cover the class period. Class ends {classEnd:yyyy-MM-dd}; subscription ends {subEnd:yyyy-MM-dd}. The student's subscription must cover the class to date.", "SUBSCRIPTION_END_BEFORE_CLASS");
+        }
         var exists = await _context.GroupClassEnrollments
             .AnyAsync(e => e.GroupClassId == groupClassId && e.StudentId == studentId);
         if (exists) throw new BusinessException("Student is already enrolled in this group class.", "ALREADY_ENROLLED");
@@ -173,14 +211,14 @@ public class GroupClassService : IGroupClassService
             .Include(e => e.ContractSession)
             .Include(e => e.Subscription)
             .Where(e => e.GroupClassId == groupClassId && e.GroupClass.TeacherId == teacherId)
-            .OrderBy(e => e.Student.FirstName)
+            .OrderBy(e => e.Student.FullName)
             .ToListAsync();
         return list.Select(e => new GroupClassEnrollmentDto
         {
             Id = e.Id,
             GroupClassId = e.GroupClassId,
             StudentId = e.StudentId,
-            StudentName = $"{e.Student.FirstName} {e.Student.LastName}",
+            StudentName = e.Student?.FullName ?? "",
             ContractId = e.ContractId,
             ContractIdDisplay = e.ContractSession?.ContractId,
             SubscriptionId = e.SubscriptionId,
@@ -196,7 +234,7 @@ public class GroupClassService : IGroupClassService
             .Include(g => g.Teacher).ThenInclude(t => t.User)
             .OrderBy(g => g.Name)
             .ToListAsync();
-        return list.Select(g => MapToDto(g, g.Enrollments.Count, g.Teacher?.User != null ? $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}" : null)).ToList();
+        return list.Select(g => MapToDto(g, g.Enrollments.Count, g.Teacher?.User?.FullName)).ToList();
     }
 
     public async Task<GroupClassDto?> GetByIdForAdminAsync(int groupClassId)
@@ -207,7 +245,7 @@ public class GroupClassService : IGroupClassService
             .FirstOrDefaultAsync(x => x.Id == groupClassId);
         if (g == null) return null;
         var count = await _context.GroupClassEnrollments.CountAsync(e => e.GroupClassId == groupClassId);
-        return MapToDto(g, count, g.Teacher?.User != null ? $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}" : null);
+        return MapToDto(g, count, g.Teacher?.User?.FullName);
     }
 
     public async Task<bool> UpdateByAdminAsync(int groupClassId, AdminUpdateGroupClassRequest request)
@@ -222,6 +260,11 @@ public class GroupClassService : IGroupClassService
         var newEnd = ParseTime(request.EndTime);
         ScheduleValidation.Validate(newDays, newStart, newEnd);
 
+        DateTime? newStartDate = request.StartDate?.Date ?? null;
+        DateTime? newEndDate = request.EndDate?.Date ?? null;
+        if (newStartDate.HasValue && newEndDate.HasValue && newEndDate.Value < newStartDate.Value)
+            throw new BusinessException("End date cannot be before start date.", "END_DATE_BEFORE_START");
+
         var scheduleChanged = (g.DaysOfWeek ?? "") != (newDays ?? "") || g.StartTime != newStart || g.EndTime != newEnd;
 
         g.TeacherId = request.TeacherId;
@@ -230,6 +273,8 @@ public class GroupClassService : IGroupClassService
         g.DaysOfWeek = newDays;
         g.StartTime = newStart;
         g.EndTime = newEnd;
+        g.StartDate = newStartDate;
+        g.EndDate = newEndDate;
         await _context.SaveChangesAsync();
 
         if (scheduleChanged && !string.IsNullOrEmpty(g.Teacher?.UserId))
@@ -251,14 +296,14 @@ public class GroupClassService : IGroupClassService
             .Include(e => e.ContractSession)
             .Include(e => e.Subscription)
             .Where(e => e.GroupClassId == groupClassId)
-            .OrderBy(e => e.Student!.FirstName)
+            .OrderBy(e => e.Student!.FullName)
             .ToListAsync();
         return list.Select(e => new GroupClassEnrollmentDto
         {
             Id = e.Id,
             GroupClassId = e.GroupClassId,
             StudentId = e.StudentId,
-            StudentName = $"{e.Student!.FirstName} {e.Student.LastName}",
+            StudentName = e.Student?.FullName ?? "",
             ContractId = e.ContractId,
             ContractIdDisplay = e.ContractSession?.ContractId,
             SubscriptionId = e.SubscriptionId,
@@ -286,6 +331,8 @@ public class GroupClassService : IGroupClassService
             DaysOfWeek = g.DaysOfWeek,
             StartTime = g.StartTime?.ToString("HH:mm"),
             EndTime = g.EndTime?.ToString("HH:mm"),
+            StartDate = g.StartDate,
+            EndDate = g.EndDate,
             IsActive = g.IsActive,
             ZoomJoinUrl = g.ZoomJoinUrl,
             CreatedAt = g.CreatedAt,

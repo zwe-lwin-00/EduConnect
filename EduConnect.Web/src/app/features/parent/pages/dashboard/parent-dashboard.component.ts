@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ParentService } from '../../../../core/services/parent.service';
 import { ParentStudentDto } from '../../../../core/models/parent.model';
 import { MessageService } from 'primeng/api';
@@ -11,7 +12,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-parent-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule],
+  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule, ProgressSpinnerModule],
   templateUrl: './parent-dashboard.component.html',
   styleUrl: './parent-dashboard.component.css'
 })

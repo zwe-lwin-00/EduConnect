@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { CardModule } from 'primeng/card';
+import { TextareaModule } from 'primeng/textarea';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Teacher, OnboardTeacherRequest, UpdateTeacherRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,7 +31,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     InputTextModule,
     IconFieldModule,
     InputIconModule,
-    CardModule
+    CardModule,
+    TextareaModule
   ],
   templateUrl: './admin-teachers.component.html',
   styleUrl: './admin-teachers.component.css'
@@ -62,8 +64,7 @@ export class AdminTeachersComponent implements OnInit {
   ) {
     this.onboardForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      fullName: ['', Validators.required],
       phoneNumber: ['', Validators.required],
       nrcNumber: ['', Validators.required],
       educationLevel: ['', Validators.required],
@@ -71,8 +72,7 @@ export class AdminTeachersComponent implements OnInit {
       specializations: ['']
     });
     this.editForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      fullName: ['', Validators.required],
       phoneNumber: ['', Validators.required],
       educationLevel: ['', Validators.required],
       bio: [''],
@@ -108,8 +108,7 @@ export class AdminTeachersComponent implements OnInit {
     this.showOnboardPopup = true;
     this.onboardForm.reset({
       email: '',
-      firstName: '',
-      lastName: '',
+      fullName: '',
       phoneNumber: '',
       nrcNumber: '',
       educationLevel: '',
@@ -126,8 +125,7 @@ export class AdminTeachersComponent implements OnInit {
   openEditPopup(teacher: Teacher): void {
     this.editingTeacherId = teacher.id;
     this.editForm.patchValue({
-      firstName: teacher.firstName,
-      lastName: teacher.lastName,
+      fullName: teacher.fullName,
       phoneNumber: teacher.phoneNumber,
       educationLevel: teacher.educationLevel,
       bio: teacher.bio ?? '',
@@ -216,7 +214,7 @@ export class AdminTeachersComponent implements OnInit {
 
   onVerifyTeacher(teacher: Teacher): void {
     this.confirmationService.confirm({
-      message: `Verify teacher ${teacher.firstName} ${teacher.lastName}?`,
+      message: `Verify teacher ${teacher.fullName}?`,
       header: 'Verify teacher',
       icon: 'pi pi-check-circle',
       accept: () => {
@@ -230,7 +228,7 @@ export class AdminTeachersComponent implements OnInit {
 
   onResetTeacherPassword(teacher: Teacher): void {
     this.confirmationService.confirm({
-      message: `Reset password for ${teacher.firstName} ${teacher.lastName}? A new temporary password will be generated. Share it with the teacher.`,
+      message: `Reset password for ${teacher.fullName}? A new temporary password will be generated. Share it with the teacher.`,
       header: 'Reset password',
       icon: 'pi pi-key',
       accept: () => {
@@ -277,7 +275,7 @@ export class AdminTeachersComponent implements OnInit {
   onSetTeacherActive(teacher: Teacher, isActive: boolean): void {
     const action = isActive ? 'activate' : 'suspend';
     this.confirmationService.confirm({
-      message: `${action} teacher ${teacher.firstName} ${teacher.lastName}?`,
+      message: `${action} teacher ${teacher.fullName}?`,
       header: isActive ? 'Activate teacher' : 'Suspend teacher',
       icon: isActive ? 'pi pi-check' : 'pi pi-ban',
       accept: () => {

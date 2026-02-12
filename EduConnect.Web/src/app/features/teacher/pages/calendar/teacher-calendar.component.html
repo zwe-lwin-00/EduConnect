@@ -1,4 +1,4 @@
-<div class="teacher-calendar">
+<div class="teacher-calendar page-container">
   <div class="page-header-compact">
     <div>
       <h1>My sessions this month</h1>
@@ -20,7 +20,10 @@
       <span class="legend-item"><span class="dot upcoming"></span> Upcoming</span>
       <span class="legend-item"><span class="dot holiday"></span> Holiday</span>
     </div>
-    <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="loading" class="empty-table-message">
+      <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+      <span class="text-color-secondary">Loading...</span>
+    </div>
     <div *ngIf="!loading && !error" class="month-grid">
       <div class="month-row header-row">
         <div *ngFor="let h of dayHeaders" class="month-cell header-cell">{{ h }}</div>
@@ -38,7 +41,7 @@
               <div *ngFor="let s of sessionsOnDay(cell.date)" class="session-block"
                    [class.completed]="isCompleted(s)"
                    [class.upcoming]="isUpcoming(s)">
-                <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+                <div class="session-time">{{ s.startTime | time12h }}<span *ngIf="s.endTime"> – {{ s.endTime | time12h }}</span></div>
                 <div class="session-student">{{ s.groupClassName ? ('Group: ' + s.groupClassName) : s.studentName }}</div>
                 <div class="session-meta">
                   <span *ngIf="isCompleted(s)" class="status-badge completed">Completed</span>

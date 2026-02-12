@@ -1,4 +1,4 @@
-<div class="parent-dashboard">
+<div class="parent-dashboard page-container">
   <div class="page-header-compact">
     <div>
       <h1>My Students</h1>
@@ -8,7 +8,10 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <p>Loading...</p>
+  </div>
 
   <ng-container *ngIf="!loading && !error">
     <div *ngIf="students.length === 0" class="empty-state-card">
@@ -21,7 +24,7 @@
       </p-card>
     </div>
     <div class="student-cards" *ngIf="students.length > 0">
-      <p-card *ngFor="let s of students" [header]="s.firstName + ' ' + s.lastName" styleClass="student-card-block">
+      <p-card *ngFor="let s of students" [header]="s.fullName" styleClass="student-card-block">
         <div class="student-meta" *ngIf="s.subscriptionValidUntil">Subscription until {{ s.subscriptionValidUntil | date:'shortDate' }}</div>
         <div class="student-meta">Grade {{ s.gradeLevel }}</div>
         <div class="student-meta" *ngIf="s.assignedTeacherName">Teacher: {{ s.assignedTeacherName }}</div>

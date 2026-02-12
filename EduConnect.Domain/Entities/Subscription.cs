@@ -25,6 +25,6 @@ public class Subscription
 
     public bool HasActiveAccess()
     {
-        return Status == ContractStatus.Active && SubscriptionPeriodEnd >= DateTime.UtcNow;
+        return Status == ContractStatus.Active && SubscriptionPeriodEnd.Date >= DateTime.UtcNow.Date;
     }
 }

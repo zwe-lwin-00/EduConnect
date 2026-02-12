@@ -220,7 +220,7 @@ EduConnect.Web/
 Because students are young children (P1–P4), **only the parent has a login**. Think of it as a **parent account that includes access to their child(ren)**:
 
 1. **One parent account** = one login (email + password). That account can have **multiple students** (children) linked to it.
-2. **Admin creates the parent account**: Go to **Admin → Parents** (sidebar), then click the green **"Create Parent"** button. Enter the parent’s email, first name, last name, and phone. After saving, a **credentials popup** appears with the new **email** and **temporary password**. Share these with the parent (e.g. copy to clipboard and send securely). The parent must change the password on first login.
+2. **Admin creates the parent account**: Go to **Admin → Parents** (sidebar), then click the green **"Create Parent"** button. Enter the parent’s email, full name, and phone. After saving, a **credentials popup** appears with the new **email** and **temporary password**. Share these with the parent (e.g. copy to clipboard and send securely). The parent must change the password on first login.
 3. **Admin then links students to that parent**: Go to **Admin → Students** → **"Add Student"**. For each child, select the **parent** (from the dropdown), enter the student’s name, grade (P1–P4), DOB, etc. Each student is linked to exactly one parent.
 4. **Parent logs in** at `/auth/login` with the credentials you shared. They see **My Students** (all their linked children) and can open each one to see the **student learning overview** (teachers, sessions, homework, grades). No separate “student account”—everything is under the parent’s account.
 
@@ -245,13 +245,13 @@ So: **parent account = parent + their students**. Admin creates the parent first
    Overview: alerts, today’s sessions, pending teacher verifications, revenue. Quick links to Teachers, Parents, Students, One-To-One, Group, Attendance, Payments, Reports.
 
 2. **Teachers** (`/admin/teachers`)  
-   - **Onboard** new teacher (email, name, phone, NRC, education, bio, specializations). System creates account and can show temporary credentials.  
+   - **Onboard** new teacher (email, full name, phone, NRC, education, bio, specializations). System creates account and can show temporary credentials.  
    - **Verify / Reject** pending teachers.  
    - **Edit** profile, **Reset password**, **Activate / Suspend**.
 
 3. **Parents & Students** (`/admin/parents`, `/admin/students`)  
-   - **Create parent**: In **Admin → Parents**, click **"Create Parent"**. Enter email, first name, last name, phone. After create, a popup shows **email** and **temporary password**—share these with the parent so they can log in (they must change password on first login).  
-   - **Create students**: In **Admin → Students**, click **"Add Student"**. Select the **parent** from the dropdown and enter the child’s details (name, grade P1–P4, DOB, etc.). Each student is linked to one parent; the parent sees all their linked students under "My Students" when they log in.
+   - **Create parent**: In **Admin → Parents**, click **"Create Parent"**. Enter email, full name, phone. After create, a popup shows **email** and **temporary password**—share these with the parent so they can log in (they must change password on first login).  
+   - **Create students**: In **Admin → Students**, click **"Add Student"**. Select the **parent** from the dropdown and enter the child’s details (full name, grade P1–P4, DOB, etc.). Each student is linked to one parent; the parent sees all their linked students under "My Students" when they log in.
 
 4. **Subscriptions** (parent-paid)  
    - Create **subscription** for a student: type (One-To-One or Group), duration (e.g. 1 or 2 months).  
@@ -332,9 +332,9 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 
 ## 🎯 Domain Entities
 
-- **ApplicationUser** - Extended Identity user with role management
+- **ApplicationUser** - Extended Identity user with role management; uses **FullName** (single field) for display name
 - **TeacherProfile** - Teacher information, NRC (encrypted), verification status; optional **ZoomJoinUrl** (default for 1:1 teaching)
-- **Student** - Student information linked to parent
+- **Student** - Student information linked to parent; uses **FullName** (single field) for display name
 - **Subscription** - Parent-paid: student, type (OneToOne/Group), start/end period. Funds One-To-One class or Group enrollment.
 - **ContractSession** - One-To-One class: teacher–student; optional SubscriptionId (One-To-One) or legacy SubscriptionPeriodEnd; optional schedule (DaysOfWeek, StartTime, EndTime) set by admin.
 - **AttendanceLog** - One-to-one session tracking (check-in/out, lesson notes); optional **ZoomJoinUrl** per session
@@ -361,7 +361,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Admin**: Dashboard (alerts, today’s sessions, pending actions, revenue), Teachers (onboard, edit, verify, reject, activate/suspend), Parents & Students (create, list), **One-To-One** (create with optional schedule—activate, cancel), **Group** (create with schedule, assign teacher—Zoom set by teacher; enroll students by One-To-One or Group subscription), Attendance, Subscriptions (renew monthly), Reports (daily/monthly), **Settings** (holidays, other key-value settings)
 - [x] **Teacher**: Dashboard, availability (weekly), assigned students, **sessions** (One-To-One and **Group** check-in/check-out with lesson notes), **Group** (edit name/Zoom/active; enroll students by One-To-One contract; set Zoom per class), **Homework & Grades** (assign homework, mark submitted/graded, add grades), profile (read-only; **Zoom join URL** for One-To-One)
 - [x] **Parent**: My Students list, student learning overview (assigned teacher, sessions, progress, **homework and grades** from teachers)
-- [x] Teacher management: onboard, **edit** (name, phone, education, bio, specializations), verify, reject, activate/suspend
+- [x] Teacher management: onboard, **edit** (full name, phone, education, bio, specializations), verify, reject, activate/suspend
 - [x] Check-in/check-out system (teacher + admin override)
 - [x] Subscription billing (monthly only; renew via Admin), student active/freeze
 - [x] Daily and monthly reports (Dapper-powered)
@@ -371,6 +371,7 @@ Parents **have their own login accounts**. Admin creates each parent (Create Par
 - [x] **Logging**: Serilog file sink; LoggerExtensions (Shared) used in API and Infrastructure for traceable logs (Method/LineNumber, credential redaction)
 - [x] **API & security**: Server-side validation (FluentValidation), rate limiting on login, health checks (liveness/readiness), consistent error contract (`error`, `code`, `details?`, `requestId?`)
 - [x] Database schema and relationships
+- [x] **FullName**: Users (ApplicationUser) and students use a single **FullName** field instead of separate first/last name; API, DTOs, validators, and UI use full name throughout
 - [x] API URL normalization (no double-slash); Swagger and browser auto-launch disabled by default
 - [x] **UI**: PrimeNG-based professional design: **Login** (Card, InputText, Message, gradient background); **Admin & Teacher dashboards** (Card widgets, Tag for alert/session status, Skeleton loading, Message for errors); **Layouts** (PrimeNG Toolbar and Button in admin/teacher topbars; design tokens for sidebar and surface); **Tables** (Teachers, Contracts: Card wrapper, Toolbar with global search, Table loading state, empty-state message; success/error via Toast/MessageService instead of `alert()`). **Confirmations**: All destructive or important actions use **PrimeNG ConfirmDialog** (ConfirmationService) instead of browser `confirm()`—e.g. verify/reject teacher, reset password, cancel contract, override check-in/out, remove enrollment, check-in/group session. **Reject teacher** uses a **Dialog with required reason input** instead of `prompt()`. **Return URL**: After login with a valid `returnUrl`, a short “Redirecting – Taking you back…” toast is shown before navigating. **Breadcrumbs**: Admin, Teacher, and Parent layouts show a PrimeNG breadcrumb (e.g. Home > Teachers, Home > Learning overview) above the main content so users know where they are and can navigate back. Sidebar layout (admin, teacher, parent) with on/off toggle; favicon PNG; row number column (#) in tables.
 - [x] **Two class types**: **One-To-One** (contract-based check-in/out) and **Group** (create Group class, enroll students by One-To-One or Group subscription, start/check-out Group session; duration recorded per student; parent notifications)
@@ -406,7 +407,7 @@ All backend config is driven by `appsettings.json`. Override per environment wit
 | **JwtSettings** | SecretKey, Issuer, Audience, ExpirationInMinutes | JWT auth |
 | **Encryption** | Key | AES key for sensitive data |
 | **SeedData** | **Roles** | Array of role names to seed (default: Admin, Teacher, Parent) |
-| **SeedData:DefaultAdmin** | Email, Password, FirstName, LastName, PhoneNumber, Role (optional; defaults to first in Roles) | Default admin account (created on first run) |
+| **SeedData:DefaultAdmin** | Email, Password, FullName, PhoneNumber, Role (optional; defaults to first in Roles) | Default admin account (created on first run) |
 | **Gemini** | ApiKey | Optional Gemini API key |
 | **RateLimiting** | GlobalPermitLimit, GlobalWindowMinutes, AuthPermitLimit, AuthWindowMinutes, RejectedMessage, RejectedCode | Rate limit and 429 response text |
 | **TimeZone** | Id (e.g. Asia/Yangon), IdFallback (e.g. Myanmar Standard Time) | App timezone for "today" and reports |
@@ -421,8 +422,7 @@ Example override in `appsettings.Development.json`:
     "DefaultAdmin": {
       "Email": "admin@educonnect.com",
       "Password": "1qaz!QAZ",
-      "FirstName": "Admin",
-      "LastName": "User",
+      "FullName": "Admin User",
       "PhoneNumber": "+959123456789"
     }
   }
@@ -600,7 +600,7 @@ For questions or support, contact the development team.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.8.0
+**Version**: 1.9.0
 
 ---
 

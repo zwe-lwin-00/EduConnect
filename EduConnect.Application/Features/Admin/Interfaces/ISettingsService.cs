@@ -13,4 +13,8 @@ public interface ISettingsService
     Task<List<SystemSettingDto>> GetSystemSettingsAsync();
     Task<SystemSettingDto?> GetSystemSettingByKeyAsync(string key);
     Task<SystemSettingDto> UpsertSystemSettingAsync(UpsertSystemSettingRequest request);
+
+    Task<List<ClassPriceDto>> GetClassPricesAsync();
+    Task<ClassPriceDto> UpsertClassPriceAsync(UpsertClassPriceRequest request);
+    Task<bool> DeleteClassPriceAsync(int id);
 }

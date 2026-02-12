@@ -30,6 +30,8 @@ import {
   UpdateHolidayRequest,
   SystemSettingDto,
   UpsertSystemSettingRequest,
+  ClassPriceDto,
+  UpsertClassPriceRequest,
   SubscriptionDto,
   CreateSubscriptionRequest
 } from '../models/admin.model';
@@ -255,5 +257,17 @@ export class AdminService {
 
   upsertSystemSetting(request: UpsertSystemSettingRequest): Observable<SystemSettingDto> {
     return this.apiService.post<SystemSettingDto>(API_ENDPOINTS.ADMIN.SETTINGS_SYSTEM, request);
+  }
+
+  getClassPrices(): Observable<ClassPriceDto[]> {
+    return this.apiService.get<ClassPriceDto[]>(API_ENDPOINTS.ADMIN.SETTINGS_CLASS_PRICES);
+  }
+
+  upsertClassPrice(request: UpsertClassPriceRequest): Observable<ClassPriceDto> {
+    return this.apiService.post<ClassPriceDto>(API_ENDPOINTS.ADMIN.SETTINGS_CLASS_PRICES, request);
+  }
+
+  deleteClassPrice(id: number): Observable<void> {
+    return this.apiService.delete<void>(API_ENDPOINTS.ADMIN.SETTINGS_CLASS_PRICE_DELETE(id));
   }
 }

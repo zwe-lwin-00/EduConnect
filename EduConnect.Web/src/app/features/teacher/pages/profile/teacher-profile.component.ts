@@ -5,6 +5,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherProfileDto } from '../../../../core/models/teacher.model';
 import { MessageService } from 'primeng/api';
@@ -12,7 +13,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-teacher-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, MessageModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, FormsModule, CardModule, MessageModule, ButtonModule, InputTextModule, ProgressSpinnerModule],
   templateUrl: './teacher-profile.component.html',
   styleUrl: './teacher-profile.component.css'
 })

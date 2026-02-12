@@ -66,7 +66,7 @@ public class NotificationService : INotificationService
                 {
                     Id = -c.Id,
                     Title = "Contract ending soon",
-                    Message = $"Contract {c.ContractId} ({c.Teacher?.User?.FirstName} {c.Teacher?.User?.LastName} – {c.Student?.FirstName} {c.Student?.LastName}) ends on {c.EndDate:dd MMM yyyy}.",
+                    Message = $"Contract {c.ContractId} ({c.Teacher?.User?.FullName} – {c.Student?.FullName}) ends on {c.EndDate:dd MMM yyyy}.",
                     Type = (int)NotificationType.ContractEndingSoon,
                     TypeName = "ContractEndingSoon",
                     RelatedEntityType = "Contract",

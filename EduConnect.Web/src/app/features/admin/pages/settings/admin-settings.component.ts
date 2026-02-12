@@ -7,13 +7,19 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { AdminService } from '../../../../core/services/admin.service';
 import {
   HolidayDto,
   CreateHolidayRequest,
   UpdateHolidayRequest,
   SystemSettingDto,
-  UpsertSystemSettingRequest
+  UpsertSystemSettingRequest,
+  ClassPriceDto,
+  UpsertClassPriceRequest,
+  ClassType
 } from '../../../../core/models/admin.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
@@ -28,7 +34,10 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     ButtonModule,
     DialogModule,
     InputTextModule,
-    CardModule
+    CardModule,
+    CalendarModule,
+    DropdownModule,
+    InputNumberModule
   ],
   templateUrl: './admin-settings.component.html',
   styleUrl: './admin-settings.component.css'
@@ -43,10 +52,14 @@ export class AdminSettingsComponent implements OnInit {
 
   showHolidayDialog = false;
   holidayId: number | null = null;
-  holidayDate = '';
+  holidayDate: Date | null = null;
   holidayName = '';
   holidayDescription = '';
   savingHoliday = false;
+
+  get holidayYearOptions(): { label: string; value: number | null }[] {
+    return [{ label: 'All', value: null }, ...this.holidayYears.map(y => ({ label: String(y), value: y }))];
+  }
 
   showSettingDialog = false;
   settingKey = '';
@@ -54,6 +67,26 @@ export class AdminSettingsComponent implements OnInit {
   settingDescription = '';
   editingSettingKey = '';
   savingSetting = false;
+
+  classPrices: ClassPriceDto[] = [];
+  loadingClassPrices = false;
+  showClassPriceDialog = false;
+  classPriceId: number | null = null;
+  classPriceGradeLevel: number | null = null;
+  classPriceClassType: number | null = null;
+  classPricePerMonth: number | null = null;
+  classPriceCurrency = 'MMK';
+  savingClassPrice = false;
+  readonly gradeOptions = [
+    { label: 'P1', value: 1 },
+    { label: 'P2', value: 2 },
+    { label: 'P3', value: 3 },
+    { label: 'P4', value: 4 }
+  ];
+  readonly classTypeOptions = [
+    { label: 'One-to-one', value: ClassType.OneToOne },
+    { label: 'Group', value: ClassType.Group }
+  ];
 
   constructor(
     private adminService: AdminService,
@@ -64,6 +97,7 @@ export class AdminSettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadHolidays();
     this.loadSystemSettings();
+    this.loadClassPrices();
   }
 
   loadHolidays(): void {
@@ -94,13 +128,27 @@ export class AdminSettingsComponent implements OnInit {
     });
   }
 
+  loadClassPrices(): void {
+    this.loadingClassPrices = true;
+    this.adminService.getClassPrices().subscribe({
+      next: (data) => {
+        this.classPrices = data;
+        this.loadingClassPrices = false;
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || 'Failed to load class prices' });
+        this.loadingClassPrices = false;
+      }
+    });
+  }
+
   onYearChange(): void {
     this.loadHolidays();
   }
 
   openAddHoliday(): void {
     this.holidayId = null;
-    this.holidayDate = new Date().toISOString().slice(0, 10);
+    this.holidayDate = new Date();
     this.holidayName = '';
     this.holidayDescription = '';
     this.showHolidayDialog = true;
@@ -108,10 +156,14 @@ export class AdminSettingsComponent implements OnInit {
 
   openEditHoliday(h: HolidayDto): void {
     this.holidayId = h.id;
-    this.holidayDate = h.date.slice(0, 10);
+    this.holidayDate = new Date(h.date.slice(0, 10));
     this.holidayName = h.name;
     this.holidayDescription = h.description ?? '';
     this.showHolidayDialog = true;
+  }
+
+  getHolidayDateStr(): string {
+    return this.holidayDate instanceof Date ? this.holidayDate.toISOString().slice(0, 10) : '';
   }
 
   saveHoliday(): void {
@@ -120,9 +172,14 @@ export class AdminSettingsComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Name is required' });
       return;
     }
+    const dateStr = this.getHolidayDateStr();
+    if (!dateStr) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Date is required' });
+      return;
+    }
     this.savingHoliday = true;
     if (this.holidayId != null) {
-      const request: UpdateHolidayRequest = { date: this.holidayDate, name, description: this.holidayDescription?.trim() || null };
+      const request: UpdateHolidayRequest = { date: dateStr, name, description: this.holidayDescription?.trim() || null };
       this.adminService.updateHoliday(this.holidayId, request).subscribe({
         next: () => {
           this.savingHoliday = false;
@@ -136,7 +193,7 @@ export class AdminSettingsComponent implements OnInit {
         }
       });
     } else {
-      const request: CreateHolidayRequest = { date: this.holidayDate, name, description: this.holidayDescription?.trim() || null };
+      const request: CreateHolidayRequest = { date: dateStr, name, description: this.holidayDescription?.trim() || null };
       this.adminService.createHoliday(request).subscribe({
         next: () => {
           this.savingHoliday = false;
@@ -163,6 +220,73 @@ export class AdminSettingsComponent implements OnInit {
           next: () => {
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Holiday deleted' });
             this.loadHolidays();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || 'Delete failed' })
+        });
+      }
+    });
+  }
+
+  openAddClassPrice(): void {
+    this.classPriceId = null;
+    this.classPriceGradeLevel = null;
+    this.classPriceClassType = null;
+    this.classPricePerMonth = null;
+    this.classPriceCurrency = 'MMK';
+    this.showClassPriceDialog = true;
+  }
+
+  openEditClassPrice(cp: ClassPriceDto): void {
+    this.classPriceId = cp.id;
+    this.classPriceGradeLevel = cp.gradeLevel;
+    this.classPriceClassType = cp.classType;
+    this.classPricePerMonth = cp.pricePerMonth;
+    this.classPriceCurrency = cp.currency || 'MMK';
+    this.showClassPriceDialog = true;
+  }
+
+  saveClassPrice(): void {
+    if (this.classPriceGradeLevel == null || this.classPriceClassType == null) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Select grade and class type.' });
+      return;
+    }
+    const price = this.classPricePerMonth ?? 0;
+    if (price < 0) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Price cannot be negative.' });
+      return;
+    }
+    this.savingClassPrice = true;
+    const request: UpsertClassPriceRequest = {
+      gradeLevel: this.classPriceGradeLevel,
+      classType: this.classPriceClassType,
+      pricePerMonth: price,
+      currency: this.classPriceCurrency?.trim() || undefined
+    };
+    this.adminService.upsertClassPrice(request).subscribe({
+      next: () => {
+        this.savingClassPrice = false;
+        this.showClassPriceDialog = false;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Class price saved.' });
+        this.loadClassPrices();
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || 'Save failed' });
+        this.savingClassPrice = false;
+      }
+    });
+  }
+
+  deleteClassPrice(cp: ClassPriceDto): void {
+    this.confirmationService.confirm({
+      message: `Remove price for ${cp.gradeLevelName} – ${cp.classTypeName}?`,
+      header: 'Delete class price',
+      icon: 'pi pi-trash',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.adminService.deleteClassPrice(cp.id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Class price removed.' });
+            this.loadClassPrices();
           },
           error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || 'Delete failed' })
         });

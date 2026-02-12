@@ -1,4 +1,4 @@
-<div class="parent-student-learning">
+<div class="parent-student-learning page-container">
   <div class="page-header-compact mb-3">
     <div class="header-with-back">
       <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" routerLink="/parent" title="Back to My Students" styleClass="mr-2" />
@@ -14,7 +14,10 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <p>Loading...</p>
+  </div>
 
   <ng-container *ngIf="overview && !loading && !error">
     <div class="subscription-banner" *ngIf="overview.subscriptionValidUntil">
@@ -69,7 +72,7 @@
                 <div *ngFor="let s of monthSessionsOnDay(cell.date)" class="session-block"
                      [class.completed]="isMonthSessionCompleted(s)"
                      [class.upcoming]="isMonthSessionUpcoming(s)">
-                  <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+                  <div class="session-time">{{ s.startTime | time12h }}<span *ngIf="s.endTime"> – {{ s.endTime | time12h }}</span></div>
                   <div class="session-meta">
                     <span *ngIf="s.groupClassName">Group: {{ s.groupClassName }}</span>
                     <span *ngIf="!s.groupClassName">{{ s.teacherName }} · {{ s.contractIdDisplay }}</span>
@@ -101,7 +104,7 @@
           </div>
           <div class="day-sessions">
             <div *ngFor="let s of sessionsOnDay(col.date)" class="session-block">
-              <div class="session-time">{{ s.startTime }}<span *ngIf="s.endTime"> – {{ s.endTime }}</span></div>
+              <div class="session-time">{{ s.startTime | time12h }}<span *ngIf="s.endTime"> – {{ s.endTime | time12h }}</span></div>
               <div class="session-meta">{{ s.teacherName }} · {{ s.contractIdDisplay }} · {{ s.status }}</div>
             </div>
             <div *ngIf="sessionsOnDay(col.date).length === 0" class="no-sessions">—</div>

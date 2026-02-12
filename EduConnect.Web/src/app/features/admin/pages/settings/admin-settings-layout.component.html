@@ -1,0 +1,21 @@
+<div class="admin-settings-layout page-container">
+  <div class="page-header-compact">
+    <div>
+      <h1>Settings</h1>
+      <p class="page-desc-short">Manage holidays and class prices (MMK).</p>
+    </div>
+  </div>
+  <nav class="settings-subnav">
+    <a routerLink="/admin/settings/holidays" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <i class="pi pi-calendar"></i>
+      <span>Holidays</span>
+    </a>
+    <a routerLink="/admin/settings/class-prices" routerLinkActive="active">
+      <i class="pi pi-dollar"></i>
+      <span>Class prices</span>
+    </a>
+  </nav>
+  <div class="settings-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

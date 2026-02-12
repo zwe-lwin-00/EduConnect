@@ -1,4 +1,4 @@
-<div class="admin-attendance">
+<div class="admin-attendance page-container">
   <div class="page-header-compact">
     <div>
       <h1>Attendance</h1>
@@ -7,10 +7,14 @@
   </div>
 
   <p-card>
-    <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
-    <div *ngIf="!loading && sessions.length === 0" class="empty-state">
+    <div *ngIf="loading" class="empty-table-message">
+      <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+      <p>Loading sessions...</p>
+    </div>
+    <div *ngIf="!loading && sessions.length === 0" class="empty-table-message">
       <i class="pi pi-calendar empty-icon"></i>
       <p>No sessions today.</p>
+      <p class="empty-hint">Sessions for today will appear here.</p>
     </div>
     <div *ngIf="!loading && sessions.length > 0" class="session-list">
       <div *ngFor="let s of sessions" class="session-card">
@@ -33,7 +37,7 @@
     <div class="dialog-form">
       <div class="field">
         <label>Hours</label>
-        <input pInputText type="number" [(ngModel)]="adjustHours" step="0.5" min="0" class="w-full" />
+        <p-inputNumber [(ngModel)]="adjustHours" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="1" [step]="0.5" inputStyleClass="w-full" styleClass="w-full" />
       </div>
       <div class="field">
         <label>Reason *</label>

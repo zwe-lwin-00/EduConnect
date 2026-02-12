@@ -13,8 +13,7 @@ public interface IStudentService : IService
 public class CreateStudentDto
 {
     public string ParentId { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public int GradeLevel { get; set; }
     public DateTime DateOfBirth { get; set; }
     public string? SpecialNeeds { get; set; }
@@ -22,8 +21,7 @@ public class CreateStudentDto
 
 public class UpdateStudentDto
 {
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public int GradeLevel { get; set; }
     public string? SpecialNeeds { get; set; }
 }
@@ -31,8 +29,7 @@ public class UpdateStudentDto
 public class StudentDto
 {
     public int Id { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public int GradeLevel { get; set; }
     public DateTime DateOfBirth { get; set; }
     public string? SpecialNeeds { get; set; }

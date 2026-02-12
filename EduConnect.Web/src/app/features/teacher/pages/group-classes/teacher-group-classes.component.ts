@@ -8,6 +8,9 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
+import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import {
   GroupClassDto,
@@ -21,7 +24,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 @Component({
   selector: 'app-teacher-group-classes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule],
+  imports: [CommonModule, FormsModule, RouterModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule, DropdownModule, CheckboxModule, ProgressSpinnerModule],
   templateUrl: './teacher-group-classes.component.html',
   styleUrl: './teacher-group-classes.component.css'
 })
@@ -52,6 +55,10 @@ export class TeacherGroupClassesComponent implements OnInit {
     if (!this.selectedGroupClass) return this.assignedStudents;
     const enrolledStudentIds = new Set(this.enrollments.map(e => e.studentId));
     return this.assignedStudents.filter(s => !enrolledStudentIds.has(s.studentId));
+  }
+
+  get enrollContractOptions(): { label: string; value: TeacherAssignedStudentDto }[] {
+    return this.assignableContracts.map(s => ({ label: `${s.studentName} – ${s.contractIdDisplay}`, value: s }));
   }
 
   ngOnInit(): void {

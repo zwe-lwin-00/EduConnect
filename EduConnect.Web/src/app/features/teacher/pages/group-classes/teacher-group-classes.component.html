@@ -1,4 +1,4 @@
-<div class="teacher-group-classes">
+<div class="teacher-group-classes page-container">
   <div class="page-header-compact">
     <div>
       <h1>Group classes</h1>
@@ -9,7 +9,10 @@
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
   <p-card header="Your classes">
-    <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="loading" class="empty-table-message">
+      <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+      <span class="text-color-secondary">Loading...</span>
+    </div>
     <div *ngIf="!loading && groupClasses.length === 0" class="empty-state">
       <i class="pi pi-book empty-icon"></i>
       <p>No group classes assigned to you.</p>
@@ -29,6 +32,7 @@
   </p-card>
 
   <p-dialog
+    appendTo="body"
     [header]="selectedGroupClass.name + ' – Enrollments'"
     [visible]="!!selectedGroupClass"
     [modal]="true"
@@ -46,17 +50,15 @@
           <label>Zoom link</label>
           <input pInputText type="url" [(ngModel)]="editZoomUrl" class="w-full" placeholder="https://zoom.us/j/..." />
         </div>
-        <div class="field">
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
+        <div class="field flex align-items-center gap-2">
+          <p-checkbox [(ngModel)]="editIsActive" [binary]="true" inputId="editIsActive" />
+          <label for="editIsActive" class="checkbox-label">Active</label>
         </div>
         <p-button label="Save" icon="pi pi-check" (onClick)="updateGroupClass()" [loading]="updating" />
       </div>
       <h4 class="subheading">Students</h4>
       <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
-        <select [(ngModel)]="selectedEnrollContract" class="p-inputtext inline-select">
-          <option [ngValue]="null">Add student...</option>
-          <option *ngFor="let s of assignableContracts" [ngValue]="s">{{ s.studentName }} – {{ s.contractIdDisplay }}</option>
-        </select>
+        <p-dropdown appendTo="body" [(ngModel)]="selectedEnrollContract" [options]="enrollContractOptions" optionLabel="label" optionValue="value" placeholder="Add student..." styleClass="inline-select" [style]="{ minWidth: '12rem' }" />
         <p-button label="Add" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!selectedEnrollContract" />
       </div>
       <ul class="enrollment-list">

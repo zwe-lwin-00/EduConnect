@@ -7,6 +7,11 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { TextareaModule } from 'primeng/textarea';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import {
   TeacherAssignedStudentDto,
@@ -22,7 +27,7 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-teacher-homework-grades',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule],
+  imports: [CommonModule, FormsModule, CardModule, DialogModule, ButtonModule, MessageModule, InputTextModule, TagModule, CalendarModule, DropdownModule, InputNumberModule, TextareaModule, ProgressSpinnerModule],
   templateUrl: './teacher-homework-grades.component.html',
   styleUrl: './teacher-homework-grades.component.css'
 })
@@ -62,6 +67,40 @@ export class TeacherHomeworkGradesComponent implements OnInit {
   gradingFeedback = '';
 
   readonly HOMEWORK_STATUS = HOMEWORK_STATUS;
+
+  /** Max date for "Since" (From) filter pickers: cannot select future dates. Set once to avoid PrimeNG overlay lifecycle issues. */
+  maxDateForSince = new Date();
+
+  private static dateToStr(d: Date | null | undefined): string {
+    if (!d || !(d instanceof Date)) return '';
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  private static strToDate(s: string): Date | null {
+    if (!s?.trim()) return null;
+    const [y, m, d] = s.trim().split('-').map(Number);
+    if (isNaN(y)) return null;
+    return new Date(y, (m || 1) - 1, d || 1);
+  }
+
+  get dueDateFromModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.dueDateFrom); }
+  set dueDateFromModel(v: Date | null) { this.dueDateFrom = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+  get dueDateToModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.dueDateTo); }
+  set dueDateToModel(v: Date | null) { this.dueDateTo = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+  get gradeDateFromModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.gradeDateFrom); }
+  set gradeDateFromModel(v: Date | null) { this.gradeDateFrom = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+  get gradeDateToModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.gradeDateTo); }
+  set gradeDateToModel(v: Date | null) { this.gradeDateTo = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+  get homeworkDueDateModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.homeworkForm.dueDate); }
+  set homeworkDueDateModel(v: Date | null) { this.homeworkForm.dueDate = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+  get gradeDateFormModel(): Date | null { return TeacherHomeworkGradesComponent.strToDate(this.gradeForm.gradeDate); }
+  set gradeDateFormModel(v: Date | null) { this.gradeForm.gradeDate = TeacherHomeworkGradesComponent.dateToStr(v) ?? ''; }
+
+  get studentOptions(): { label: string; value: number }[] {
+    return this.students.map(s => ({ label: `${s.studentName} (${s.contractIdDisplay})`, value: s.studentId }));
+  }
+  get studentFilterOptions(): { label: string; value: number | null }[] {
+    return [{ label: 'All students', value: null }, ...this.students.map(s => ({ label: `${s.studentName} (${s.contractIdDisplay})`, value: s.studentId }))];
+  }
 
   constructor(
     private teacherService: TeacherService,

@@ -87,7 +87,7 @@ public class AttendanceService : IAttendanceService
 
         if (log.ContractSession?.Student != null)
         {
-            var studentName = $"{log.ContractSession.Student.FirstName} {log.ContractSession.Student.LastName}";
+            var studentName = log.ContractSession.Student?.FullName ?? "";
             await _notificationService.CreateForUserAsync(log.ContractSession.Student.ParentId, "Session completed – notes added", $"Session for {studentName} has been completed with lesson notes.", NotificationType.SessionCompleted, "Attendance", log.Id);
         }
         _logger.InformationLog("Check-out completed");
@@ -154,7 +154,7 @@ public class AttendanceService : IAttendanceService
             var student = e.Student ?? (e.ContractSession != null ? e.ContractSession.Student : null);
             if (student != null)
             {
-                var studentName = $"{student.FirstName} {student.LastName}";
+                var studentName = student.FullName ?? "";
                 await _notificationService.CreateForUserAsync(student.ParentId, "Session completed – notes added", $"Group session for {session.GroupClass?.Name} ({studentName}) has been completed with lesson notes.", NotificationType.SessionCompleted, "GroupSession", session.Id);
             }
         }

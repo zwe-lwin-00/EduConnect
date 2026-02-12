@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { AdminService } from '../../../../core/services/admin.service';
 import { TodaySessionDto } from '../../../../core/models/admin.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -12,7 +14,7 @@ import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 @Component({
   selector: 'app-admin-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule, DisplayDatePipe],
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule, InputNumberModule, ProgressSpinnerModule, DisplayDatePipe],
   templateUrl: './admin-attendance.component.html',
   styleUrl: './admin-attendance.component.css'
 })
@@ -89,7 +91,7 @@ export class AdminAttendanceComponent implements OnInit {
     if (this.adjustingId == null || !this.adjustReason.trim()) return;
     this.adminService.adjustSessionHours(this.adjustingId, { hours: this.adjustHours, reason: this.adjustReason }).subscribe({
       next: () => { this.closeAdjust(); this.load(); },
-      error: (err) => alert('Error: ' + (err.error?.error || err.message))
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || err.message || 'Failed to adjust hours.' })
     });
   }
 }

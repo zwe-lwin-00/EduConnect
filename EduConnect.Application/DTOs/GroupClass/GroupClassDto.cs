@@ -13,6 +13,10 @@ public class GroupClassDto
     public string? StartTime { get; set; }
     /// <summary>Class end time (e.g. "10:00").</summary>
     public string? EndTime { get; set; }
+    /// <summary>Optional: class runs from this date (ISO date).</summary>
+    public DateTime? StartDate { get; set; }
+    /// <summary>Optional: class runs until this date (ISO date).</summary>
+    public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; }
     /// <summary>Zoom meeting join URL — set by teacher.</summary>
     public string? ZoomJoinUrl { get; set; }

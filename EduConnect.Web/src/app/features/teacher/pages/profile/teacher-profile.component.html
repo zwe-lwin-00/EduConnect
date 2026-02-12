@@ -1,4 +1,4 @@
-<div class="teacher-profile">
+<div class="teacher-profile page-container">
   <div class="page-header-compact">
     <div>
       <h1>Profile</h1>
@@ -8,11 +8,14 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <span class="text-color-secondary">Loading...</span>
+  </div>
 
   <div *ngIf="profile && !loading">
     <p-card header="Your details">
-      <div class="detail-row"><strong>Name:</strong> {{ profile.firstName }} {{ profile.lastName }}</div>
+      <div class="detail-row"><strong>Name:</strong> {{ profile.fullName }}</div>
       <div class="detail-row"><strong>Email:</strong> {{ profile.email }}</div>
       <div class="detail-row"><strong>Phone:</strong> {{ profile.phoneNumber }}</div>
       <div class="detail-row"><strong>Education:</strong> {{ profile.educationLevel }}</div>

@@ -5,8 +5,7 @@ public class StudentDto
     public int Id { get; set; }
     public string ParentId { get; set; } = string.Empty;
     public string ParentName { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public int GradeLevel { get; set; }
     public string GradeLevelName { get; set; } = string.Empty;
     public DateTime DateOfBirth { get; set; }

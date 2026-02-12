@@ -4,6 +4,9 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { CardModule } from 'primeng/card';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
 import { AdminService } from '../../../../core/services/admin.service';
 import { Student, Parent, CreateStudentRequest, PagedResult } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -12,7 +15,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 @Component({
   selector: 'app-admin-students',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, DialogModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, CardModule, CalendarModule, DropdownModule],
   templateUrl: './admin-students.component.html',
   styleUrl: './admin-students.component.css'
 })
@@ -29,6 +32,10 @@ export class AdminStudentsComponent implements OnInit {
     { value: 4, label: 'P4' }
   ];
 
+  get parentOptions(): { label: string; value: string }[] {
+    return this.parents.map(p => ({ label: p.fullName, value: p.id }));
+  }
+
   constructor(
     private adminService: AdminService,
     private fb: FormBuilder,
@@ -36,9 +43,8 @@ export class AdminStudentsComponent implements OnInit {
     private confirmationService: ConfirmationService
   ) {
     this.createForm = this.fb.group({
-      parentId: ['', Validators.required],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      parentId: [null as string | null, Validators.required],
+      fullName: ['', Validators.required],
       gradeLevel: [1, [Validators.required, Validators.min(1), Validators.max(4)]],
       dateOfBirth: ['', Validators.required],
       specialNeeds: ['']
@@ -83,11 +89,12 @@ export class AdminStudentsComponent implements OnInit {
   onSubmitCreate(): void {
     if (this.createForm.valid) {
       const v = this.createForm.value;
-      const dob = typeof v.dateOfBirth === 'string' ? v.dateOfBirth : (v.dateOfBirth as Date)?.toISOString?.()?.slice(0, 10) ?? '';
+      const dob = v.dateOfBirth instanceof Date
+        ? v.dateOfBirth.toISOString().slice(0, 10)
+        : (typeof v.dateOfBirth === 'string' ? v.dateOfBirth : '');
       const request: CreateStudentRequest = {
         parentId: v.parentId,
-        firstName: v.firstName,
-        lastName: v.lastName,
+        fullName: v.fullName,
         gradeLevel: +v.gradeLevel,
         dateOfBirth: dob,
         specialNeeds: v.specialNeeds || undefined
@@ -106,7 +113,7 @@ export class AdminStudentsComponent implements OnInit {
   setStudentActive(student: Student, isActive: boolean): void {
     const action = isActive ? 'Activate' : 'Freeze';
     this.confirmationService.confirm({
-      message: `${action} student ${student.firstName} ${student.lastName}?`,
+      message: `${action} student ${student.fullName}?`,
       header: action + ' student',
       icon: isActive ? 'pi pi-check' : 'pi pi-ban',
       accept: () => {

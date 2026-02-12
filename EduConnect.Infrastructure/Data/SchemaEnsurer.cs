@@ -10,6 +10,7 @@ public static class SchemaEnsurer
 {
     public static async Task EnsureMissingTablesAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
     {
+        await EnsureFullNameMigrationAsync(context, cancellationToken);
         await EnsureNotificationsTableAsync(context, cancellationToken);
         await EnsureRefreshTokensTableAsync(context, cancellationToken);
         await EnsureGroupClassesTableAsync(context, cancellationToken);
@@ -24,6 +25,61 @@ public static class SchemaEnsurer
         await EnsureClassScheduleColumnsAsync(context, cancellationToken);
         await EnsureHolidaysTableAsync(context, cancellationToken);
         await EnsureSystemSettingsTableAsync(context, cancellationToken);
+        await EnsureClassPricesTableAsync(context, cancellationToken);
+    }
+
+    /// <summary>Replace FirstName/LastName with FullName on AspNetUsers and Students. Add column, backfill, then drop old columns.</summary>
+    private static async Task EnsureFullNameMigrationAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        // AspNetUsers: add FullName if missing
+        var addUserFullName = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'FullName')
+                ALTER TABLE [AspNetUsers] ADD [FullName] nvarchar(256) NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(addUserFullName, cancellationToken);
+        // Backfill AspNetUsers from FirstName + LastName (only if FirstName/LastName exist)
+        var backfillUser = @"
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'FirstName')
+            AND EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'LastName')
+            BEGIN
+                UPDATE [AspNetUsers]
+                SET [FullName] = LTRIM(RTRIM(ISNULL([FirstName], '') + ' ' + ISNULL([LastName], '')))
+                WHERE [FullName] IS NULL OR [FullName] = '';
+            END
+        ";
+        await context.Database.ExecuteSqlRawAsync(backfillUser, cancellationToken);
+        // Drop FirstName, LastName from AspNetUsers
+        var dropUserCols = @"
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'FirstName')
+                ALTER TABLE [AspNetUsers] DROP COLUMN [FirstName];
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AspNetUsers') AND name = 'LastName')
+                ALTER TABLE [AspNetUsers] DROP COLUMN [LastName];
+        ";
+        await context.Database.ExecuteSqlRawAsync(dropUserCols, cancellationToken);
+
+        // Students: add FullName if missing
+        var addStudentFullName = @"
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Students') AND name = 'FullName')
+                ALTER TABLE [Students] ADD [FullName] nvarchar(256) NULL;
+        ";
+        await context.Database.ExecuteSqlRawAsync(addStudentFullName, cancellationToken);
+        var backfillStudent = @"
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Students') AND name = 'FirstName')
+            AND EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Students') AND name = 'LastName')
+            BEGIN
+                UPDATE [Students]
+                SET [FullName] = LTRIM(RTRIM(ISNULL([FirstName], '') + ' ' + ISNULL([LastName], '')))
+                WHERE [FullName] IS NULL OR [FullName] = '';
+            END
+        ";
+        await context.Database.ExecuteSqlRawAsync(backfillStudent, cancellationToken);
+        var dropStudentCols = @"
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Students') AND name = 'FirstName')
+                ALTER TABLE [Students] DROP COLUMN [FirstName];
+            IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Students') AND name = 'LastName')
+                ALTER TABLE [Students] DROP COLUMN [LastName];
+        ";
+        await context.Database.ExecuteSqlRawAsync(dropStudentCols, cancellationToken);
     }
 
     /// <summary>Add schedule columns: DaysOfWeek, StartTime, EndTime to GroupClasses and ContractSessions.</summary>
@@ -36,6 +92,10 @@ public static class SchemaEnsurer
                 ALTER TABLE [GroupClasses] ADD [StartTime] time NULL;
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'EndTime')
                 ALTER TABLE [GroupClasses] ADD [EndTime] time NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'StartDate')
+                ALTER TABLE [GroupClasses] ADD [StartDate] date NULL;
+            IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('GroupClasses') AND name = 'EndDate')
+                ALTER TABLE [GroupClasses] ADD [EndDate] date NULL;
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'DaysOfWeek')
                 ALTER TABLE [ContractSessions] ADD [DaysOfWeek] nvarchar(50) NULL;
             IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ContractSessions') AND name = 'StartTime')
@@ -330,6 +390,27 @@ public static class SchemaEnsurer
                     CONSTRAINT [PK_SystemSettings] PRIMARY KEY ([Id])
                 );
                 CREATE UNIQUE INDEX [IX_SystemSettings_Key] ON [SystemSettings] ([Key]);
+            END
+            """;
+        await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+    }
+
+    private static async Task EnsureClassPricesTableAsync(ApplicationDbContext context, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ClassPrices')
+            BEGIN
+                CREATE TABLE [ClassPrices] (
+                    [Id] int NOT NULL IDENTITY(1,1),
+                    [GradeLevel] int NOT NULL,
+                    [ClassType] int NOT NULL,
+                    [PricePerMonth] decimal(18,2) NOT NULL,
+                    [Currency] nvarchar(10) NOT NULL,
+                    [CreatedAt] datetime2 NOT NULL,
+                    [UpdatedAt] datetime2 NOT NULL,
+                    CONSTRAINT [PK_ClassPrices] PRIMARY KEY ([Id])
+                );
+                CREATE UNIQUE INDEX [IX_ClassPrices_GradeLevel_ClassType] ON [ClassPrices] ([GradeLevel], [ClassType]);
             END
             """;
         await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);

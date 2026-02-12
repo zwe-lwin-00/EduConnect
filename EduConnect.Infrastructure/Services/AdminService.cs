@@ -59,8 +59,7 @@ public class AdminService : IAdminService
         {
             UserName = request.Email,
             Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
             Role = UserRole.Teacher,
             MustChangePassword = true,
@@ -98,7 +97,7 @@ public class AdminService : IAdminService
         _context.TeacherProfiles.Add(teacherProfile);
         await _unitOfWork.SaveChangesAsync();
 
-        var teacherName = $"{user.FirstName} {user.LastName}";
+        var teacherName = user.FullName ?? string.Empty;
         var adminIds = await _context.Users.Where(u => u.Role == UserRole.Admin).Select(u => u.Id).ToListAsync();
         foreach (var adminId in adminIds)
         {
@@ -199,8 +198,7 @@ public class AdminService : IAdminService
         {
             var term = searchTerm.Trim();
             query = query.Where(t =>
-                t.User.FirstName.Contains(term) ||
-                t.User.LastName.Contains(term) ||
+                (t.User.FullName != null && t.User.FullName.Contains(term)) ||
                 (t.User.Email != null && t.User.Email.Contains(term)));
         }
         if (verificationStatus.HasValue)
@@ -234,8 +232,7 @@ public class AdminService : IAdminService
             throw new NotFoundException("Teacher", teacherId);
         }
 
-        teacher.User.FirstName = request.FirstName;
-        teacher.User.LastName = request.LastName;
+        teacher.User.FullName = request.FullName ?? string.Empty;
         teacher.User.PhoneNumber = request.PhoneNumber ?? string.Empty;
         teacher.EducationLevel = request.EducationLevel;
         teacher.HourlyRate = request.HourlyRate;
@@ -295,8 +292,7 @@ public class AdminService : IAdminService
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(t =>
-                t.User.FirstName.Contains(request.SearchTerm) ||
-                t.User.LastName.Contains(request.SearchTerm) ||
+                (t.User.FullName != null && t.User.FullName.Contains(request.SearchTerm)) ||
                 (t.User.Email != null && t.User.Email.Contains(request.SearchTerm)));
         }
         if (verificationStatus.HasValue)
@@ -308,8 +304,8 @@ public class AdminService : IAdminService
         query = request.SortBy?.ToLower() switch
         {
             "name" => request.SortDescending
-                ? query.OrderByDescending(t => t.User.LastName)
-                : query.OrderBy(t => t.User.LastName),
+                ? query.OrderByDescending(t => t.User.FullName)
+                : query.OrderBy(t => t.User.FullName),
             "email" => request.SortDescending
                 ? query.OrderByDescending(t => t.User.Email)
                 : query.OrderBy(t => t.User.Email),
@@ -346,8 +342,7 @@ public class AdminService : IAdminService
         {
             var term = request.SearchTerm.Trim();
             query = query.Where(u =>
-                (u.FirstName != null && u.FirstName.Contains(term)) ||
-                (u.LastName != null && u.LastName.Contains(term)) ||
+                (u.FullName != null && u.FullName.Contains(term)) ||
                 (u.Email != null && u.Email.Contains(term)));
         }
 
@@ -355,8 +350,8 @@ public class AdminService : IAdminService
         query = request.SortBy?.ToLower() switch
         {
             "name" => request.SortDescending
-                ? query.OrderByDescending(u => u.LastName)
-                : query.OrderBy(u => u.LastName),
+                ? query.OrderByDescending(u => u.FullName)
+                : query.OrderBy(u => u.FullName),
             "email" => request.SortDescending
                 ? query.OrderByDescending(u => u.Email)
                 : query.OrderBy(u => u.Email),
@@ -404,14 +399,14 @@ public class AdminService : IAdminService
             DateTime? periodEnd = c.SubscriptionId.HasValue && c.Subscription != null
                 ? c.Subscription.SubscriptionPeriodEnd
                 : c.SubscriptionPeriodEnd;
-            if (!periodEnd.HasValue || periodEnd.Value < now || periodEnd.Value > subscriptionEndThreshold)
+            if (!periodEnd.HasValue || periodEnd.Value.Date < now.Date || periodEnd.Value.Date > subscriptionEndThreshold.Date)
                 continue;
             alerts.Add(new DashboardAlertDto
             {
                 Type = "SubscriptionExpiring",
-                Message = $"Subscription for {c.Student.FirstName} {c.Student.LastName} (Contract {c.ContractId}) ends on {periodEnd.Value:dd MMM yyyy}. Renew to extend.",
+                Message = $"Subscription for {c.Student.FullName} (Contract {c.ContractId}) ends on {periodEnd.Value:dd MMM yyyy}. Renew to extend.",
                 EntityId = c.ContractId,
-                EntityName = $"{c.Student.FirstName} {c.Student.LastName}"
+                EntityName = c.Student.FullName ?? string.Empty
             });
         }
 
@@ -428,9 +423,9 @@ public class AdminService : IAdminService
             alerts.Add(new DashboardAlertDto
             {
                 Type = "ContractExpiring",
-                Message = $"Contract {c.ContractId} ends on {c.EndDate!.Value:yyyy-MM-dd} – {c.Student.FirstName} {c.Student.LastName}",
+                Message = $"Contract {c.ContractId} ends on {c.EndDate!.Value:yyyy-MM-dd} – {c.Student.FullName}",
                 EntityId = c.ContractId,
-                EntityName = c.Student.FirstName + " " + c.Student.LastName
+                EntityName = c.Student.FullName ?? string.Empty
             });
 
         // Today's sessions (today = Myanmar date)
@@ -448,8 +443,8 @@ public class AdminService : IAdminService
         {
             Id = a.Id,
             ContractId = a.ContractSession?.ContractId ?? "",
-            TeacherName = a.ContractSession?.Teacher != null ? $"{a.ContractSession.Teacher.User.FirstName} {a.ContractSession.Teacher.User.LastName}" : "",
-            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
+            TeacherName = a.ContractSession?.Teacher?.User?.FullName ?? "",
+            StudentName = a.ContractSession?.Student?.FullName ?? "",
             Status = a.Status.ToString(),
             CheckInTime = a.CheckInTime,
             CheckOutTime = a.CheckOutTime
@@ -503,8 +498,7 @@ public class AdminService : IAdminService
         {
             UserName = request.Email,
             Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
             Role = UserRole.Parent,
             MustChangePassword = true,
@@ -535,8 +529,7 @@ public class AdminService : IAdminService
         var student = new Student
         {
             ParentId = request.ParentId,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            FullName = request.FullName,
             GradeLevel = (GradeLevel)request.GradeLevel,
             DateOfBirth = request.DateOfBirth,
             SpecialNeeds = request.SpecialNeeds,
@@ -567,8 +560,28 @@ public class AdminService : IAdminService
         if (request.DurationMonths < 1)
             throw new BusinessException("Duration must be at least 1 month.", "INVALID_DURATION");
 
+        // If same student + type already has a subscription, extend it instead of creating a new one
+        var existing = await _context.Subscriptions
+            .Where(s => s.StudentId == request.StudentId && s.Type == request.Type)
+            .OrderByDescending(s => s.SubscriptionPeriodEnd)
+            .FirstOrDefaultAsync();
+
+        if (existing != null)
+        {
+            var currentEndDate = existing.SubscriptionPeriodEnd.Date;
+            if (currentEndDate < DateTime.UtcNow.Date) currentEndDate = DateTime.UtcNow.Date;
+            // New end = last day of the month that is (current end + duration months)
+            var newEnd = new DateTime(currentEndDate.Year, currentEndDate.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(request.DurationMonths).AddDays(-1);
+            existing.SubscriptionPeriodEnd = newEnd;
+            existing.Status = ContractStatus.Active;
+            await _unitOfWork.SaveChangesAsync();
+            _logger.InformationLog("Subscription extended: " + existing.SubscriptionId + " until " + newEnd.ToString("yyyy-MM-dd"));
+            return MapToSubscriptionDto(existing, student);
+        }
+
         var start = request.StartDate?.Date ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var periodEnd = start.AddMonths(request.DurationMonths).AddSeconds(-1);
+        // Period end = last day of the last month (inclusive). E.g. 1 month from Feb 1 -> Feb 28 (or 29).
+        var periodEnd = start.AddMonths(request.DurationMonths).AddDays(-1);
         var subId = "SUB-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
         var subscription = new Subscription
         {
@@ -616,8 +629,10 @@ public class AdminService : IAdminService
             throw new NotFoundException("Subscription", subscriptionId);
         if (additionalMonths < 1)
             throw new BusinessException("Additional months must be at least 1.", "INVALID_DURATION");
-        var currentEnd = sub.SubscriptionPeriodEnd < DateTime.UtcNow ? DateTime.UtcNow : sub.SubscriptionPeriodEnd;
-        sub.SubscriptionPeriodEnd = currentEnd.AddMonths(additionalMonths).AddSeconds(-1);
+        var currentEndDate = sub.SubscriptionPeriodEnd.Date;
+        if (currentEndDate < DateTime.UtcNow.Date) currentEndDate = DateTime.UtcNow.Date;
+        var newEnd = new DateTime(currentEndDate.Year, currentEndDate.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(additionalMonths).AddDays(-1);
+        sub.SubscriptionPeriodEnd = newEnd;
         await _unitOfWork.SaveChangesAsync();
         _logger.InformationLog("Subscription renewed: " + sub.SubscriptionId);
         return true;
@@ -630,7 +645,7 @@ public class AdminService : IAdminService
             Id = s.Id,
             SubscriptionId = s.SubscriptionId,
             StudentId = s.StudentId,
-            StudentName = $"{student.FirstName} {student.LastName}",
+            StudentName = student.FullName ?? string.Empty,
             Type = (int)s.Type,
             TypeName = s.Type.ToString(),
             StartDate = s.StartDate,
@@ -692,8 +707,35 @@ public class AdminService : IAdminService
                 throw new BusinessException("Subscription must be One-to-one type for a 1:1 class.", "INVALID_SUBSCRIPTION_TYPE");
             if (!sub.HasActiveAccess())
                 throw new BusinessException("Subscription is not active or has expired.", "SUBSCRIPTION_INACTIVE");
-            startDate = sub.StartDate;
-            subscriptionPeriodEnd = null;
+
+            var subStart = sub.StartDate.Date;
+            var subEnd = sub.SubscriptionPeriodEnd.Date;
+
+            if (request.StartDate.HasValue)
+            {
+                var requestedStart = request.StartDate.Value.Date;
+                if (requestedStart < subStart)
+                    throw new BusinessException($"Class start date cannot be before the subscription start date ({subStart:yyyy-MM-dd}).", "START_DATE_BEFORE_SUBSCRIPTION");
+                if (requestedStart > subEnd)
+                    throw new BusinessException($"Class start date cannot be after the subscription end date ({subEnd:yyyy-MM-dd}).", "START_DATE_AFTER_SUBSCRIPTION");
+                startDate = requestedStart;
+            }
+            else
+            {
+                startDate = sub.StartDate;
+            }
+
+            if (endDate.HasValue)
+            {
+                var endDateVal = endDate.Value.Date;
+                if (endDateVal < startDate.Date)
+                    throw new BusinessException("Class end date cannot be before the class start date.", "END_DATE_BEFORE_START");
+                if (endDateVal > subEnd)
+                    throw new BusinessException($"Class end date cannot be after the subscription end date ({subEnd:yyyy-MM-dd}).", "END_DATE_AFTER_SUBSCRIPTION");
+                endDate = endDateVal;
+            }
+
+            subscriptionPeriodEnd = sub.SubscriptionPeriodEnd;
         }
         else
         {
@@ -702,6 +744,16 @@ public class AdminService : IAdminService
             startDate = request.StartDate.Value.Date;
             var lastDay = new DateTime(startDate.Year, startDate.Month, DateTime.DaysInMonth(startDate.Year, startDate.Month), 23, 59, 59, DateTimeKind.Utc);
             subscriptionPeriodEnd = lastDay;
+
+            if (endDate.HasValue)
+            {
+                var endDateVal = endDate.Value.Date;
+                if (endDateVal < startDate)
+                    throw new BusinessException("Class end date cannot be before the class start date.", "END_DATE_BEFORE_START");
+                if (endDateVal > lastDay.Date)
+                    throw new BusinessException($"Class end date cannot be after the period end ({lastDay:yyyy-MM-dd}) when not using a subscription.", "END_DATE_AFTER_PERIOD");
+                endDate = endDateVal;
+            }
         }
 
         var contractId = "C-" + Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
@@ -731,7 +783,7 @@ public class AdminService : IAdminService
         _logger.InformationLog("Contract created");
 
         var teacherUserId = teacher.UserId;
-        await _notificationService.CreateForUserAsync(teacherUserId, "New contract", $"New contract {contract.ContractId} with student {student.FirstName} {student.LastName}.", NotificationType.NewContract, "Contract", contract.Id);
+        await _notificationService.CreateForUserAsync(teacherUserId, "New contract", $"New contract {contract.ContractId} with student {student.FullName}.", NotificationType.NewContract, "Contract", contract.Id);
 
         if (endDate.HasValue)
         {
@@ -779,9 +831,9 @@ public class AdminService : IAdminService
             Id = c.Id,
             ContractId = c.ContractId,
             TeacherId = c.TeacherId,
-            TeacherName = c.Teacher != null ? $"{c.Teacher.User.FirstName} {c.Teacher.User.LastName}" : "",
+            TeacherName = c.Teacher?.User?.FullName ?? "",
             StudentId = c.StudentId,
-            StudentName = c.Student != null ? $"{c.Student.FirstName} {c.Student.LastName}" : "",
+            StudentName = c.Student?.FullName ?? "",
             SubscriptionPeriodEnd = c.SubscriptionId.HasValue && c.Subscription != null ? c.Subscription.SubscriptionPeriodEnd : c.SubscriptionPeriodEnd,
             Status = (int)c.Status,
             StatusName = c.Status.ToString(),
@@ -858,17 +910,19 @@ public class AdminService : IAdminService
         if (c.SubscriptionId.HasValue && c.Subscription != null)
         {
             var sub = c.Subscription!;
-            var currentEnd = sub.SubscriptionPeriodEnd < DateTime.UtcNow ? DateTime.UtcNow : sub.SubscriptionPeriodEnd;
-            sub.SubscriptionPeriodEnd = currentEnd.AddMonths(1).AddSeconds(-1);
+            var currentEndDate = sub.SubscriptionPeriodEnd.Date;
+            if (currentEndDate < DateTime.UtcNow.Date) currentEndDate = DateTime.UtcNow.Date;
+            var newEnd = new DateTime(currentEndDate.Year, currentEndDate.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1).AddDays(-1);
+            sub.SubscriptionPeriodEnd = newEnd;
             await _unitOfWork.SaveChangesAsync();
             _logger.InformationLog("Subscription renewed (via contract): " + sub.SubscriptionId);
             return true;
         }
-        var from = (c.SubscriptionPeriodEnd.HasValue && c.SubscriptionPeriodEnd.Value > DateTime.UtcNow)
-            ? c.SubscriptionPeriodEnd.Value
-            : DateTime.UtcNow;
-        var nextMonth = from.AddMonths(1);
-        var lastDay = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month), 23, 59, 59, DateTimeKind.Utc);
+        var from = (c.SubscriptionPeriodEnd.HasValue && c.SubscriptionPeriodEnd.Value.Date >= DateTime.UtcNow.Date)
+            ? c.SubscriptionPeriodEnd.Value.Date
+            : DateTime.UtcNow.Date;
+        var nextMonth = new DateTime(from.Year, from.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1);
+        var lastDay = new DateTime(nextMonth.Year, nextMonth.Month, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month), 0, 0, 0, DateTimeKind.Utc);
         c.SubscriptionPeriodEnd = lastDay;
         await _unitOfWork.SaveChangesAsync();
         _logger.InformationLog("Subscription renewed (legacy contract)");
@@ -926,7 +980,7 @@ public class AdminService : IAdminService
             .Select(g => new TeacherUtilizationDto
             {
                 TeacherId = g.Key,
-                TeacherName = g.First().ContractSession!.Teacher!.User.FirstName + " " + g.First().ContractSession!.Teacher!.User.LastName,
+                TeacherName = g.First().ContractSession!.Teacher!.User.FullName ?? "",
                 HoursDelivered = g.Sum(x => x.HoursUsed),
                 SessionsCount = g.Count()
             }).ToList();
@@ -949,8 +1003,7 @@ public class AdminService : IAdminService
             Id = teacher.Id,
             UserId = teacher.UserId,
             Email = teacher.User.Email ?? string.Empty,
-            FirstName = teacher.User.FirstName,
-            LastName = teacher.User.LastName,
+            FullName = teacher.User.FullName ?? string.Empty,
             PhoneNumber = teacher.User.PhoneNumber ?? string.Empty,
             EducationLevel = teacher.EducationLevel,
             HourlyRate = teacher.HourlyRate,
@@ -970,8 +1023,7 @@ public class AdminService : IAdminService
         {
             Id = parent.Id,
             Email = parent.Email ?? string.Empty,
-            FirstName = parent.FirstName,
-            LastName = parent.LastName,
+            FullName = parent.FullName ?? string.Empty,
             PhoneNumber = parent.PhoneNumber ?? string.Empty,
             StudentCount = parent.Students.Count,
             CreatedAt = parent.CreatedAt,
@@ -985,9 +1037,8 @@ public class AdminService : IAdminService
         {
             Id = student.Id,
             ParentId = student.ParentId,
-            ParentName = $"{student.Parent.FirstName} {student.Parent.LastName}",
-            FirstName = student.FirstName,
-            LastName = student.LastName,
+            ParentName = student.Parent?.FullName ?? "",
+            FullName = student.FullName ?? string.Empty,
             GradeLevel = (int)student.GradeLevel,
             GradeLevelName = student.GradeLevel.ToString(),
             DateOfBirth = student.DateOfBirth,

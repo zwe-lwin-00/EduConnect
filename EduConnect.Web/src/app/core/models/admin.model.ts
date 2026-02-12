@@ -2,8 +2,7 @@ export interface Teacher {
   id: number;
   userId: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
   educationLevel: string;
   hourlyRate: number;
@@ -19,8 +18,7 @@ export interface Teacher {
 export interface Parent {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
   studentCount: number;
   createdAt: string;
@@ -31,8 +29,7 @@ export interface Student {
   id: number;
   parentId: string;
   parentName: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   gradeLevel: number;
   gradeLevelName: string;
   dateOfBirth: string;
@@ -155,8 +152,7 @@ export interface TeacherUtilizationDto {
 
 export interface OnboardTeacherRequest {
   email: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
   nrcNumber: string;
   educationLevel: string;
@@ -166,8 +162,7 @@ export interface OnboardTeacherRequest {
 }
 
 export interface UpdateTeacherRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
   educationLevel: string;
   hourlyRate: number;
@@ -177,8 +172,7 @@ export interface UpdateTeacherRequest {
 
 export interface CreateParentRequest {
   email: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   phoneNumber: string;
 }
 
@@ -191,8 +185,7 @@ export interface CreateParentResponse {
 
 export interface CreateStudentRequest {
   parentId: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   gradeLevel: number;
   dateOfBirth: string;
   specialNeeds?: string;
@@ -237,6 +230,10 @@ export interface AdminGroupClassDto {
   daysOfWeek?: string | null;
   startTime?: string | null;
   endTime?: string | null;
+  /** Optional: class runs from this date (ISO date). */
+  startDate?: string | null;
+  /** Optional: class runs until this date (ISO date). */
+  endDate?: string | null;
   isActive: boolean;
   zoomJoinUrl?: string | null;
   createdAt: string;
@@ -263,6 +260,10 @@ export interface AdminCreateGroupClassRequest {
   startTime?: string | null;
   /** Class end time e.g. "10:00". */
   endTime?: string | null;
+  /** Optional: class runs from this date (YYYY-MM-DD). When set, enrollment requires subscription to cover this period. */
+  startDate?: string | null;
+  /** Optional: class runs until this date (YYYY-MM-DD). */
+  endDate?: string | null;
 }
 
 export interface AdminUpdateGroupClassRequest {
@@ -272,6 +273,8 @@ export interface AdminUpdateGroupClassRequest {
   daysOfWeek?: string | null;
   startTime?: string | null;
   endTime?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 /** Backend expects either contractId or subscriptionId (admin can enroll by contract or by Group subscription). */
@@ -315,3 +318,25 @@ export interface UpsertSystemSettingRequest {
   value: string;
   description?: string | null;
 }
+
+/** Class price per grade and class type (One-to-one or Group). */
+export interface ClassPriceDto {
+  id: number;
+  gradeLevel: number;
+  gradeLevelName: string;
+  classType: number;
+  classTypeName: string;
+  pricePerMonth: number;
+  currency: string;
+  updatedAt: string;
+}
+
+export interface UpsertClassPriceRequest {
+  gradeLevel: number;
+  classType: number;
+  pricePerMonth: number;
+  currency?: string | null;
+}
+
+/** Class type: 1 = One-to-one, 2 = Group */
+export const ClassType = { OneToOne: 1, Group: 2 } as const;

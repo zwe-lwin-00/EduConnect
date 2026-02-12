@@ -1,4 +1,4 @@
-<div class="admin-settings">
+<div class="admin-settings page-container">
   <div class="page-header-compact">
     <div>
       <h1>Settings</h1>
@@ -8,15 +8,21 @@
 
   <p-card header="Holidays" styleClass="mb-4">
     <p class="text-color-secondary mb-3">Add dates when the school is closed (no classes). Filter by year.</p>
-    <p-toolbar styleClass="mb-2">
+    <p-toolbar>
       <ng-template pTemplate="start">
         <p-button label="Add holiday" icon="pi pi-plus" severity="success" (onClick)="openAddHoliday()" />
-        <span class="ml-3 align-middle">
+        <span class="ml-3 align-middle flex gap-2" style="align-items: center;">
           <label class="mr-2">Year</label>
-          <select [(ngModel)]="holidayYear" (ngModelChange)="onYearChange()" class="p-inputtext p-inputtext-sm w-auto">
-            <option [ngValue]="null">All</option>
-            <option *ngFor="let y of holidayYears" [ngValue]="y">{{ y }}</option>
-          </select>
+          <p-dropdown
+            appendTo="body"
+            [(ngModel)]="holidayYear"
+            (ngModelChange)="onYearChange()"
+            [options]="holidayYearOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Year"
+            styleClass="w-auto"
+            [style]="{ minWidth: '7rem' }" />
         </span>
       </ng-template>
     </p-toolbar>
@@ -24,7 +30,10 @@
       [value]="holidays"
       [loading]="loadingHolidays"
       [tableStyle]="{ 'min-width': '30rem' }"
-      styleClass="p-datatable-gridlines p-datatable-striped">
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="holidays.length > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25]">
       <ng-template pTemplate="header">
         <tr>
           <th>Date</th>
@@ -46,7 +55,63 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="4">No holidays for this year. Click "Add holiday" to add one.</td>
+          <td colspan="4">
+            <div class="empty-table-message">
+              <i class="pi pi-calendar empty-icon"></i>
+              <p>No holidays for this year.</p>
+              <p class="empty-hint">Click "Add holiday" to add one.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Class prices" styleClass="mb-4">
+    <p class="text-color-secondary mb-3">Set the price per month for each grade and class type (One-to-one or Group). Used for reference and invoicing.</p>
+    <p-toolbar>
+      <ng-template pTemplate="start">
+        <p-button label="Add price" icon="pi pi-plus" severity="success" (onClick)="openAddClassPrice()" />
+      </ng-template>
+    </p-toolbar>
+    <p-table
+      [value]="classPrices"
+      [loading]="loadingClassPrices"
+      [tableStyle]="{ 'min-width': '32rem' }"
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="classPrices.length > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25]">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Grade</th>
+          <th>Class type</th>
+          <th>Price per month</th>
+          <th>Currency</th>
+          <th style="width: 10rem">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cp>
+        <tr>
+          <td>{{ cp.gradeLevelName }}</td>
+          <td>{{ cp.classTypeName }}</td>
+          <td>{{ cp.pricePerMonth | number:'1.2-2' }}</td>
+          <td>{{ cp.currency }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" (onClick)="openEditClassPrice(cp)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteClassPrice(cp)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">
+            <div class="empty-table-message">
+              <i class="pi pi-dollar empty-icon"></i>
+              <p>No class prices set.</p>
+              <p class="empty-hint">Click &quot;Add price&quot; to assign a price for a grade and class type.</p>
+            </div>
+          </td>
         </tr>
       </ng-template>
     </p-table>
@@ -54,7 +119,7 @@
 
   <p-card header="Other settings">
     <p class="text-color-secondary mb-3">Key-value settings (e.g. SchoolName, AcademicYearStart, Notice). Keys are unique; saving updates if the key exists.</p>
-    <p-toolbar styleClass="mb-2">
+    <p-toolbar>
       <ng-template pTemplate="start">
         <p-button label="Add setting" icon="pi pi-plus" severity="success" (onClick)="openAddSetting()" />
       </ng-template>
@@ -63,7 +128,10 @@
       [value]="systemSettings"
       [loading]="loadingSettings"
       [tableStyle]="{ 'min-width': '30rem' }"
-      styleClass="p-datatable-gridlines p-datatable-striped">
+      styleClass="p-datatable-gridlines p-datatable-striped"
+      [paginator]="systemSettings.length > 10"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25]">
       <ng-template pTemplate="header">
         <tr>
           <th>Key</th>
@@ -84,13 +152,20 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="4">No settings yet. Click "Add setting" to add one.</td>
+          <td colspan="4">
+            <div class="empty-table-message">
+              <i class="pi pi-cog empty-icon"></i>
+              <p>No settings yet.</p>
+              <p class="empty-hint">Click "Add setting" to add one.</p>
+            </div>
+          </td>
         </tr>
       </ng-template>
     </p-table>
   </p-card>
 
   <p-dialog
+    appendTo="body"
     header="{{ holidayId == null ? 'Add holiday' : 'Edit holiday' }}"
     [(visible)]="showHolidayDialog"
     [modal]="true"
@@ -98,16 +173,16 @@
     [draggable]="false"
     [resizable]="false"
     (onHide)="showHolidayDialog = false">
-    <div class="field mb-3">
-      <label for="holidayDate">Date</label>
-      <input pInputText id="holidayDate" type="date" [(ngModel)]="holidayDate" class="w-full" />
+    <div class="field">
+      <label class="label-required" for="holidayDate">Date <span class="required-asterisk">*</span></label>
+      <p-calendar appendTo="body" id="holidayDate" [(ngModel)]="holidayDate" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="w-full" />
     </div>
-    <div class="field mb-3">
-      <label for="holidayName">Name *</label>
+    <div class="field">
+      <label class="label-required" for="holidayName">Name <span class="required-asterisk">*</span></label>
       <input pInputText id="holidayName" [(ngModel)]="holidayName" class="w-full" placeholder="e.g. National Day" />
     </div>
-    <div class="field mb-3">
-      <label for="holidayDesc">Description</label>
+    <div class="field">
+      <label class="label-optional" for="holidayDesc">Description <span class="optional-badge">Optional</span></label>
       <input pInputText id="holidayDesc" [(ngModel)]="holidayDescription" class="w-full" placeholder="Optional" />
     </div>
     <ng-template pTemplate="footer">
@@ -117,6 +192,38 @@
   </p-dialog>
 
   <p-dialog
+    appendTo="body"
+    header="{{ classPriceId == null ? 'Add class price' : 'Edit class price' }}"
+    [(visible)]="showClassPriceDialog"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="showClassPriceDialog = false">
+    <div class="field">
+      <label class="label-required">Grade <span class="required-asterisk">*</span></label>
+      <p-dropdown appendTo="body" [(ngModel)]="classPriceGradeLevel" [options]="gradeOptions" optionLabel="label" optionValue="value" placeholder="Select grade" styleClass="w-full" [disabled]="classPriceId != null" />
+    </div>
+    <div class="field">
+      <label class="label-required">Class type <span class="required-asterisk">*</span></label>
+      <p-dropdown appendTo="body" [(ngModel)]="classPriceClassType" [options]="classTypeOptions" optionLabel="label" optionValue="value" placeholder="Select type" styleClass="w-full" [disabled]="classPriceId != null" />
+    </div>
+    <div class="field">
+      <label class="label-required">Price per month <span class="required-asterisk">*</span></label>
+      <p-inputNumber [(ngModel)]="classPricePerMonth" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" placeholder="0.00" styleClass="w-full" inputStyleClass="w-full" />
+    </div>
+    <div class="field">
+      <label class="label-optional">Currency <span class="optional-badge">Optional</span></label>
+      <input pInputText [(ngModel)]="classPriceCurrency" class="w-full" placeholder="e.g. MMK" maxlength="10" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" severity="secondary" (onClick)="showClassPriceDialog = false" />
+      <p-button label="Save" icon="pi pi-check" (onClick)="saveClassPrice()" [loading]="savingClassPrice" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    appendTo="body"
     header="{{ editingSettingKey ? 'Edit setting' : 'Add setting' }}"
     [(visible)]="showSettingDialog"
     [modal]="true"
@@ -124,17 +231,17 @@
     [draggable]="false"
     [resizable]="false"
     (onHide)="showSettingDialog = false">
-    <div class="field mb-3">
-      <label for="settingKey">Key *</label>
+    <div class="field">
+      <label class="label-required" for="settingKey">Key <span class="required-asterisk">*</span></label>
       <input pInputText id="settingKey" [(ngModel)]="settingKey" class="w-full" placeholder="e.g. SchoolName" [readonly]="!!editingSettingKey" />
-      <small class="text-color-secondary" *ngIf="!editingSettingKey">Unique key (letters and numbers).</small>
+      <small class="text-color-secondary text-sm" *ngIf="!editingSettingKey">Unique key (letters and numbers).</small>
     </div>
-    <div class="field mb-3">
-      <label for="settingValue">Value</label>
+    <div class="field">
+      <label class="label-optional" for="settingValue">Value <span class="optional-badge">Optional</span></label>
       <input pInputText id="settingValue" [(ngModel)]="settingValue" class="w-full" placeholder="Value" />
     </div>
-    <div class="field mb-3">
-      <label for="settingDesc">Description</label>
+    <div class="field">
+      <label class="label-optional" for="settingDesc">Description <span class="optional-badge">Optional</span></label>
       <input pInputText id="settingDesc" [(ngModel)]="settingDescription" class="w-full" placeholder="Optional" />
     </div>
     <ng-template pTemplate="footer">

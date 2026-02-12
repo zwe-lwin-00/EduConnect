@@ -4,10 +4,12 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ParentService } from '../../../../core/services/parent.service';
 import { StudentLearningOverviewDto } from '../../../../core/models/parent.model';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
 import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
+import { Time12hPipe } from '../../../../shared/pipes/time12h.pipe';
 import { MessageService } from 'primeng/api';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -22,7 +24,7 @@ export interface CalendarDay {
 @Component({
   selector: 'app-parent-student-learning',
   standalone: true,
-  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule, DisplayDatePipe],
+  imports: [CommonModule, RouterModule, CardModule, MessageModule, ButtonModule, ProgressSpinnerModule, DisplayDatePipe, Time12hPipe],
   templateUrl: './parent-student-learning.component.html',
   styleUrl: './parent-student-learning.component.css'
 })

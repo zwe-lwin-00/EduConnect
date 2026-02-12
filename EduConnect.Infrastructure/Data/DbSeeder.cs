@@ -32,8 +32,7 @@ public static class DbSeeder
         var seedAdmin = configuration.GetSection("SeedData:DefaultAdmin");
         var adminEmail = seedAdmin["Email"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:Email is required.");
         var adminPassword = seedAdmin["Password"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:Password is required.");
-        var adminFirstName = seedAdmin["FirstName"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:FirstName is required.");
-        var adminLastName = seedAdmin["LastName"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:LastName is required.");
+        var adminFullName = seedAdmin["FullName"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:FullName is required.");
         var adminPhone = seedAdmin["PhoneNumber"] ?? throw new InvalidOperationException("SeedData:DefaultAdmin:PhoneNumber is required.");
         var defaultAdminRole = seedAdmin["Role"]?.Trim();
         if (string.IsNullOrEmpty(defaultAdminRole))
@@ -47,8 +46,7 @@ public static class DbSeeder
             {
                 UserName = adminEmail,
                 Email = adminEmail,
-                FirstName = adminFirstName,
-                LastName = adminLastName,
+                FullName = adminFullName,
                 PhoneNumber = adminPhone,
                 Role = UserRole.Admin,
                 MustChangePassword = false,

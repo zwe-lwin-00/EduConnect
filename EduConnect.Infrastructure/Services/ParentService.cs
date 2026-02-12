@@ -24,7 +24,7 @@ public class ParentService : IParentService
             .Include(s => s.ContractSessions).ThenInclude(c => c.Teacher).ThenInclude(t => t!.User)
             .Include(s => s.ContractSessions).ThenInclude(c => c.Subscription)
             .Where(s => s.ParentId == parentUserId && s.IsActive)
-            .OrderBy(s => s.FirstName)
+            .OrderBy(s => s.FullName)
             .ToListAsync();
 
         return students.Select(s =>
@@ -36,11 +36,10 @@ public class ParentService : IParentService
             return new ParentStudentDto
             {
                 Id = s.Id,
-                FirstName = s.FirstName,
-                LastName = s.LastName,
+                FullName = s.FullName ?? string.Empty,
                 GradeLevel = s.GradeLevel.ToString(),
                 SubscriptionValidUntil = subscriptionValidUntil,
-                AssignedTeacherName = firstTeacher != null ? $"{firstTeacher.User.FirstName} {firstTeacher.User.LastName}" : null,
+                AssignedTeacherName = firstTeacher?.User?.FullName,
                 ActiveContractsCount = activeContracts.Count
             };
         }).ToList();
@@ -72,7 +71,7 @@ public class ParentService : IParentService
             .Select(c => new AssignedTeacherDto
             {
                 TeacherId = c.TeacherId,
-                TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
+                TeacherName = c.Teacher?.User?.FullName ?? "",
                 ContractIdDisplay = c.ContractId,
                 SubscriptionPeriodEnd = c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd
             })
@@ -89,7 +88,7 @@ public class ParentService : IParentService
             .Select(c => new UpcomingSessionDto
             {
                 ContractIdDisplay = c.ContractId,
-                TeacherName = $"{c.Teacher!.User.FirstName} {c.Teacher.User.LastName}",
+                TeacherName = c.Teacher?.User?.FullName ?? "",
                 SubscriptionPeriodEnd = c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd
             })
             .ToList();
@@ -103,7 +102,7 @@ public class ParentService : IParentService
             LessonNotes = a.LessonNotes,
             ProgressReport = a.ProgressReport,
             TeacherName = a.ContractSession?.Teacher != null
-                ? $"{a.ContractSession.Teacher.User.FirstName} {a.ContractSession.Teacher.User.LastName}"
+                ? a.ContractSession.Teacher.User.FullName
                 : ""
         }).ToList();
 
@@ -113,7 +112,7 @@ public class ParentService : IParentService
             .OrderByDescending(h => h.DueDate)
             .Take(50)
             .ToListAsync();
-        var homeworkItems = homeworks.Select(h => HomeworkService.ToHomeworkItemDto(h, $"{h.Teacher.User.FirstName} {h.Teacher.User.LastName}")).ToList();
+        var homeworkItems = homeworks.Select(h => HomeworkService.ToHomeworkItemDto(h, h.Teacher?.User?.FullName ?? "")).ToList();
 
         var grades = await _context.StudentGrades
             .Include(g => g.Teacher).ThenInclude(t => t!.User)
@@ -121,14 +120,14 @@ public class ParentService : IParentService
             .OrderByDescending(g => g.GradeDate)
             .Take(50)
             .ToListAsync();
-        var gradeItems = grades.Select(g => HomeworkService.ToGradeItemDto(g, $"{g.Teacher.User.FirstName} {g.Teacher.User.LastName}")).ToList();
+        var gradeItems = grades.Select(g => HomeworkService.ToGradeItemDto(g, g.Teacher?.User?.FullName ?? "")).ToList();
 
         var periodEnds = activeContracts.Select(c => c.Subscription?.SubscriptionPeriodEnd ?? c.SubscriptionPeriodEnd).Where(d => d.HasValue).Select(d => d!.Value).ToList();
         var subscriptionValidUntil = periodEnds.Any() ? periodEnds.Max() : (DateTime?)null;
         return new StudentLearningOverviewDto
         {
             StudentId = student.Id,
-            StudentName = $"{student.FirstName} {student.LastName}",
+            StudentName = student.FullName ?? string.Empty,
             GradeLevel = student.GradeLevel.ToString(),
             AssignedTeachers = assignedTeachers,
             Subjects = subjectsStr,
@@ -178,8 +177,8 @@ public class ParentService : IParentService
             .Include(c => c.Subscription)
             .Where(c => c.StudentId == studentId && c.Status == ContractStatus.Active
                 && !string.IsNullOrWhiteSpace(c.DaysOfWeek) && c.StartTime.HasValue
-                && ((c.SubscriptionId == null && c.SubscriptionPeriodEnd != null && c.SubscriptionPeriodEnd.Value >= now)
-                    || (c.SubscriptionId != null && c.Subscription!.Status == ContractStatus.Active && c.Subscription.SubscriptionPeriodEnd >= now)))
+                && ((c.SubscriptionId == null && c.SubscriptionPeriodEnd != null && c.SubscriptionPeriodEnd.Value.Date >= now.Date)
+                    || (c.SubscriptionId != null && c.Subscription!.Status == ContractStatus.Active && c.Subscription.SubscriptionPeriodEnd.Date >= now.Date)))
             .ToListAsync();
         var contractIds = contracts.Select(c => c.Id).ToList();
 
@@ -268,8 +267,8 @@ public class ParentService : IParentService
                     DateYmd = date.ToString("yyyy-MM-dd"),
                     StartTime = startTime,
                     EndTime = endTime,
-                    StudentName = $"{c.Student.FirstName} {c.Student.LastName}",
-                    TeacherName = c.Teacher != null ? $"{c.Teacher.User.FirstName} {c.Teacher.User.LastName}" : "",
+                    StudentName = c.Student?.FullName ?? "",
+                    TeacherName = c.Teacher?.User?.FullName ?? "",
                     Status = "Scheduled",
                     HoursUsed = 0
                 });
@@ -311,14 +310,14 @@ public class ParentService : IParentService
     private static bool HasGroupEnrollmentAccess(GroupClassEnrollment e, DateTime now)
     {
         if (e.SubscriptionId != null && e.Subscription != null)
-            return e.Subscription.Status == ContractStatus.Active && e.Subscription.SubscriptionPeriodEnd >= now;
+            return e.Subscription.Status == ContractStatus.Active && e.Subscription.SubscriptionPeriodEnd.Date >= now.Date;
         if (e.ContractId != null && e.ContractSession != null)
         {
             var c = e.ContractSession;
             if (c.Status != ContractStatus.Active) return false;
             if (c.SubscriptionId != null && c.Subscription != null)
-                return c.Subscription.Status == ContractStatus.Active && c.Subscription.SubscriptionPeriodEnd >= now;
-            return c.SubscriptionPeriodEnd != null && c.SubscriptionPeriodEnd.Value >= now;
+                return c.Subscription.Status == ContractStatus.Active && c.Subscription.SubscriptionPeriodEnd.Date >= now.Date;
+            return c.SubscriptionPeriodEnd != null && c.SubscriptionPeriodEnd.Value.Date >= now.Date;
         }
         return false;
     }
@@ -344,8 +343,8 @@ public class ParentService : IParentService
             DateYmd = dateMyanmar.ToString("yyyy-MM-dd"),
             StartTime = MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckInTime),
             EndTime = a.CheckOutTime.HasValue ? MyanmarTimeHelper.FormatTimeUtcToMyanmar(a.CheckOutTime.Value) : null,
-            StudentName = a.ContractSession?.Student != null ? $"{a.ContractSession.Student.FirstName} {a.ContractSession.Student.LastName}" : "",
-            TeacherName = a.ContractSession?.Teacher != null ? $"{a.ContractSession.Teacher.User.FirstName} {a.ContractSession.Teacher.User.LastName}" : "",
+            StudentName = a.ContractSession?.Student?.FullName ?? "",
+            TeacherName = a.ContractSession?.Teacher?.User?.FullName ?? "",
             Status = a.Status.ToString(),
             HoursUsed = a.HoursUsed
         };

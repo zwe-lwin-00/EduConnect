@@ -7,6 +7,9 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { InputTextModule } from 'primeng/inputtext';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
 import { AdminService } from '../../../../core/services/admin.service';
 import {
   AdminGroupClassDto,
@@ -19,11 +22,12 @@ import {
   SubscriptionType
 } from '../../../../core/models/admin.model';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { formatTime12h } from '../../../../shared/utils/time.utils';
 
 @Component({
   selector: 'app-admin-group-classes',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardModule, TableModule, DialogModule, ButtonModule, MessageModule, InputTextModule],
+  imports: [CommonModule, FormsModule, CardModule, TableModule, DialogModule, ButtonModule, MessageModule, InputTextModule, CalendarModule, DropdownModule, CheckboxModule],
   templateUrl: './admin-group-classes.component.html',
   styleUrl: './admin-group-classes.component.css'
 })
@@ -47,8 +51,14 @@ export class AdminGroupClassesComponent implements OnInit {
   ];
   newName = '';
   newTeacherId: number | null = null;
-  newStartTime = '';
-  newEndTime = '';
+  newStartTime: Date | null = null;
+  newEndTime: Date | null = null;
+  newFromDate: Date | null = null;
+  newToDate: Date | null = null;
+  /** Cached min date for "from date" (today) — avoid getter for calendar. */
+  createFromDateMin: Date = new Date();
+  /** Cached min date for "to date" (from date or today). */
+  createToDateMin: Date = new Date();
   dayOptions: { value: number; label: string; checked: boolean }[] = [];
   creating = false;
 
@@ -56,10 +66,53 @@ export class AdminGroupClassesComponent implements OnInit {
   editName = '';
   editTeacherId: number | null = null;
   editIsActive = true;
-  editStartTime = '';
-  editEndTime = '';
+  editStartTime: Date | null = null;
+  editEndTime: Date | null = null;
+  editFromDate: Date | null = null;
+  editToDate: Date | null = null;
+  editFromDateMin: Date = new Date();
+  editToDateMin: Date = new Date();
   editDayOptions: { value: number; label: string; checked: boolean }[] = [];
   updating = false;
+
+  static timeToStr(d: Date | null | undefined): string {
+    if (!d || !(d instanceof Date)) return '';
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+  static strToTime(s: string): Date | null {
+    if (!s?.trim()) return null;
+    const [h, m] = s.trim().split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
+  /** Format date as YYYY-MM-DD for API. */
+  static formatDateForApi(d: Date | null | undefined): string | null {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  /** Parse ISO date string (YYYY-MM-DD) to Date at local midnight. */
+  static parseDateFromApi(s: string | null | undefined): Date | null {
+    if (!s?.trim()) return null;
+    const parsed = new Date(s.trim() + 'T00:00:00');
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  get teacherOptions(): { label: string; value: number }[] {
+    return this.teachers.map(t => ({ label: t.fullName, value: t.id }));
+  }
+  get enrollSubscriptionOptions(): { label: string; value: number }[] {
+    return this.assignableGroupSubscriptions.map(sub => ({ label: this.subscriptionOptionLabel(sub), value: sub.id }));
+  }
+  get enrollContractOptions(): { label: string; value: number }[] {
+    return this.assignableContracts.map(c => ({ label: `${c.studentName} – ${c.contractId}`, value: c.id }));
+  }
 
   enrollContractId: number | null = null;
   enrollSubscriptionId: number | null = null;
@@ -104,10 +157,44 @@ export class AdminGroupClassesComponent implements OnInit {
   openCreate(): void {
     this.newName = '';
     this.newTeacherId = null;
-    this.newStartTime = '';
-    this.newEndTime = '';
+    this.newStartTime = null;
+    this.newEndTime = null;
+    this.newFromDate = null;
+    this.newToDate = null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.createFromDateMin = today;
+    this.createToDateMin = today;
     this.dayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: false }));
     this.showCreate = true;
+  }
+
+  onNewFromDateChange(): void {
+    setTimeout(() => {
+      if (this.newFromDate) {
+        const d = new Date(this.newFromDate);
+        d.setHours(0, 0, 0, 0);
+        this.createToDateMin = d;
+        if (this.newToDate && this.newToDate < d) this.newToDate = null;
+      } else {
+        this.createToDateMin = new Date();
+        this.createToDateMin.setHours(0, 0, 0, 0);
+      }
+    }, 0);
+  }
+
+  onEditFromDateChange(): void {
+    setTimeout(() => {
+      if (this.editFromDate) {
+        const d = new Date(this.editFromDate);
+        d.setHours(0, 0, 0, 0);
+        this.editToDateMin = d;
+        if (this.editToDate && this.editToDate < d) this.editToDate = null;
+      } else {
+        this.editToDateMin = new Date();
+        this.editToDateMin.setHours(0, 0, 0, 0);
+      }
+    }, 0);
   }
 
   onNewDayChange(): void {}
@@ -125,10 +212,15 @@ export class AdminGroupClassesComponent implements OnInit {
   }
 
   formatSchedule(gc: AdminGroupClassDto): string {
-    if (!gc.daysOfWeek && !gc.startTime && !gc.endTime) return '—';
-    const days = gc.daysOfWeek ? gc.daysOfWeek.split(',').map(n => this.DAY_LABELS[+n - 1]?.label || n).join(', ') : '';
-    const time = (gc.startTime || gc.endTime) ? `${gc.startTime || '?'}–${gc.endTime || '?'}` : '';
-    return [days, time].filter(Boolean).join(' · ') || '—';
+    const parts: string[] = [];
+    if (gc.daysOfWeek) parts.push(gc.daysOfWeek.split(',').map(n => this.DAY_LABELS[+n - 1]?.label || n).join(', '));
+    if (gc.startTime || gc.endTime) parts.push(`${formatTime12h(gc.startTime) || '?'} – ${formatTime12h(gc.endTime) || '?'}`);
+    if (gc.startDate || gc.endDate) {
+      const from = gc.startDate ? new Date(gc.startDate + 'T00:00:00').toLocaleDateString() : '?';
+      const to = gc.endDate ? new Date(gc.endDate + 'T00:00:00').toLocaleDateString() : '?';
+      parts.push(`${from} – ${to}`);
+    }
+    return parts.length ? parts.join(' · ') : '—';
   }
 
   create(): void {
@@ -136,12 +228,18 @@ export class AdminGroupClassesComponent implements OnInit {
     if (!name) { this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Enter a name.' }); return; }
     if (this.newTeacherId == null) { this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Select a teacher.' }); return; }
     this.creating = true;
+    if (this.newFromDate && this.newToDate && this.newToDate < this.newFromDate) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'To date cannot be before from date.' });
+      return;
+    }
     const request: AdminCreateGroupClassRequest = {
       name,
       teacherId: this.newTeacherId,
       daysOfWeek: this.getNewDaysOfWeek(),
-      startTime: this.newStartTime?.trim() || null,
-      endTime: this.newEndTime?.trim() || null
+      startTime: AdminGroupClassesComponent.timeToStr(this.newStartTime) || null,
+      endTime: AdminGroupClassesComponent.timeToStr(this.newEndTime) || null,
+      startDate: AdminGroupClassesComponent.formatDateForApi(this.newFromDate) ?? null,
+      endDate: AdminGroupClassesComponent.formatDateForApi(this.newToDate) ?? null
     };
     this.adminService.createGroupClass(request).subscribe({
       next: () => {
@@ -163,8 +261,15 @@ export class AdminGroupClassesComponent implements OnInit {
     this.editName = gc.name;
     this.editTeacherId = gc.teacherId;
     this.editIsActive = gc.isActive;
-    this.editStartTime = gc.startTime ?? '';
-    this.editEndTime = gc.endTime ?? '';
+    this.editStartTime = AdminGroupClassesComponent.strToTime(gc.startTime ?? '');
+    this.editEndTime = AdminGroupClassesComponent.strToTime(gc.endTime ?? '');
+    this.editFromDate = AdminGroupClassesComponent.parseDateFromApi(gc.startDate);
+    this.editToDate = AdminGroupClassesComponent.parseDateFromApi(gc.endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.editFromDateMin = today;
+    this.editToDateMin = this.editFromDate ? new Date(this.editFromDate) : today;
+    if (this.editFromDate) this.editToDateMin.setHours(0, 0, 0, 0);
     const daySet = new Set((gc.daysOfWeek ?? '').split(',').map(s => +s).filter(n => n >= 1 && n <= 7));
     this.editDayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: daySet.has(d.value) }));
     this.showEdit = true;
@@ -172,14 +277,20 @@ export class AdminGroupClassesComponent implements OnInit {
 
   update(): void {
     if (!this.selectedClass || this.editTeacherId == null) return;
+    if (this.editFromDate && this.editToDate && this.editToDate < this.editFromDate) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'To date cannot be before from date.' });
+      return;
+    }
     this.updating = true;
     const request: AdminUpdateGroupClassRequest = {
       name: this.editName?.trim() || this.selectedClass.name,
       teacherId: this.editTeacherId,
       isActive: this.editIsActive,
       daysOfWeek: this.getEditDaysOfWeek(),
-      startTime: this.editStartTime?.trim() || null,
-      endTime: this.editEndTime?.trim() || null
+      startTime: AdminGroupClassesComponent.timeToStr(this.editStartTime) || null,
+      endTime: AdminGroupClassesComponent.timeToStr(this.editEndTime) || null,
+      startDate: AdminGroupClassesComponent.formatDateForApi(this.editFromDate) ?? null,
+      endDate: AdminGroupClassesComponent.formatDateForApi(this.editToDate) ?? null
     };
     this.adminService.updateGroupClass(this.selectedClass.id, request).subscribe({
       next: () => {

@@ -1,4 +1,4 @@
-<div class="admin-parents">
+<div class="admin-parents page-container">
   <div class="page-header-compact">
     <div>
       <h1>Parents</h1>
@@ -7,7 +7,7 @@
     <p-button label="Create parent" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
   </div>
 
-  <div class="card table-card">
+  <p-card styleClass="table-card">
     <p-table
       [value]="parents"
       [loading]="loading"
@@ -16,12 +16,12 @@
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parents"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
           <th style="width:3rem">#</th>
-          <th>First name</th>
-          <th>Last name</th>
+          <th>Name</th>
           <th>Email</th>
           <th>Phone</th>
           <th>Students</th>
@@ -32,8 +32,7 @@
       <ng-template pTemplate="body" let-p let-rowIndex="rowIndex">
         <tr>
           <td>{{ rowIndex + 1 }}</td>
-          <td>{{ p.firstName }}</td>
-          <td>{{ p.lastName }}</td>
+          <td>{{ p.fullName }}</td>
           <td>{{ p.email }}</td>
           <td>{{ p.phoneNumber }}</td>
           <td>{{ p.studentCount }}</td>
@@ -43,7 +42,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="8">
+          <td colspan="7">
             <div class="empty-table-message">
               <i class="pi pi-users empty-icon"></i>
               <p>No parents.</p>
@@ -53,9 +52,10 @@
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 
   <p-dialog
+    appendTo="body"
     header="Create parent"
     [(visible)]="showCreatePopup"
     [modal]="true"
@@ -64,10 +64,22 @@
     [resizable]="false"
     (onHide)="closeCreatePopup()">
     <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
-      <div class="field"><label>Email</label><input pInputText type="email" formControlName="email" class="w-full" /></div>
-      <div class="field"><label>First name</label><input pInputText type="text" formControlName="firstName" class="w-full" /></div>
-      <div class="field"><label>Last name</label><input pInputText type="text" formControlName="lastName" class="w-full" /></div>
-      <div class="field"><label>Phone</label><input pInputText type="text" formControlName="phoneNumber" class="w-full" /></div>
+      <div class="field">
+        <label class="label-required" for="parent-email">Email <span class="required-asterisk">*</span></label>
+        <input pInputText id="parent-email" type="email" formControlName="email" class="w-full" [class.p-invalid]="createForm.get('email')?.invalid && createForm.get('email')?.touched" />
+        <small class="p-error" *ngIf="createForm.get('email')?.hasError('required') && createForm.get('email')?.touched">Email is required</small>
+        <small class="p-error" *ngIf="createForm.get('email')?.hasError('email') && createForm.get('email')?.touched">Enter a valid email</small>
+      </div>
+      <div class="field">
+        <label class="label-required" for="parent-fullName">Full name <span class="required-asterisk">*</span></label>
+        <input pInputText id="parent-fullName" type="text" formControlName="fullName" class="w-full" [class.p-invalid]="createForm.get('fullName')?.invalid && createForm.get('fullName')?.touched" />
+        <small class="p-error" *ngIf="createForm.get('fullName')?.invalid && createForm.get('fullName')?.touched">Full name is required</small>
+      </div>
+      <div class="field">
+        <label class="label-required" for="parent-phone">Phone <span class="required-asterisk">*</span></label>
+        <input pInputText id="parent-phone" type="text" formControlName="phoneNumber" class="w-full" [class.p-invalid]="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched" />
+        <small class="p-error" *ngIf="createForm.get('phoneNumber')?.invalid && createForm.get('phoneNumber')?.touched">Phone is required</small>
+      </div>
     </form>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" severity="secondary" (onClick)="closeCreatePopup()" />
@@ -76,6 +88,7 @@
   </p-dialog>
 
   <p-dialog
+    appendTo="body"
     header="Share credentials"
     [(visible)]="showCredentialsPopup"
     [modal]="true"

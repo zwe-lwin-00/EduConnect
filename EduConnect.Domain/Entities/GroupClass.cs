@@ -14,6 +14,10 @@ public class GroupClass
     public TimeOnly? StartTime { get; set; }
     /// <summary>Class end time (local/app timezone).</summary>
     public TimeOnly? EndTime { get; set; }
+    /// <summary>Optional: class runs from this date. When set, enrollment requires subscription to cover this period.</summary>
+    public DateTime? StartDate { get; set; }
+    /// <summary>Optional: class runs until this date. When set, enrollment requires subscription to cover this period.</summary>
+    public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
     /// <summary>Zoom meeting join URL — set by assigned teacher, not admin.</summary>
     public string? ZoomJoinUrl { get; set; }

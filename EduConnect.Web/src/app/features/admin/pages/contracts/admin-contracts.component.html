@@ -1,4 +1,4 @@
-<div class="admin-contracts">
+<div class="admin-contracts page-container">
   <div class="page-header-compact">
     <div>
       <h1>One-To-One classes</h1>
@@ -6,23 +6,14 @@
     </div>
   </div>
 
-  <p-card>
-    <p-toolbar styleClass="mb-2">
+  <p-card styleClass="table-card">
+    <p-toolbar>
       <ng-template pTemplate="start">
         <p-button label="New One-To-One class" icon="pi pi-plus" severity="success" (onClick)="openCreatePopup()" />
         <span class="filter-group">
-          <select [(ngModel)]="filterTeacherId" class="p-inputtext filter-select">
-            <option [ngValue]="null">All teachers</option>
-            <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-          </select>
-          <select [(ngModel)]="filterStudentId" class="p-inputtext filter-select">
-            <option [ngValue]="null">All students</option>
-            <option *ngFor="let s of students" [ngValue]="s.id">{{ s.firstName }} {{ s.lastName }}</option>
-          </select>
-          <select [(ngModel)]="filterStatus" class="p-inputtext filter-select">
-            <option [ngValue]="null">All statuses</option>
-            <option *ngFor="let o of statusOptions" [ngValue]="o.value">{{ o.label }}</option>
-          </select>
+          <p-dropdown appendTo="body" [(ngModel)]="filterTeacherId" [options]="teacherFilterOptions" optionLabel="label" optionValue="value" placeholder="Teachers" styleClass="filter-select" />
+          <p-dropdown appendTo="body" [(ngModel)]="filterStudentId" [options]="studentFilterOptions" optionLabel="label" optionValue="value" placeholder="Students" styleClass="filter-select" />
+          <p-dropdown appendTo="body" [(ngModel)]="filterStatus" [options]="statusFilterOptions" optionLabel="label" optionValue="value" placeholder="Status" styleClass="filter-select" />
           <p-button label="Apply" icon="pi pi-filter" (onClick)="applyContractFilters()" [outlined]="true" />
           <p-button label="Clear" severity="secondary" (onClick)="clearContractFilters()" [text]="true" />
         </span>
@@ -98,6 +89,7 @@
   </p-card>
 
   <p-dialog
+    appendTo="body"
     header="New One-To-One class"
     [(visible)]="showCreatePopup"
     [modal]="true"
@@ -108,42 +100,39 @@
     <form [formGroup]="createForm" (ngSubmit)="onSubmitCreate()" class="dialog-form">
       <div class="field">
         <label for="subscriptionId" class="label-required">Student (One-to-one subscription) <span class="required-asterisk">*</span></label>
-        <select id="subscriptionId" formControlName="subscriptionId" class="p-inputtext w-full">
-          <option [ngValue]="null">Select student with One-to-one subscription</option>
-          <option *ngFor="let sub of oneToOneSubscriptions" [ngValue]="sub.id">{{ subscriptionOptionLabel(sub) }}</option>
-        </select>
+        <p-dropdown appendTo="body" id="subscriptionId" formControlName="subscriptionId" [options]="subscriptionDropdownOptions" optionLabel="label" optionValue="value" placeholder="Select student with One-to-one subscription" styleClass="w-full" />
         <small class="text-color-secondary" *ngIf="oneToOneSubscriptions.length === 0 && showCreatePopup">No active One-to-one subscriptions. Add one on the Subscriptions page.</small>
         <small class="p-error" *ngIf="createForm.get('subscriptionId')?.invalid && createForm.get('subscriptionId')?.touched">Required</small>
       </div>
       <div class="field">
         <label for="teacherId" class="label-required">Teacher <span class="required-asterisk">*</span></label>
-        <select id="teacherId" formControlName="teacherId" class="p-inputtext w-full">
-          <option [ngValue]="null">Select teacher</option>
-          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-        </select>
+        <p-dropdown appendTo="body" id="teacherId" formControlName="teacherId" [options]="teacherDropdownOptions" optionLabel="label" optionValue="value" placeholder="Select teacher" styleClass="w-full" />
         <small class="p-error" *ngIf="createForm.get('teacherId')?.invalid && createForm.get('teacherId')?.touched">Required</small>
       </div>
       <div class="field">
         <label for="startDate">Start date (optional; subscription period is used when not set)</label>
-        <input pInputText id="startDate" type="date" formControlName="startDate" class="w-full" />
+        <p-calendar appendTo="body" id="startDate" formControlName="startDate" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="w-full" [minDate]="startDateMinDate" [maxDate]="subscriptionMaxDate" />
+        <small class="text-color-secondary" *ngIf="selectedSubscription">Start from today (or subscription start if later). End date must be within subscription ({{ selectedSubscription.startDate }} – {{ selectedSubscription.subscriptionPeriodEnd }}).</small>
       </div>
       <div class="field">
         <label for="endDate">End date (optional)</label>
-        <input pInputText id="endDate" type="date" formControlName="endDate" class="w-full" />
+        <p-calendar appendTo="body" id="endDate" formControlName="endDate" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="w-full" [minDate]="endDateMinDate" [maxDate]="subscriptionMaxDate" />
+        <small class="text-color-secondary" *ngIf="selectedSubscription">Must be on or after the selected start date and within the subscription period.</small>
       </div>
       <div class="field">
         <label>Days of week</label>
-        <div class="days-checkboxes">
-          <label *ngFor="let d of createDayOptions" class="day-check">
-            <input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" [ngModelOptions]="{standalone: true}" (ngModelChange)="onCreateDayChange()" /> {{ d.label }}
-          </label>
+        <div class="days-checkboxes flex gap-2 flex-wrap">
+          <div *ngFor="let d of createDayOptions" class="flex align-items-center gap-1">
+            <p-checkbox [inputId]="'day-' + d.value" [(ngModel)]="d.checked" [ngModelOptions]="{standalone: true}" (ngModelChange)="onCreateDayChange()" [binary]="true" />
+            <label [for]="'day-' + d.value" class="day-check">{{ d.label }}</label>
+          </div>
         </div>
       </div>
       <div class="field">
         <label>Class schedule (optional)</label>
         <div class="flex gap-4 flex-wrap">
-          <input pInputText type="time" formControlName="startTime" placeholder="Start" class="w-auto" />
-          <input pInputText type="time" formControlName="endTime" placeholder="End" class="w-auto" />
+          <p-calendar appendTo="body" formControlName="startTime" [timeOnly]="true" hourFormat="12" placeholder="Start" styleClass="w-auto" [style]="{ minWidth: '8rem' }" />
+          <p-calendar appendTo="body" formControlName="endTime" [timeOnly]="true" hourFormat="12" placeholder="End" styleClass="w-auto" [style]="{ minWidth: '8rem' }" />
         </div>
         <small class="text-color-secondary">Start and end time for this One-To-One class. End time must be after start time.</small>
       </div>

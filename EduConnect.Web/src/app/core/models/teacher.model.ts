@@ -61,8 +61,7 @@ export interface TeacherAssignedStudentDto {
 
 // Profile read-only — no prices
 export interface TeacherProfileDto {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
   educationLevel: string;

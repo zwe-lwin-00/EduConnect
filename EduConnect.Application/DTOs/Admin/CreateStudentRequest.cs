@@ -6,8 +6,7 @@ namespace EduConnect.Application.DTOs.Admin;
 public class CreateStudentRequest
 {
     public string ParentId { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
     public int GradeLevel { get; set; } // 1=P1 .. 4=P4
     public DateTime DateOfBirth { get; set; }
     public string? SpecialNeeds { get; set; }

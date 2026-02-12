@@ -1,4 +1,4 @@
-<div class="teacher-sessions">
+<div class="teacher-sessions page-container">
   <div class="page-header-compact">
     <div>
       <h1>Sessions</h1>
@@ -8,11 +8,17 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <p>Loading sessions...</p>
+  </div>
 
   <ng-container *ngIf="!loading && !error">
     <p-card header="1:1 in progress" styleClass="mb-3">
-      <div *ngIf="todaySessions.length === 0" class="empty-state">None. Start one below.</div>
+      <div *ngIf="todaySessions.length === 0" class="empty-table-message">
+        <i class="pi pi-calendar empty-icon"></i>
+        <p>None. Start one below.</p>
+      </div>
       <div *ngFor="let s of todaySessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
@@ -28,7 +34,10 @@
     </p-card>
 
     <p-card header="Start 1:1" styleClass="mb-3">
-      <div *ngIf="upcomingSessions.length === 0" class="empty-state">No One-To-One sessions to start.</div>
+      <div *ngIf="upcomingSessions.length === 0" class="empty-table-message">
+        <i class="pi pi-users empty-icon"></i>
+        <p>No One-To-One sessions to start.</p>
+      </div>
       <div *ngFor="let s of upcomingSessions" class="session-card">
         <div class="session-info">
           <strong>{{ s.studentName }}</strong> – {{ s.contractIdDisplay }}
@@ -50,21 +59,18 @@
           <p-button label="Check-out group (add notes)" icon="pi pi-check" (onClick)="openGroupCheckOut(inProgressGroupSession)" />
         </div>
       </div>
-      <div *ngIf="!inProgressGroupSession" class="group-start">
-        <select [(ngModel)]="selectedGroupClassId" class="p-inputtext group-select">
-          <option [ngValue]="null">-- Select group class --</option>
-          <option *ngFor="let gc of startableGroupClasses" [ngValue]="gc.id">{{ gc.name }} ({{ gc.enrolledCount }} enrolled)</option>
-        </select>
+      <div *ngIf="!inProgressGroupSession" class="group-start flex gap-2 flex-wrap align-items-center">
+        <p-dropdown appendTo="body" [(ngModel)]="selectedGroupClassId" [options]="groupClassOptions" optionLabel="label" optionValue="value" placeholder="Select group class" styleClass="group-select" [style]="{ minWidth: '16rem' }" />
         <p-button label="Start group session" icon="pi pi-play" severity="success" (onClick)="startGroupSession()" [loading]="!!checkingInGroupClassId" [disabled]="!selectedGroupClassId || !!checkingInGroupClassId" />
       </div>
       <p class="hint mt-2"><a routerLink="/teacher/group-classes">Group classes</a> → edit name, Zoom, enroll students</p>
     </p-card>
 
-    <p-dialog header="Check-out 1:1" [visible]="!!checkingOutSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeCheckOut()" *ngIf="checkingOutSession">
+    <p-dialog appendTo="body" header="Check-out 1:1" [visible]="!!checkingOutSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeCheckOut()" *ngIf="checkingOutSession">
       <p class="mb-3"><strong>{{ checkingOutSession.studentName }}</strong> – {{ checkingOutSession.contractIdDisplay }}</p>
       <div class="field">
         <label>Lesson notes *</label>
-        <textarea pInputText [(ngModel)]="lessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
+        <textarea pTextarea [(ngModel)]="lessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
       </div>
       <ng-template pTemplate="footer">
         <p-button label="Cancel" severity="secondary" (onClick)="closeCheckOut()" />
@@ -72,11 +78,11 @@
       </ng-template>
     </p-dialog>
 
-    <p-dialog header="Check-out group" [visible]="!!checkingOutGroupSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeGroupCheckOut()" *ngIf="checkingOutGroupSession">
+    <p-dialog appendTo="body" header="Check-out group" [visible]="!!checkingOutGroupSession" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" [resizable]="false" (onHide)="closeGroupCheckOut()" *ngIf="checkingOutGroupSession">
       <p class="mb-3"><strong>{{ checkingOutGroupSession.groupClassName }}</strong></p>
       <div class="field">
         <label>Lesson notes *</label>
-        <textarea pInputText [(ngModel)]="groupLessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
+        <textarea pTextarea [(ngModel)]="groupLessonNotes" class="w-full" rows="4" placeholder="Enter lesson notes (required)"></textarea>
       </div>
       <ng-template pTemplate="footer">
         <p-button label="Cancel" severity="secondary" (onClick)="closeGroupCheckOut()" />

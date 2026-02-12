@@ -1,4 +1,4 @@
-<div class="admin-reports">
+<div class="admin-reports page-container">
   <div class="page-header-compact">
     <div>
       <h1>Reports &amp; Audit</h1>
@@ -9,9 +9,12 @@
   <p-card header="Daily Report" styleClass="report-card-block">
     <div class="report-controls">
       <label>Date</label>
-      <input pInputText type="date" [(ngModel)]="dailyDate" (ngModelChange)="onDailyDateChange()" class="report-input" />
+      <p-calendar appendTo="body" [(ngModel)]="dailyDateModel" (ngModelChange)="onDailyDateChange()" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="report-input" />
     </div>
-    <div *ngIf="loadingDaily" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="loadingDaily" class="empty-table-message">
+      <p-progressSpinner strokeWidth="4" styleClass="mb-2" />
+      <p>Loading...</p>
+    </div>
     <div *ngIf="dailyReport && !loadingDaily" class="report-summary">
       <div class="report-row"><span class="label">Sessions delivered</span><span class="value">{{ dailyReport.sessionsDelivered }}</span></div>
       <div class="report-row"><span class="label">Hours consumed</span><span class="value">{{ dailyReport.hoursConsumed | number:'1.1-1' }}</span></div>
@@ -21,13 +24,14 @@
   <p-card header="Monthly Report" styleClass="report-card-block">
     <div class="report-controls">
       <label>Year</label>
-      <input pInputText type="number" [(ngModel)]="reportYear" (ngModelChange)="loadMonthly()" min="2020" max="2030" class="report-input year-input" />
+      <p-inputNumber [(ngModel)]="reportYear" (ngModelChange)="loadMonthly()" [min]="2020" [max]="2030" inputStyleClass="report-input year-input" styleClass="report-input" />
       <label>Month</label>
-      <select [(ngModel)]="reportMonth" (ngModelChange)="loadMonthly()" class="p-inputtext report-select">
-        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{ monthName(m) }}</option>
-      </select>
+      <p-dropdown appendTo="body" [(ngModel)]="reportMonth" [options]="monthOptions" optionLabel="label" optionValue="value" (ngModelChange)="loadMonthly()" styleClass="report-select" [style]="{ minWidth: '8rem' }" />
     </div>
-    <div *ngIf="loadingMonthly" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+    <div *ngIf="loadingMonthly" class="empty-table-message">
+      <p-progressSpinner strokeWidth="4" styleClass="mb-2" />
+      <p>Loading...</p>
+    </div>
     <div *ngIf="monthlyReport && !loadingMonthly" class="report-summary">
       <div class="report-row"><span class="label">Revenue</span><span class="value">{{ monthlyReport.revenue | number:'1.0-0' }} MMK</span></div>
       <div class="report-row"><span class="label">Sessions delivered</span><span class="value">{{ monthlyReport.sessionsDelivered }}</span></div>
@@ -35,7 +39,7 @@
     </div>
     <div *ngIf="monthlyReport && !loadingMonthly && monthlyReport.teacherUtilization?.length" class="mt-4">
       <h3 class="section-title">Teacher utilization</h3>
-      <p-table [value]="monthlyReport.teacherUtilization" [tableStyle]="{ 'min-width': '20rem' }" styleClass="p-datatable-gridlines p-datatable-sm">
+      <p-table [value]="monthlyReport.teacherUtilization" [tableStyle]="{ 'min-width': '20rem' }" styleClass="p-datatable-gridlines p-datatable-striped">
         <ng-template pTemplate="header">
           <tr><th>Teacher</th><th>Hours</th><th>Sessions</th></tr>
         </ng-template>

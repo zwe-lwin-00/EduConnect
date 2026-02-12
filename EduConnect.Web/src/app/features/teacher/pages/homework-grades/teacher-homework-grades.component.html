@@ -1,4 +1,4 @@
-<div class="teacher-homework-grades">
+<div class="teacher-homework-grades page-container">
   <div class="page-header-compact">
     <div>
       <h1>Homework &amp; Grades</h1>
@@ -8,24 +8,24 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <span class="text-color-secondary">Loading...</span>
+  </div>
 
   <ng-container *ngIf="!loading && !error">
     <p-card styleClass="filter-card">
-      <div class="filter-bar">
+      <div class="filter-bar flex gap-2 flex-wrap align-items-center">
         <label>Student:</label>
-        <select [(ngModel)]="filterStudentId" (ngModelChange)="onFilterChange()" class="p-inputtext filter-select">
-          <option [ngValue]="null">All students</option>
-          <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
-        </select>
+        <p-dropdown appendTo="body" [(ngModel)]="filterStudentId" [options]="studentFilterOptions" optionLabel="label" optionValue="value" (ngModelChange)="onFilterChange()" placeholder="All students" styleClass="filter-select" />
         <label>Homework due:</label>
-        <input pInputText type="date" [(ngModel)]="dueDateFrom" (ngModelChange)="onFilterChange()" class="filter-date" title="Due from" />
+        <p-calendar appendTo="body" [(ngModel)]="dueDateFromModel" (ngModelChange)="onFilterChange()" dateFormat="yy-mm-dd" placeholder="From" styleClass="filter-date" [style]="{ minWidth: '8rem' }" [maxDate]="maxDateForSince" />
         <span class="filter-sep">–</span>
-        <input pInputText type="date" [(ngModel)]="dueDateTo" (ngModelChange)="onFilterChange()" class="filter-date" title="Due to" />
+        <p-calendar appendTo="body" [(ngModel)]="dueDateToModel" (ngModelChange)="onFilterChange()" dateFormat="yy-mm-dd" placeholder="To" styleClass="filter-date" [style]="{ minWidth: '8rem' }" />
         <label>Grade date:</label>
-        <input pInputText type="date" [(ngModel)]="gradeDateFrom" (ngModelChange)="onFilterChange()" class="filter-date" title="Grade date from" />
+        <p-calendar appendTo="body" [(ngModel)]="gradeDateFromModel" (ngModelChange)="onFilterChange()" dateFormat="yy-mm-dd" placeholder="From" styleClass="filter-date" [style]="{ minWidth: '8rem' }" [maxDate]="maxDateForSince" />
         <span class="filter-sep">–</span>
-        <input pInputText type="date" [(ngModel)]="gradeDateTo" (ngModelChange)="onFilterChange()" class="filter-date" title="Grade date to" />
+        <p-calendar appendTo="body" [(ngModel)]="gradeDateToModel" (ngModelChange)="onFilterChange()" dateFormat="yy-mm-dd" placeholder="To" styleClass="filter-date" [style]="{ minWidth: '8rem' }" />
         <p-button label="Clear dates" [outlined]="true" severity="secondary" (onClick)="clearDateFilters()" />
       </div>
     </p-card>
@@ -65,13 +65,11 @@
       </div>
     </p-card>
 
-    <p-dialog header="Assign homework" [(visible)]="showHomeworkForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeHomeworkForm()">
+    <p-dialog appendTo="body" header="Assign homework" [(visible)]="showHomeworkForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeHomeworkForm()">
       <div class="dialog-form">
         <div class="field">
           <label>Student *</label>
-          <select [(ngModel)]="homeworkForm.studentId" class="p-inputtext w-full">
-            <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
-          </select>
+          <p-dropdown appendTo="body" [(ngModel)]="homeworkForm.studentId" [options]="studentOptions" optionLabel="label" optionValue="value" placeholder="Select student" styleClass="w-full" />
         </div>
         <div class="field">
           <label>Title *</label>
@@ -79,11 +77,11 @@
         </div>
         <div class="field">
           <label>Description</label>
-          <textarea pInputText [(ngModel)]="homeworkForm.description" class="w-full" rows="3"></textarea>
+          <textarea pTextarea [(ngModel)]="homeworkForm.description" class="w-full" rows="3"></textarea>
         </div>
         <div class="field">
           <label>Due date *</label>
-          <input pInputText type="date" [(ngModel)]="homeworkForm.dueDate" class="w-full" />
+          <p-calendar appendTo="body" [(ngModel)]="homeworkDueDateModel" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="w-full" />
         </div>
       </div>
       <ng-template pTemplate="footer">
@@ -92,13 +90,11 @@
       </ng-template>
     </p-dialog>
 
-    <p-dialog header="Add grade" [(visible)]="showGradeForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGradeForm()">
+    <p-dialog appendTo="body" header="Add grade" [(visible)]="showGradeForm" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGradeForm()">
       <div class="dialog-form">
         <div class="field">
           <label>Student *</label>
-          <select [(ngModel)]="gradeForm.studentId" class="p-inputtext w-full">
-            <option *ngFor="let s of students" [ngValue]="s.studentId">{{ s.studentName }} ({{ s.contractIdDisplay }})</option>
-          </select>
+          <p-dropdown appendTo="body" [(ngModel)]="gradeForm.studentId" [options]="studentOptions" optionLabel="label" optionValue="value" placeholder="Select student" styleClass="w-full" />
         </div>
         <div class="field">
           <label>Title *</label>
@@ -110,15 +106,15 @@
         </div>
         <div class="field">
           <label>Max value (optional)</label>
-          <input pInputText type="number" [(ngModel)]="gradeForm.maxValue" class="w-full" placeholder="e.g. 100" min="0" step="0.01" />
+          <p-inputNumber [(ngModel)]="gradeForm.maxValue" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" placeholder="e.g. 100" styleClass="w-full" inputStyleClass="w-full" />
         </div>
         <div class="field">
           <label>Date *</label>
-          <input pInputText type="date" [(ngModel)]="gradeForm.gradeDate" class="w-full" />
+          <p-calendar appendTo="body" [(ngModel)]="gradeDateFormModel" dateFormat="yy-mm-dd" placeholder="Select date" styleClass="w-full" />
         </div>
         <div class="field">
           <label>Notes</label>
-          <textarea pInputText [(ngModel)]="gradeForm.notes" class="w-full" rows="2"></textarea>
+          <textarea pTextarea [(ngModel)]="gradeForm.notes" class="w-full" rows="2"></textarea>
         </div>
       </div>
       <ng-template pTemplate="footer">
@@ -127,11 +123,11 @@
       </ng-template>
     </p-dialog>
 
-    <p-dialog header="Mark as graded – Add feedback" [visible]="gradingHomeworkId != null" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGrading()" *ngIf="gradingHomeworkId">
+    <p-dialog appendTo="body" header="Mark as graded – Add feedback" [visible]="gradingHomeworkId != null" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeGrading()" *ngIf="gradingHomeworkId">
       <div class="dialog-form">
         <div class="field">
           <label>Teacher feedback (optional)</label>
-          <textarea pInputText [(ngModel)]="gradingFeedback" class="w-full" rows="4" placeholder="Feedback for the student/parent"></textarea>
+          <textarea pTextarea [(ngModel)]="gradingFeedback" class="w-full" rows="4" placeholder="Feedback for the student/parent"></textarea>
         </div>
       </div>
       <ng-template pTemplate="footer">

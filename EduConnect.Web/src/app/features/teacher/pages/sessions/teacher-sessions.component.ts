@@ -7,6 +7,9 @@ import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { TextareaModule } from 'primeng/textarea';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { TeacherSessionItemDto, GroupClassDto, GroupSessionDto } from '../../../../core/models/teacher.model';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -15,7 +18,7 @@ import { DisplayDatePipe } from '../../../../shared/pipes/display-date.pipe';
 @Component({
   selector: 'app-teacher-sessions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, CardModule, DialogModule, MessageModule, InputTextModule, DisplayDatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonModule, CardModule, DialogModule, MessageModule, InputTextModule, DropdownModule, TextareaModule, ProgressSpinnerModule, DisplayDatePipe],
   templateUrl: './teacher-sessions.component.html',
   styleUrl: './teacher-sessions.component.css'
 })
@@ -33,6 +36,10 @@ export class TeacherSessionsComponent implements OnInit {
   checkingInGroupClassId: number | null = null;
   checkingOutGroupSession: GroupSessionDto | null = null;
   groupLessonNotes = '';
+
+  get groupClassOptions(): { label: string; value: number }[] {
+    return this.startableGroupClasses.map(gc => ({ label: `${gc.name} (${gc.enrolledCount} enrolled)`, value: gc.id }));
+  }
 
   constructor(
     private teacherService: TeacherService,

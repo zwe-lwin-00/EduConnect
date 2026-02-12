@@ -1,4 +1,4 @@
-<div class="admin-group-classes">
+<div class="admin-group-classes page-container">
   <div class="page-header-compact">
     <div>
       <h1>Group classes</h1>
@@ -9,7 +9,7 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <p-card>
+  <p-card styleClass="table-card">
     <p-table
       [value]="groupClasses"
       [loading]="loading"
@@ -18,6 +18,7 @@
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} classes"
       [showCurrentPageReport]="true">
       <ng-template pTemplate="header">
         <tr>
@@ -61,6 +62,7 @@
   </p-card>
 
   <p-dialog
+    appendTo="body"
     header="Create group class"
     [(visible)]="showCreate"
     [modal]="true"
@@ -75,20 +77,24 @@
       </div>
       <div class="field">
         <label>Assign teacher *</label>
-        <select [(ngModel)]="newTeacherId" class="p-inputtext w-full">
-          <option [ngValue]="null">-- Select teacher --</option>
-          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-        </select>
+        <p-dropdown appendTo="body" [(ngModel)]="newTeacherId" [options]="teacherOptions" optionLabel="label" optionValue="value" placeholder="Select teacher" styleClass="w-full" />
       </div>
       <div class="field">
         <label>Days of week</label>
-        <div class="days-checkboxes">
-          <label *ngFor="let d of dayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onNewDayChange()" /> {{ d.label }}</label>
+        <div class="days-checkboxes flex gap-2 flex-wrap">
+          <div *ngFor="let d of dayOptions" class="flex align-items-center gap-1">
+            <p-checkbox [inputId]="'new-day-' + d.value" [(ngModel)]="d.checked" (ngModelChange)="onNewDayChange()" [binary]="true" />
+            <label [for]="'new-day-' + d.value" class="day-check">{{ d.label }}</label>
+          </div>
         </div>
       </div>
       <div class="field form-row">
-        <div><label>Start time</label><input pInputText type="time" [(ngModel)]="newStartTime" class="w-full" /></div>
-        <div><label>End time</label><input pInputText type="time" [(ngModel)]="newEndTime" class="w-full" /></div>
+        <div class="field"><label>From date</label><p-calendar appendTo="body" [(ngModel)]="newFromDate" [minDate]="createFromDateMin" dateFormat="yy-mm-dd" placeholder="Optional" styleClass="w-full" (ngModelChange)="onNewFromDateChange()" /></div>
+        <div class="field"><label>To date</label><p-calendar appendTo="body" [(ngModel)]="newToDate" [minDate]="createToDateMin" dateFormat="yy-mm-dd" placeholder="Optional" styleClass="w-full" /></div>
+      </div>
+      <div class="field form-row">
+        <div class="field"><label>Start time</label><p-calendar [(ngModel)]="newStartTime" [timeOnly]="true" hourFormat="12" placeholder="Start" styleClass="w-full" /></div>
+        <div class="field"><label>End time</label><p-calendar [(ngModel)]="newEndTime" [timeOnly]="true" hourFormat="12" placeholder="End" styleClass="w-full" /></div>
       </div>
     </div>
     <ng-template pTemplate="footer">
@@ -98,6 +104,7 @@
   </p-dialog>
 
   <p-dialog
+    appendTo="body"
     header="Edit group class"
     [(visible)]="showEdit"
     [modal]="true"
@@ -113,22 +120,28 @@
       </div>
       <div class="field">
         <label>Assign teacher *</label>
-        <select [(ngModel)]="editTeacherId" class="p-inputtext w-full">
-          <option *ngFor="let t of teachers" [ngValue]="t.id">{{ t.firstName }} {{ t.lastName }}</option>
-        </select>
+        <p-dropdown appendTo="body" [(ngModel)]="editTeacherId" [options]="teacherOptions" optionLabel="label" optionValue="value" placeholder="Select teacher" styleClass="w-full" />
       </div>
       <div class="field">
         <label>Days of week</label>
-        <div class="days-checkboxes">
-          <label *ngFor="let d of editDayOptions" class="day-check"><input type="checkbox" [value]="d.value" [(ngModel)]="d.checked" (ngModelChange)="onEditDayChange()" /> {{ d.label }}</label>
+        <div class="days-checkboxes flex gap-2 flex-wrap">
+          <div *ngFor="let d of editDayOptions" class="flex align-items-center gap-1">
+            <p-checkbox [inputId]="'edit-day-' + d.value" [(ngModel)]="d.checked" (ngModelChange)="onEditDayChange()" [binary]="true" />
+            <label [for]="'edit-day-' + d.value" class="day-check">{{ d.label }}</label>
+          </div>
         </div>
       </div>
       <div class="field form-row">
-        <div><label>Start time</label><input pInputText type="time" [(ngModel)]="editStartTime" class="w-full" /></div>
-        <div><label>End time</label><input pInputText type="time" [(ngModel)]="editEndTime" class="w-full" /></div>
+        <div class="field"><label>From date</label><p-calendar appendTo="body" [(ngModel)]="editFromDate" [minDate]="editFromDateMin" dateFormat="yy-mm-dd" placeholder="Optional" styleClass="w-full" (ngModelChange)="onEditFromDateChange()" /></div>
+        <div class="field"><label>To date</label><p-calendar appendTo="body" [(ngModel)]="editToDate" [minDate]="editToDateMin" dateFormat="yy-mm-dd" placeholder="Optional" styleClass="w-full" /></div>
       </div>
-      <div class="field">
-        <label class="checkbox-label"><input type="checkbox" [(ngModel)]="editIsActive" /> Active</label>
+      <div class="field form-row">
+        <div class="field"><label>Start time</label><p-calendar [(ngModel)]="editStartTime" [timeOnly]="true" hourFormat="12" placeholder="Start" styleClass="w-full" /></div>
+        <div class="field"><label>End time</label><p-calendar [(ngModel)]="editEndTime" [timeOnly]="true" hourFormat="12" placeholder="End" styleClass="w-full" /></div>
+      </div>
+      <div class="field flex align-items-center gap-2">
+        <p-checkbox [(ngModel)]="editIsActive" [binary]="true" inputId="editIsActive" />
+        <label for="editIsActive" class="checkbox-label">Active</label>
       </div>
     </div>
     <ng-template pTemplate="footer">
@@ -138,6 +151,7 @@
   </p-dialog>
 
   <p-dialog
+    appendTo="body"
     [header]="selectedClass.name + ' – Students'"
     [(visible)]="showEnrollments"
     [modal]="true"
@@ -148,22 +162,16 @@
     <div class="enrollments-content">
       <div class="enroll-section">
         <span class="enroll-section-label">By Group subscription</span>
-        <div class="add-enroll-inline" *ngIf="assignableGroupSubscriptions.length > 0">
-          <select [(ngModel)]="enrollSubscriptionId" class="p-inputtext inline-select" (ngModelChange)="enrollContractId = null">
-            <option [ngValue]="null">Select student with Group subscription...</option>
-            <option *ngFor="let sub of assignableGroupSubscriptions" [ngValue]="sub.id">{{ subscriptionOptionLabel(sub) }}</option>
-          </select>
+        <div class="add-enroll-inline flex gap-2 flex-wrap" *ngIf="assignableGroupSubscriptions.length > 0">
+          <p-dropdown appendTo="body" [(ngModel)]="enrollSubscriptionId" [options]="enrollSubscriptionOptions" optionLabel="label" optionValue="value" placeholder="Select student with Group subscription..." styleClass="inline-select" (ngModelChange)="enrollContractId = null" [style]="{ minWidth: '16rem' }" />
           <p-button label="Enroll" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollSubscriptionId" />
         </div>
         <p class="hint small" *ngIf="assignableGroupSubscriptions.length === 0">No students with active Group subscription (or all are already enrolled). Add Group subscriptions on the Subscriptions page.</p>
       </div>
       <div class="enroll-section">
         <span class="enroll-section-label">By One-to-one contract (same teacher)</span>
-        <div class="add-enroll-inline" *ngIf="assignableContracts.length > 0">
-          <select [(ngModel)]="enrollContractId" class="p-inputtext inline-select" (ngModelChange)="enrollSubscriptionId = null">
-            <option [ngValue]="null">Select contract...</option>
-            <option *ngFor="let c of assignableContracts" [ngValue]="c.id">{{ c.studentName }} – {{ c.contractId }}</option>
-          </select>
+        <div class="add-enroll-inline flex gap-2 flex-wrap" *ngIf="assignableContracts.length > 0">
+          <p-dropdown appendTo="body" [(ngModel)]="enrollContractId" [options]="enrollContractOptions" optionLabel="label" optionValue="value" placeholder="Select contract..." styleClass="inline-select" (ngModelChange)="enrollSubscriptionId = null" [style]="{ minWidth: '16rem' }" />
           <p-button label="Enroll" icon="pi pi-plus" (onClick)="enroll()" [loading]="enrolling" [disabled]="!enrollContractId" />
         </div>
         <p class="hint small" *ngIf="assignableContracts.length === 0 && assignableGroupSubscriptions.length === 0 && enrollments.length > 0">All eligible students are enrolled.</p>

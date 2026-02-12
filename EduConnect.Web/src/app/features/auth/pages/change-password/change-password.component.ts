@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../../../core/services/auth.service';
 
 function confirmPasswordValidator(): ValidatorFn {
@@ -17,7 +21,7 @@ function confirmPasswordValidator(): ValidatorFn {
 @Component({
   selector: 'app-change-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, InputTextModule, ButtonModule, CardModule, MessageModule],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.css'
 })

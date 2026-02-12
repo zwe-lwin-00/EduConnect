@@ -1,4 +1,4 @@
-<div class="teacher-availability">
+<div class="teacher-availability page-container">
   <div class="page-header-compact">
     <div>
       <h1>Availability Management</h1>
@@ -8,7 +8,10 @@
 
   <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-3" />
 
-  <div *ngIf="loading" class="p-4 text-center text-color-secondary"><i class="pi pi-spin pi-spinner mr-2"></i>Loading...</div>
+  <div *ngIf="loading" class="empty-table-message">
+    <p-progressSpinner strokeWidth="4" styleClass="mb-2" [style]="{ width: '40px', height: '40px' }" />
+    <span class="text-color-secondary">Loading...</span>
+  </div>
 
   <p-card *ngIf="!loading" header="Week view">
     <div class="slots-actions mb-3">
@@ -21,13 +24,11 @@
       <ng-template pTemplate="body" let-a let-rowIndex="rowIndex">
         <tr>
           <td>
-            <select [(ngModel)]="a.dayOfWeek" class="p-inputtext p-inputtext-sm w-full">
-              <option *ngFor="let d of days" [ngValue]="d.value">{{ d.label }}</option>
-            </select>
+            <p-dropdown appendTo="body" [(ngModel)]="a.dayOfWeek" [options]="days" optionLabel="label" optionValue="value" styleClass="p-inputtext-sm w-full" [style]="{ minWidth: '8rem' }" />
           </td>
-          <td><input pInputText type="time" [(ngModel)]="a.startTime" class="p-inputtext p-inputtext-sm" /></td>
-          <td><input pInputText type="time" [(ngModel)]="a.endTime" class="p-inputtext p-inputtext-sm" /></td>
-          <td><input type="checkbox" [(ngModel)]="a.isAvailable" /></td>
+          <td><p-calendar appendTo="body" [(ngModel)]="a.startTimeModel" [timeOnly]="true" hourFormat="12" styleClass="p-inputtext-sm" [style]="{ minWidth: '7rem' }" /></td>
+          <td><p-calendar appendTo="body" [(ngModel)]="a.endTimeModel" [timeOnly]="true" hourFormat="12" styleClass="p-inputtext-sm" [style]="{ minWidth: '7rem' }" /></td>
+          <td><p-checkbox [(ngModel)]="a.isAvailable" [binary]="true" /></td>
           <td><p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="removeSlot(rowIndex)" title="Remove" /></td>
         </tr>
       </ng-template>

@@ -1,8 +1,7 @@
 // Parent's view of their child (student) — Master Doc 11C Phase 1. No student login.
 export interface ParentStudentDto {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   gradeLevel: string;
   subscriptionValidUntil?: string | null;
   assignedTeacherName?: string;

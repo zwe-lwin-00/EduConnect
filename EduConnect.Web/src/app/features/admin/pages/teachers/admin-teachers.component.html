@@ -1,4 +1,4 @@
-<div class="admin-teachers">
+<div class="admin-teachers page-container">
   <div class="page-header-compact">
     <div>
       <h1>Teachers</h1>
@@ -6,8 +6,8 @@
     </div>
   </div>
 
-  <p-card>
-    <p-toolbar styleClass="mb-2">
+  <p-card styleClass="table-card">
+    <p-toolbar>
       <ng-template pTemplate="start">
         <p-button label="Onboard teacher" icon="pi pi-plus" severity="success" (onClick)="openOnboardPopup()" />
       </ng-template>
@@ -22,7 +22,7 @@
       #dt
       [value]="teachers"
       [loading]="loading"
-      [globalFilterFields]="['firstName','lastName','email']"
+      [globalFilterFields]="['fullName','email']"
       [tableStyle]="{ 'min-width': '56rem' }"
       styleClass="p-datatable-gridlines p-datatable-striped"
       [paginator]="true"
@@ -33,8 +33,7 @@
       <ng-template pTemplate="header">
         <tr>
           <th style="width:3rem">#</th>
-          <th>First name</th>
-          <th>Last name</th>
+          <th>Name</th>
           <th>Email</th>
           <th>Phone</th>
           <th>Education</th>
@@ -46,8 +45,7 @@
       <ng-template pTemplate="body" let-t let-rowIndex="rowIndex">
         <tr>
           <td>{{ rowIndex + 1 }}</td>
-          <td>{{ t.firstName }}</td>
-          <td>{{ t.lastName }}</td>
+          <td>{{ t.fullName }}</td>
           <td>{{ t.email }}</td>
           <td>{{ t.phoneNumber }}</td>
           <td>{{ t.educationLevel }}</td>
@@ -66,7 +64,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="9">
+          <td colspan="8">
             <div class="empty-table-message">
               <i class="pi pi-users empty-icon"></i>
               <p>No teachers found.</p>
@@ -78,39 +76,41 @@
     </p-table>
   </p-card>
 
-  <p-dialog header="Onboard new teacher" [(visible)]="showOnboardPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeOnboardPopup()">
+  <p-dialog appendTo="body" header="Onboard new teacher" [(visible)]="showOnboardPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeOnboardPopup()">
     <form [formGroup]="onboardForm" (ngSubmit)="onSubmitOnboard()" class="dialog-form">
       <div class="field">
-        <label class="label-required">Email <span class="required-asterisk">*</span></label>
-        <input pInputText type="email" formControlName="email" class="w-full" />
+        <label class="label-required" for="onboard-email">Email <span class="required-asterisk">*</span></label>
+        <input pInputText id="onboard-email" type="email" formControlName="email" class="w-full" [class.p-invalid]="onboardForm.get('email')?.invalid && onboardForm.get('email')?.touched" />
+        <small class="p-error" *ngIf="onboardForm.get('email')?.hasError('required') && onboardForm.get('email')?.touched">Email is required</small>
+        <small class="p-error" *ngIf="onboardForm.get('email')?.hasError('email') && onboardForm.get('email')?.touched">Enter a valid email</small>
       </div>
       <div class="field">
-        <label class="label-required">First name <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="firstName" class="w-full" />
+        <label class="label-required" for="onboard-fullName">Full name <span class="required-asterisk">*</span></label>
+        <input pInputText id="onboard-fullName" type="text" formControlName="fullName" class="w-full" [class.p-invalid]="onboardForm.get('fullName')?.invalid && onboardForm.get('fullName')?.touched" />
+        <small class="p-error" *ngIf="onboardForm.get('fullName')?.invalid && onboardForm.get('fullName')?.touched">Full name is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Last name <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="lastName" class="w-full" />
+        <label class="label-required" for="onboard-phone">Phone <span class="required-asterisk">*</span></label>
+        <input pInputText id="onboard-phone" type="text" formControlName="phoneNumber" class="w-full" [class.p-invalid]="onboardForm.get('phoneNumber')?.invalid && onboardForm.get('phoneNumber')?.touched" />
+        <small class="p-error" *ngIf="onboardForm.get('phoneNumber')?.invalid && onboardForm.get('phoneNumber')?.touched">Phone is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Phone <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="phoneNumber" class="w-full" />
+        <label class="label-required" for="onboard-nrc">NRC <span class="required-asterisk">*</span></label>
+        <input pInputText id="onboard-nrc" type="text" formControlName="nrcNumber" class="w-full" [class.p-invalid]="onboardForm.get('nrcNumber')?.invalid && onboardForm.get('nrcNumber')?.touched" />
+        <small class="p-error" *ngIf="onboardForm.get('nrcNumber')?.invalid && onboardForm.get('nrcNumber')?.touched">NRC is required</small>
       </div>
       <div class="field">
-        <label class="label-required">NRC <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="nrcNumber" class="w-full" />
+        <label class="label-required" for="onboard-education">Education <span class="required-asterisk">*</span></label>
+        <input pInputText id="onboard-education" type="text" formControlName="educationLevel" class="w-full" [class.p-invalid]="onboardForm.get('educationLevel')?.invalid && onboardForm.get('educationLevel')?.touched" />
+        <small class="p-error" *ngIf="onboardForm.get('educationLevel')?.invalid && onboardForm.get('educationLevel')?.touched">Education is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Education <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="educationLevel" class="w-full" />
+        <label class="label-optional" for="onboard-bio">Bio <span class="optional-badge">Optional</span></label>
+        <textarea pTextarea id="onboard-bio" formControlName="bio" class="w-full" rows="3"></textarea>
       </div>
       <div class="field">
-        <label class="label-optional">Bio <span class="optional-badge">Optional</span></label>
-        <textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea>
-      </div>
-      <div class="field">
-        <label class="label-optional">Specializations <span class="optional-badge">Optional</span></label>
-        <input pInputText type="text" formControlName="specializations" class="w-full" />
+        <label class="label-optional" for="onboard-specializations">Specializations <span class="optional-badge">Optional</span></label>
+        <input pInputText id="onboard-specializations" type="text" formControlName="specializations" class="w-full" />
       </div>
     </form>
     <ng-template pTemplate="footer">
@@ -119,7 +119,7 @@
     </ng-template>
   </p-dialog>
 
-  <p-dialog header="Share credentials" [(visible)]="showCredentialsPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeCredentialsPopup()">
+  <p-dialog appendTo="body" header="Share credentials" [(visible)]="showCredentialsPopup" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeCredentialsPopup()">
     <p class="mb-4">{{ credentialsNote }}</p>
     <div class="field"><label>Email</label><input pInputText type="text" [value]="credentialsEmail" readonly class="w-full" #emailInput (click)="emailInput.select()" /></div>
     <div class="field"><label>Temporary password</label><input pInputText type="text" [value]="credentialsPassword" readonly class="w-full" #pwdInput (click)="pwdInput.select()" /></div>
@@ -132,31 +132,30 @@
     </ng-template>
   </p-dialog>
 
-  <p-dialog header="Edit teacher" [(visible)]="showEditPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeEditPopup()">
+  <p-dialog appendTo="body" header="Edit teacher" [(visible)]="showEditPopup" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeEditPopup()">
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()" class="dialog-form">
       <div class="field">
-        <label class="label-required">First name <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="firstName" class="w-full" />
+        <label class="label-required" for="edit-fullName">Full name <span class="required-asterisk">*</span></label>
+        <input pInputText id="edit-fullName" type="text" formControlName="fullName" class="w-full" [class.p-invalid]="editForm.get('fullName')?.invalid && editForm.get('fullName')?.touched" />
+        <small class="p-error" *ngIf="editForm.get('fullName')?.invalid && editForm.get('fullName')?.touched">Full name is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Last name <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="lastName" class="w-full" />
+        <label class="label-required" for="edit-phone">Phone <span class="required-asterisk">*</span></label>
+        <input pInputText id="edit-phone" type="text" formControlName="phoneNumber" class="w-full" [class.p-invalid]="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched" />
+        <small class="p-error" *ngIf="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched">Phone is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Phone <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="phoneNumber" class="w-full" />
+        <label class="label-required" for="edit-education">Education <span class="required-asterisk">*</span></label>
+        <input pInputText id="edit-education" type="text" formControlName="educationLevel" class="w-full" [class.p-invalid]="editForm.get('educationLevel')?.invalid && editForm.get('educationLevel')?.touched" />
+        <small class="p-error" *ngIf="editForm.get('educationLevel')?.invalid && editForm.get('educationLevel')?.touched">Education is required</small>
       </div>
       <div class="field">
-        <label class="label-required">Education <span class="required-asterisk">*</span></label>
-        <input pInputText type="text" formControlName="educationLevel" class="w-full" />
+        <label class="label-optional" for="edit-bio">Bio <span class="optional-badge">Optional</span></label>
+        <textarea pTextarea id="edit-bio" formControlName="bio" class="w-full" rows="3"></textarea>
       </div>
       <div class="field">
-        <label class="label-optional">Bio <span class="optional-badge">Optional</span></label>
-        <textarea pInputText formControlName="bio" class="w-full" rows="3"></textarea>
-      </div>
-      <div class="field">
-        <label class="label-optional">Specializations <span class="optional-badge">Optional</span></label>
-        <input pInputText type="text" formControlName="specializations" class="w-full" />
+        <label class="label-optional" for="edit-specializations">Specializations <span class="optional-badge">Optional</span></label>
+        <input pInputText id="edit-specializations" type="text" formControlName="specializations" class="w-full" />
       </div>
     </form>
     <ng-template pTemplate="footer">
@@ -165,7 +164,7 @@
     </ng-template>
   </p-dialog>
 
-  <p-dialog [header]="selectedTeacher ? selectedTeacher.firstName + ' ' + selectedTeacher.lastName : 'Teacher'" [(visible)]="showTeacherDetails" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeTeacherDetails()">
+  <p-dialog appendTo="body" [header]="selectedTeacher ? selectedTeacher.fullName : 'Teacher'" [(visible)]="showTeacherDetails" [modal]="true" [style]="{ width: '32rem' }" [draggable]="false" (onHide)="closeTeacherDetails()">
     <ng-container *ngIf="selectedTeacher">
       <div class="detail-panel">
         <div class="detail-row"><strong>Email:</strong> {{ selectedTeacher.email }}</div>
@@ -188,8 +187,8 @@
     </ng-template>
   </p-dialog>
 
-  <p-dialog header="Reject teacher" [(visible)]="showRejectDialog" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRejectDialog()">
-    <p *ngIf="rejectTeacherTarget" class="mb-3">Reject {{ rejectTeacherTarget.firstName }} {{ rejectTeacherTarget.lastName }}? Enter the reason below.</p>
+  <p-dialog appendTo="body" header="Reject teacher" [(visible)]="showRejectDialog" [modal]="true" [style]="{ width: '28rem' }" [draggable]="false" (onHide)="closeRejectDialog()">
+    <p *ngIf="rejectTeacherTarget" class="mb-3">Reject {{ rejectTeacherTarget.fullName }}? Enter the reason below.</p>
     <div class="field">
       <label for="rejectReason">Reason</label>
       <input pInputText id="rejectReason" type="text" [(ngModel)]="rejectReason" class="w-full" placeholder="Rejection reason (required)" />

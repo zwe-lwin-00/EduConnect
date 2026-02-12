@@ -1,21 +1,22 @@
-.login-wrapper {
+/* Shared auth layout (matches change-password) */
+.auth-wrapper {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 1rem;
+  padding: 1.5rem;
   box-sizing: border-box;
 }
 
-.login-bg {
+.auth-bg {
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, var(--p-primary-500, #6366f1) 0%, var(--p-primary-700, #4338ca) 50%, var(--p-primary-900, #312e81) 100%);
   z-index: 0;
 }
 
-.login-bg::after {
+.auth-bg::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -23,31 +24,31 @@
   opacity: 0.6;
 }
 
-.login-content {
+.auth-content {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 420px;
 }
 
-.login-card {
+.auth-card {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-.login-card ::ng-deep .p-card-body {
+.auth-card ::ng-deep .p-card-body {
   padding: 2rem;
 }
 
-.login-header {
+.auth-header {
   text-align: center;
   padding: 0 0 1.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--p-surface-200);
 }
 
-.login-logo {
+.auth-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -60,18 +61,19 @@
   margin-bottom: 1rem;
 }
 
-.login-header h1 {
+.auth-header h1 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--p-text-color);
   letter-spacing: -0.02em;
 }
 
-.login-subtitle {
+.auth-subtitle {
   margin: 0.5rem 0 0;
   font-size: 0.9375rem;
   color: var(--p-text-color-secondary);
+  line-height: 1.45;
 }
 
 .field label.block { display: block; }

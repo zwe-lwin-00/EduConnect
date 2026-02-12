@@ -7,6 +7,8 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
+import { ToolbarModule } from 'primeng/toolbar';
+import { DropdownModule } from 'primeng/dropdown';
 import { AdminService } from '../../../../core/services/admin.service';
 import {
   Student,
@@ -31,7 +33,9 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     DialogModule,
     InputTextModule,
     CardModule,
-    TagModule
+    TagModule,
+    ToolbarModule,
+    DropdownModule
   ],
   templateUrl: './admin-payments.component.html',
   styleUrl: './admin-payments.component.css'
@@ -46,8 +50,13 @@ export class AdminPaymentsComponent implements OnInit {
   addSubscriptionForm: FormGroup;
   renewForm: FormGroup;
 
+  filterStudentId: number | null = null;
   filterType: number | null = null;
   filterStatus: number | null = 1; // default Active
+  get studentFilterOptions(): { label: string; value: number | null }[] {
+    const all: { label: string; value: number | null }[] = [{ label: 'All students', value: null }];
+    return all.concat(this.students.map(s => ({ label: this.studentLabel(s), value: s.id })));
+  }
   typeOptions = [
     { label: 'All types', value: null },
     { label: 'One-to-one', value: SubscriptionType.OneToOne },
@@ -59,6 +68,12 @@ export class AdminPaymentsComponent implements OnInit {
     { label: 'Expired', value: 4 }
   ];
   durationOptions = [1, 2, 3, 6, 12].map(m => ({ label: `${m} month(s)`, value: m }));
+  get studentDropdownOptions(): { label: string; value: number }[] {
+    return this.students.map(s => ({ label: this.studentLabel(s), value: s.id }));
+  }
+  get contractDropdownOptions(): { label: string; value: number }[] {
+    return this.contracts.map(c => ({ label: `${this.contractLabel(c)} – ${c.studentName}`, value: c.id }));
+  }
   creating = false;
   renewingSubscriptionId: number | null = null;
 
@@ -86,9 +101,10 @@ export class AdminPaymentsComponent implements OnInit {
 
   loadSubscriptions(): void {
     this.loading = true;
+    const studentId = this.filterStudentId ?? undefined;
     const type = this.filterType ?? undefined;
     const status = this.filterStatus ?? undefined;
-    this.adminService.getSubscriptions(undefined, type, status).subscribe({
+    this.adminService.getSubscriptions(studentId, type, status).subscribe({
       next: (data) => {
         this.subscriptions = data;
         this.loading = false;
@@ -240,6 +256,6 @@ export class AdminPaymentsComponent implements OnInit {
   }
 
   studentLabel(s: Student): string {
-    return `${s.firstName} ${s.lastName} (${s.gradeLevelName})`;
+    return `${s.fullName} (${s.gradeLevelName})`;
   }
 }

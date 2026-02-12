@@ -3,6 +3,7 @@ using EduConnect.Application.DTOs.Auth;
 using EduConnect.Application.Features.Auth.Interfaces;
 using EduConnect.Domain.Entities;
 using EduConnect.Infrastructure.Data;
+using EduConnect.Shared.Enums;
 using EduConnect.Shared.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -51,6 +52,29 @@ public class AuthService : IAuthService
             throw new BusinessException("Invalid email or password.", "INVALID_CREDENTIALS");
         }
 
+        // Teachers must be verified by admin before they can sign in
+        if (user.Role == UserRole.Teacher)
+        {
+            var teacherProfile = await _context.TeacherProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.UserId == user.Id);
+            if (teacherProfile == null)
+            {
+                _logger.WarningLog("Login failed: teacher has no profile");
+                throw new BusinessException("Your account is pending admin verification. You cannot sign in until an administrator has verified your account.", "TEACHER_PENDING_VERIFICATION");
+            }
+            if (teacherProfile.VerificationStatus == VerificationStatus.Pending)
+            {
+                _logger.WarningLog("Login failed: teacher not verified");
+                throw new BusinessException("Your account is pending admin verification. You cannot sign in until an administrator has verified your account.", "TEACHER_PENDING_VERIFICATION");
+            }
+            if (teacherProfile.VerificationStatus == VerificationStatus.Rejected)
+            {
+                _logger.WarningLog("Login failed: teacher rejected");
+                throw new BusinessException("Your teacher account has been rejected. Please contact the administrator.", "TEACHER_REJECTED");
+            }
+        }
+
         var token = GenerateJwtToken(user);
         var refreshTokenValue = GenerateRefreshToken();
         var refreshTokenHash = HashRefreshToken(refreshTokenValue);
@@ -75,8 +99,7 @@ public class AuthService : IAuthService
             {
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                FullName = user.FullName ?? string.Empty,
                 Role = user.Role.ToString(),
                 MustChangePassword = user.MustChangePassword
             }
@@ -102,6 +125,16 @@ public class AuthService : IAuthService
         var user = stored.User;
         if (user == null || !user.IsActive)
             throw new BusinessException("User is not active.", "USER_INACTIVE");
+
+        // Teachers must be verified to use the platform (same as login)
+        if (user.Role == UserRole.Teacher)
+        {
+            var teacherProfile = await _context.TeacherProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.UserId == user.Id);
+            if (teacherProfile == null || teacherProfile.VerificationStatus != VerificationStatus.Verified)
+                throw new BusinessException("Your account is not verified or has been rejected. Please contact the administrator.", "TEACHER_PENDING_VERIFICATION");
+        }
 
         // Revoke current refresh token (rotation)
         stored.RevokedAt = DateTime.UtcNow;
@@ -131,8 +164,7 @@ public class AuthService : IAuthService
             {
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                FullName = user.FullName ?? string.Empty,
                 Role = user.Role.ToString(),
                 MustChangePassword = user.MustChangePassword
             }
@@ -184,10 +216,9 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-            new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("FirstName", user.FirstName),
-            new Claim("LastName", user.LastName)
+            new Claim("FullName", user.FullName ?? string.Empty)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

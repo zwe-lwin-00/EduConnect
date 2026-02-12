@@ -57,7 +57,7 @@ public class HomeworkService : IHomeworkService
         _context.Homeworks.Add(homework);
         await _context.SaveChangesAsync();
 
-        var studentName = $"{student.FirstName} {student.LastName}";
+        var studentName = student.FullName ?? "";
         await _notificationService.CreateForUserAsync(student.ParentId, "New homework for " + studentName, $"{request.Title}. Due {request.DueDate:dd MMM yyyy}.", NotificationType.HomeworkAssigned, "Homework", homework.Id);
 
         return MapToHomeworkDto(homework, student, teacher, contract);
@@ -154,7 +154,7 @@ public class HomeworkService : IHomeworkService
         _context.StudentGrades.Add(grade);
         await _context.SaveChangesAsync();
 
-        var studentName = $"{student.FirstName} {student.LastName}";
+        var studentName = student.FullName ?? "";
         await _notificationService.CreateForUserAsync(student.ParentId, "New grade recorded", $"{request.Title}: {request.GradeValue}" + (request.MaxValue.HasValue ? $"/{request.MaxValue}" : "") + $" for {studentName}.", NotificationType.GradeRecorded, "Grade", grade.Id);
 
         return MapToGradeDto(grade, student, teacher, contract);
@@ -207,9 +207,9 @@ public class HomeworkService : IHomeworkService
         {
             Id = h.Id,
             StudentId = h.StudentId,
-            StudentName = $"{student.FirstName} {student.LastName}",
+            StudentName = student.FullName ?? "",
             TeacherId = h.TeacherId,
-            TeacherName = $"{teacher.User.FirstName} {teacher.User.LastName}",
+            TeacherName = teacher.User?.FullName ?? "",
             ContractSessionId = h.ContractSessionId,
             ContractIdDisplay = contract?.ContractId,
             Title = h.Title,
@@ -230,9 +230,9 @@ public class HomeworkService : IHomeworkService
         {
             Id = g.Id,
             StudentId = g.StudentId,
-            StudentName = $"{student.FirstName} {student.LastName}",
+            StudentName = student.FullName ?? "",
             TeacherId = g.TeacherId,
-            TeacherName = $"{teacher.User.FirstName} {teacher.User.LastName}",
+            TeacherName = teacher.User?.FullName ?? "",
             ContractSessionId = g.ContractSessionId,
             ContractIdDisplay = contract?.ContractId,
             Title = g.Title,

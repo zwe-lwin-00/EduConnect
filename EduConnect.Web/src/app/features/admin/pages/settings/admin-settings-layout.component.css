@@ -1,0 +1,60 @@
+.admin-settings-layout .page-header-compact {
+  margin-bottom: 0.5rem;
+}
+
+.admin-settings-layout .page-desc-short {
+  color: var(--p-text-color-secondary);
+  margin-top: 0.25rem;
+}
+
+.admin-settings-layout .settings-subnav {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--p-surface-200);
+}
+
+.admin-settings-layout .settings-subnav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--p-border-radius);
+  color: var(--p-text-color);
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-settings-layout .settings-subnav a:hover {
+  background: var(--p-surface-100);
+  color: var(--p-primary-color);
+}
+
+.admin-settings-layout .settings-subnav a.active {
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast);
+}
+
+.admin-settings-layout .settings-content {
+  margin-top: 0;
+}
+
+.admin-settings-layout .settings-content .mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.admin-settings-layout .settings-content .ml-3 {
+  margin-left: 0.75rem;
+}
+
+.admin-settings-layout .settings-content .mr-2 {
+  margin-right: 0.5rem;
+}
+
+.admin-settings-layout .settings-content code {
+  font-size: 0.9em;
+  background: var(--p-surface-200);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}

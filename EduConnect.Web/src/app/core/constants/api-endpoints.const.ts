@@ -45,6 +45,8 @@ export const API_ENDPOINTS = {
     SETTINGS_HOLIDAYS: '/admin/settings/holidays',
     SETTINGS_HOLIDAY_BY_ID: (id: number) => `/admin/settings/holidays/${id}`,
     SETTINGS_SYSTEM: '/admin/settings/system',
+    SETTINGS_CLASS_PRICES: '/admin/settings/class-prices',
+    SETTINGS_CLASS_PRICE_DELETE: (id: number) => `/admin/settings/class-prices/${id}`,
     RESET_TEACHER_PASSWORD: (id: number) => `/admin/teachers/${id}/reset-password`,
     VERIFY_TEACHER: (id: number) => `/admin/teachers/${id}/verify`,
     REJECT_TEACHER: (id: number) => `/admin/teachers/${id}/reject`

@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TeacherService } from '../../../../core/services/teacher.service';
 import { WeekSessionDto } from '../../../../core/models/teacher.model';
 import { MessageService } from 'primeng/api';
+import { Time12hPipe } from '../../../../shared/pipes/time12h.pipe';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -19,7 +21,7 @@ export interface CalendarDay {
 @Component({
   selector: 'app-teacher-calendar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, MessageModule],
+  imports: [CommonModule, ButtonModule, CardModule, MessageModule, ProgressSpinnerModule, Time12hPipe],
   templateUrl: './teacher-calendar.component.html',
   styleUrl: './teacher-calendar.component.css'
 })

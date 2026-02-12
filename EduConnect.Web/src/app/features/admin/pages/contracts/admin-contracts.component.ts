@@ -8,10 +8,14 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
 import { CardModule } from 'primeng/card';
+import { CalendarModule } from 'primeng/calendar';
+import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
 import { AdminService } from '../../../../core/services/admin.service';
 import { ContractDto, CreateContractRequest, Teacher, Student, SubscriptionDto, SubscriptionType } from '../../../../core/models/admin.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { formatTime12h } from '../../../../shared/utils/time.utils';
 
 @Component({
   selector: 'app-admin-contracts',
@@ -26,7 +30,10 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     DialogModule,
     TagModule,
     InputTextModule,
-    CardModule
+    CardModule,
+    CalendarModule,
+    DropdownModule,
+    CheckboxModule
   ],
   templateUrl: './admin-contracts.component.html',
   styleUrl: './admin-contracts.component.css'
@@ -52,11 +59,24 @@ export class AdminContractsComponent implements OnInit {
     { label: 'Expired', value: 4 }
   ];
 
+  statusFilterOptions: { label: string; value: number | null }[] = [
+    { label: 'All statuses', value: null },
+    { label: 'Active', value: 1 },
+    { label: 'Completed', value: 2 },
+    { label: 'Cancelled', value: 3 },
+    { label: 'Expired', value: 4 }
+  ];
+
   readonly DAY_LABELS: { value: number; label: string }[] = [
     { value: 1, label: 'Mon' }, { value: 2, label: 'Tue' }, { value: 3, label: 'Wed' },
     { value: 4, label: 'Thu' }, { value: 5, label: 'Fri' }, { value: 6, label: 'Sat' }, { value: 7, label: 'Sun' }
   ];
   createDayOptions: { value: number; label: string; checked: boolean }[] = [];
+
+  /** Cached min/max for date pickers (updated on subscription/start change) to avoid PrimeNG overlay lifecycle issues. */
+  startDateMinDate: Date | null = null;
+  subscriptionMaxDate: Date | null = null;
+  endDateMinDate: Date | null = null;
 
   constructor(
     private adminService: AdminService,
@@ -67,18 +87,89 @@ export class AdminContractsComponent implements OnInit {
     this.createForm = this.fb.group({
       subscriptionId: [null, Validators.required],
       teacherId: [null, Validators.required],
-      startDate: [''],
-      endDate: [''],
+      startDate: [null as Date | null],
+      endDate: [null as Date | null],
       daysOfWeek: [''],
-      startTime: [''],
-      endTime: ['']
+      startTime: [null as Date | null],
+      endTime: [null as Date | null]
     });
+  }
+
+  get teacherFilterOptions(): { label: string; value: number | null }[] {
+    return [{ label: 'All teachers', value: null }, ...this.teachers.map(t => ({ label: t.fullName, value: t.id }))];
+  }
+
+  get studentFilterOptions(): { label: string; value: number | null }[] {
+    return [{ label: 'All students', value: null }, ...this.students.map(s => ({ label: s.fullName, value: s.id }))];
+  }
+
+  get subscriptionDropdownOptions(): { label: string; value: number }[] {
+    return this.oneToOneSubscriptions.map(sub => ({ label: this.subscriptionOptionLabel(sub), value: sub.id }));
+  }
+
+  get teacherDropdownOptions(): { label: string; value: number }[] {
+    return this.teachers.map(t => ({ label: t.fullName, value: t.id }));
+  }
+
+  /** Selected subscription when creating a class; used to constrain Start/End date to subscription period. */
+  get selectedSubscription(): SubscriptionDto | null {
+    const subId = this.createForm.get('subscriptionId')?.value;
+    if (subId == null) return null;
+    return this.oneToOneSubscriptions.find(s => s.id === subId) ?? null;
+  }
+
+  /** Update cached date bounds for the date pickers (avoids getters triggering during overlay open). */
+  private updateDateBounds(): void {
+    const sub = this.selectedSubscription;
+    if (!sub?.startDate || !sub?.subscriptionPeriodEnd) {
+      this.startDateMinDate = null;
+      this.subscriptionMaxDate = null;
+      this.endDateMinDate = null;
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const subStart = this.parseDateOnly(sub.startDate);
+    const subEnd = this.parseDateOnly(sub.subscriptionPeriodEnd);
+    this.subscriptionMaxDate = subEnd;
+    this.startDateMinDate = subStart && subStart.getTime() > today.getTime() ? subStart : today;
+    const start = this.createForm.get('startDate')?.value as Date | null;
+    this.endDateMinDate = start && start instanceof Date ? start : this.startDateMinDate;
+  }
+
+  private parseDateOnly(isoOrYmd: string): Date | null {
+    if (!isoOrYmd?.trim()) return null;
+    const s = isoOrYmd.trim();
+    const part = s.split('T')[0] || s;
+    const [y, m, d] = part.split('-').map(Number);
+    if (isNaN(y)) return null;
+    return new Date(y, (m || 1) - 1, d || 1);
+  }
+
+  static timeToStr(d: Date | null | undefined): string {
+    if (!d || !(d instanceof Date)) return '';
+    const h = d.getHours();
+    const m = d.getMinutes();
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
 
   ngOnInit(): void {
     this.loadContracts();
     this.loadTeachers();
     this.loadStudents();
+    // When subscription changes, clear start/end dates and update date bounds (next tick to avoid calendar overlay lifecycle issues)
+    this.createForm.get('subscriptionId')?.valueChanges.subscribe(() => {
+      this.createForm.patchValue({ startDate: null, endDate: null }, { emitEvent: false });
+      setTimeout(() => this.updateDateBounds(), 0);
+    });
+    // When start date changes: clear end if before new start; update endDateMinDate
+    this.createForm.get('startDate')?.valueChanges.subscribe((start: Date | null) => {
+      const end = this.createForm.get('endDate')?.value as Date | null;
+      if (end && start && start instanceof Date && end instanceof Date && end < start) {
+        this.createForm.patchValue({ endDate: null }, { emitEvent: false });
+      }
+      setTimeout(() => this.updateDateBounds(), 0);
+    });
   }
 
   loadContracts(): void {
@@ -128,13 +219,16 @@ export class AdminContractsComponent implements OnInit {
     this.createForm.reset({
       subscriptionId: null,
       teacherId: null,
-      startDate: '',
-      endDate: '',
+      startDate: null,
+      endDate: null,
       daysOfWeek: '',
-      startTime: '',
-      endTime: ''
+      startTime: null,
+      endTime: null
     });
     this.createDayOptions = this.DAY_LABELS.map(d => ({ ...d, checked: false }));
+    this.startDateMinDate = null;
+    this.subscriptionMaxDate = null;
+    this.endDateMinDate = null;
   }
 
   onCreateDayChange(): void {
@@ -161,7 +255,7 @@ export class AdminContractsComponent implements OnInit {
   formatSchedule(c: ContractDto): string {
     if (!c.daysOfWeek && !c.startTime && !c.endTime) return '—';
     const days = c.daysOfWeek ? c.daysOfWeek.split(',').map(n => this.DAY_LABELS[+n - 1]?.label || n).join(', ') : '';
-    const time = (c.startTime || c.endTime) ? `${c.startTime || '?'}–${c.endTime || '?'}` : '';
+    const time = (c.startTime || c.endTime) ? `${formatTime12h(c.startTime) || '?'} – ${formatTime12h(c.endTime) || '?'}` : '';
     return [days, time].filter(Boolean).join(' · ') || '—';
   }
 
@@ -181,11 +275,11 @@ export class AdminContractsComponent implements OnInit {
         teacherId: +v.teacherId,
         studentId: sub.studentId,
         subscriptionId: sub.id,
-        startDate: v.startDate?.trim() || undefined,
-        endDate: v.endDate?.trim() || undefined,
+        startDate: v.startDate instanceof Date ? v.startDate.toISOString().slice(0, 10) : undefined,
+        endDate: v.endDate instanceof Date ? v.endDate.toISOString().slice(0, 10) : undefined,
         daysOfWeek: v.daysOfWeek?.trim() || undefined,
-        startTime: v.startTime?.trim() || undefined,
-        endTime: v.endTime?.trim() || undefined
+        startTime: AdminContractsComponent.timeToStr(v.startTime) || undefined,
+        endTime: AdminContractsComponent.timeToStr(v.endTime) || undefined
       };
       this.adminService.createContract(request).subscribe({
         next: () => {
